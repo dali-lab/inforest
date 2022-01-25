@@ -1,0 +1,6 @@
+{
+  "name": "@ong-forestry/schema",
+  "version": "1.0.0",
+  "license": "None",
+  "main": "src/index.ts"
+}
