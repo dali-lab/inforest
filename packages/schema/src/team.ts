@@ -1,7 +1,7 @@
 import {User} from "user"
 /**
  * Censusing Team
- * A group of users that census together (i.e. a research team). Allows for easy collaboration and review of census data.
+ * A group of users that census together (i.e. a research team). Allows for collaboration and review of census data.
  */
 export interface Team {
     // Team ID

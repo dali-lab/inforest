@@ -5,11 +5,11 @@ import {
   Model,
   PrimaryKey,
   Default,
-  ForeignKey,
-  BelongsTo,
+  BelongsToMany,
 } from "sequelize-typescript";
 import { User as IUser} from "@ong-forestry/schema";
 import Team from "./team"
+import Membership from "./membership";
 
 @Table({
   tableName: "users",
@@ -36,12 +36,8 @@ class User extends Model<IUser> implements IUser {
   @Column(DataTypes.BOOLEAN)
   verified?: boolean
 
-  @ForeignKey(() => Team)
-  @Column(DataTypes.INTEGER)
-  teamId?: number
-
-  @BelongsTo(() => Team)
-  team?: Team
+  @BelongsToMany(()=>Team,()=>Membership)
+  teams?: Team[]
 
 }
 

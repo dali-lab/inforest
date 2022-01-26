@@ -5,10 +5,11 @@ import {
   Model,
   PrimaryKey,
   Default,
-  HasMany,
+  BelongsToMany,
 } from "sequelize-typescript";
 import { Team as ITeam } from "@ong-forestry/schema";
 import User from "./user";
+import Membership from "./membership";
 
 @Table({
   tableName: "teams",
@@ -25,10 +26,10 @@ class Team extends Model<ITeam> implements ITeam {
     @Column(DataTypes.STRING)
     description?: string;
 
-    @HasMany(()=> User)
+    @BelongsToMany(()=>User,()=>Membership)
     admins?: User[]
 
-    @HasMany(()=>User)
+    @BelongsToMany(()=>User,()=>Membership)
     members?: User[]
 }
 
