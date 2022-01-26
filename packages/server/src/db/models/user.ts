@@ -6,8 +6,9 @@ import {
   PrimaryKey,
   Default,
   ForeignKey,
+  BelongsTo,
 } from "sequelize-typescript";
-import { User as IUser } from "@ong-forestry/schema";
+import { User as IUser} from "@ong-forestry/schema";
 import Team from "./team"
 
 @Table({
@@ -37,7 +38,10 @@ class User extends Model<IUser> implements IUser {
 
   @ForeignKey(() => Team)
   @Column(DataTypes.INTEGER)
-  team?: number
+  teamId?: number
+
+  @BelongsTo(() => Team)
+  team?: Team
 
 }
 
