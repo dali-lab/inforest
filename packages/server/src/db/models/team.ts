@@ -27,9 +27,6 @@ class Team extends Model<ITeam> implements ITeam {
     description?: string;
 
     @BelongsToMany(()=>User,()=>Membership)
-    admins?: User[]
-
-    @BelongsToMany(()=>User,()=>Membership)
     members?: User[]
 }
 

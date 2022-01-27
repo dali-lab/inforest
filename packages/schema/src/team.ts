@@ -10,9 +10,7 @@ export interface Team {
     name: string
     // Description / summary of team
     description: string
-    // List of admin Users, who will be able to review/revise data
-    admins: User[]
-    // List of non-admin Users, who will be able to contribute data to the Team
+    // List of non-admin Users, both admins and non-admins, who will be able to contribute data to the Team
     members: User[]
 
 }

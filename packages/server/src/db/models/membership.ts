@@ -3,8 +3,10 @@ import {
   Column,
   Model,
   ForeignKey,
+  PrimaryKey,
+  Default,
 } from "sequelize-typescript";
-import { Membership as IMembership } from "@ong-forestry/schema";
+import { Membership as IMembership, MembershipRoles } from "@ong-forestry/schema";
 import Team from "./team";
 import User from "./user"
 import { DataTypes } from "sequelize";
@@ -13,6 +15,11 @@ import { DataTypes } from "sequelize";
   tableName: "memberships",
 })
 class Membership extends Model<IMembership> implements IMembership {
+    @PrimaryKey
+    @Default(DataTypes.UUIDV4)
+    @Column({ type: DataTypes.UUID })
+    id?: string;
+
     @ForeignKey(() => Team)
     @Column(DataTypes.STRING)
     teamId?: string
@@ -20,6 +27,10 @@ class Membership extends Model<IMembership> implements IMembership {
     @ForeignKey(()=> User)
     @Column(DataTypes.STRING)
     userId?: string
+
+    // TODO: different DataType for ENUM?
+    @Column(DataTypes.STRING)
+    role?: MembershipRoles
 }
 
 export default Membership;

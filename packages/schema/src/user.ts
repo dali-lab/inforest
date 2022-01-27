@@ -15,8 +15,6 @@ export interface User {
     lastName: string
     // True if user has verified their account via email
     verified: boolean
-    // Teams user is a member of
-    memberTeams: Team[]
-    // Teams user is an admin of
-    adminTeams: Team[]
+    // Teams user is a member/admin of. 
+    teams: Team[]
 }

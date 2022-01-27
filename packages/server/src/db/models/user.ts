@@ -36,11 +36,8 @@ class User extends Model<IUser> implements IUser {
   @Column(DataTypes.BOOLEAN)
   verified?: boolean
 
-  @BelongsToMany(()=>Team,()=>Membership,"members")
-  memberTeams?: Team[]
-
-  @BelongsToMany(()=>Team,()=>Membership,"admins")
-  adminTeams?: Team[]
+  @BelongsToMany(()=>Team,()=>Membership)
+  teams?: Team[]
 
 }
 

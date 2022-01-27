@@ -4,8 +4,10 @@ const uuid = require("uuid4");
 
 module.exports = {
   async up (queryInterface, Sequelize) {
+    const robertTestUserId = uuid()
+    const rebeccaTestUserId = uuid()
     await queryInterface.bulkInsert("users", [{
-      id:uuid(),
+      id:robertTestUserId,
       email:"test@test.com",
       password:"kshdaskjdhaksjdhaksdnakjsdblakhsjdbahjsdkjad",
       firstName:"Robert",
@@ -14,7 +16,7 @@ module.exports = {
       createdAt: new Date(),
       updatedAt: new Date(),
     },{
-      id:uuid(),
+      id:rebeccaTestUserId,
       email:"fakeemail@emails.net",
       password:"asdasfgasdsdgkajsnjsndadasd",
       firstName:"Rebecca",
@@ -23,16 +25,34 @@ module.exports = {
       createdAt: new Date(),
       updatedAt: new Date(),
     }])
-    let e = await queryInterface.bulkInsert("teams", [
+    const happyTreeFriendsTeamId = uuid()
+    await queryInterface.bulkInsert("teams", [
       {
-        id:uuid(),
+        id:happyTreeFriendsTeamId,
         name:"Happy Tree Friends",
         description:"Just a bunch of happy tree friends who do forest censusing",
         createdAt: new Date(),
         updatedAt: new Date(),
       }
     ])
-    // TODO properly seed Many2Many memberships
+    await queryInterface.bulkInsert("memberships", [
+      {
+        id: uuid(),
+        teamId: happyTreeFriendsTeamId,
+        userId: robertTestUserId,
+        role: 'ADMIN',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: uuid(),
+        teamId: happyTreeFriendsTeamId,
+        userId: rebeccaTestUserId,
+        role: 'MEMBER',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }
+  ])
   },
 
   async down (queryInterface, Sequelize) {
