@@ -32,13 +32,12 @@ module.exports = {
         updatedAt: new Date(),
       }
     ])
-    // TODO properly seed Many2Many
+    // TODO properly seed Many2Many memberships
   },
 
   async down (queryInterface, Sequelize) {
     queryInterface.bulkDelete("teams", null, {});
     queryInterface.bulkDelete("users", null, {});
     queryInterface.bulkDelete("memberships", null, {});
-
   }
 };
