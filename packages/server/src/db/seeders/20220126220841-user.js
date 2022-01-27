@@ -23,7 +23,7 @@ module.exports = {
       createdAt: new Date(),
       updatedAt: new Date(),
     }])
-    await queryInterface.bulkInsert("teams", [
+    let e = await queryInterface.bulkInsert("teams", [
       {
         id:uuid(),
         name:"Happy Tree Friends",
@@ -32,25 +32,7 @@ module.exports = {
         updatedAt: new Date(),
       }
     ])
-    const users = await queryInterface.sequelize.query(
-      `SELECT id from USERS;`
-    );
-    const teams = await queryInterface.sequelize.query('SELECT id from TEAMS');
-    console.log(users,teams)
-    await queryInterface.bulkInsert("memberships", [
-      {
-        userId: users[0][0].id,
-        teamId:teams[0][0].id,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-      {
-        userId: users[0][1].id,
-        teamId:teams[0][0].id,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }
-    ])
+    // TODO properly seed Many2Many
   },
 
   async down (queryInterface, Sequelize) {
