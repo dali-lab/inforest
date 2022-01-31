@@ -6,6 +6,7 @@ import {
   PrimaryKey,
   Default,
   BelongsToMany,
+  AllowNull,
 } from "sequelize-typescript";
 import { User as IUser} from "@ong-forestry/schema";
 import Team from "./team"
@@ -21,9 +22,11 @@ class User extends Model<IUser> implements IUser {
   id?: string;
 
   @Column(DataTypes.STRING)
+  @AllowNull(false)
   email?: string;
 
   @Column(DataTypes.STRING)
+  @AllowNull(false)
   password?: string;
 
   @Column(DataTypes.STRING)
@@ -34,6 +37,7 @@ class User extends Model<IUser> implements IUser {
 
   @Default(false)
   @Column(DataTypes.BOOLEAN)
+  @AllowNull(false)
   verified?: boolean
 
   @BelongsToMany(()=>Team,()=>Membership)

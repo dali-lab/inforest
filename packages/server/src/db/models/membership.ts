@@ -5,6 +5,7 @@ import {
   ForeignKey,
   PrimaryKey,
   Default,
+  AllowNull,
 } from "sequelize-typescript";
 import { Membership as IMembership, MembershipRoles } from "@ong-forestry/schema";
 import Team from "./team";
@@ -31,6 +32,7 @@ class Membership extends Model<IMembership> implements IMembership {
     userId?: string
 
     @Column(DataTypes.ENUM({values:membershipRoles}))
+    @AllowNull(false)
     role?: MembershipRoles
 }
 

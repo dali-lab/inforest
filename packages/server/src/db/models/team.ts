@@ -6,6 +6,7 @@ import {
   PrimaryKey,
   Default,
   BelongsToMany,
+  AllowNull,
 } from "sequelize-typescript";
 import { Team as ITeam } from "@ong-forestry/schema";
 import User from "./user";
@@ -21,6 +22,7 @@ class Team extends Model<ITeam> implements ITeam {
     id?: string;
 
     @Column(DataTypes.STRING)
+    @AllowNull(false)
     name?: string;
 
     @Column(DataTypes.STRING)
