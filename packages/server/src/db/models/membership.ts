@@ -11,6 +11,8 @@ import Team from "./team";
 import User from "./user"
 import { DataTypes } from "sequelize";
 
+const membershipRoles = ["ADMIN","MEMBER"]
+
 @Table({
   tableName: "memberships",
 })
@@ -28,8 +30,7 @@ class Membership extends Model<IMembership> implements IMembership {
     @Column(DataTypes.STRING)
     userId?: string
 
-    // TODO: different DataType for ENUM?
-    @Column(DataTypes.STRING)
+    @Column(DataTypes.ENUM({values:membershipRoles}))
     role?: MembershipRoles
 }
 
