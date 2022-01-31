@@ -16,11 +16,17 @@ export interface Membership  {
     // The PK of the through table entity
     id:string
 
-    //The User to be connected
+    // The User to be connected
     user: User;
 
-    //The Team the User belongs to
+    // ID of connected user
+    userId: number;
+
+    // The Team the User belongs to
     team: Team;
+
+    // ID of connected team
+    teamId: number;
 
     // Role of the user within that specific team
     role: MembershipRoles
