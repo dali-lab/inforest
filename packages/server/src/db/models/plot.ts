@@ -24,19 +24,19 @@ class Plot extends Model<IPlot> implements IPlot {
   number: number;
 
   @Column(DataTypes.STRING)
-  name?: string;
+  name: string;
 
   @Column(DataTypes.FLOAT)
-  lat?: number;
+  lat: number;
 
   @Column(DataTypes.FLOAT)
-  long?: number;
+  long: number;
 
   @Column(DataTypes.FLOAT)
-  length?: number;
+  length: number;
 
   @Column(DataTypes.FLOAT)
-  width?: number;
+  width: number;
 }
 
 export default Plot;
