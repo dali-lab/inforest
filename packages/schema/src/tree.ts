@@ -1,4 +1,4 @@
-import { Plot } from "plot";
+import { Plot } from "./plot";
 
 /**
  * Recorded tree in the forest.
