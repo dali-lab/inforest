@@ -8,7 +8,7 @@ import {
   BelongsToMany,
   AllowNull,
 } from "sequelize-typescript";
-import { User as IUser} from "@ong-forestry/schema";
+import { User as IUser, Team as ITeam} from "@ong-forestry/schema";
 import Team from "./team"
 import Membership from "./membership";
 
@@ -41,7 +41,7 @@ class User extends Model<IUser> implements IUser {
   verified?: boolean
 
   @BelongsToMany(()=>Team,()=>Membership)
-  teams?: Team[]
+  teams?: ITeam[]
 
 }
 

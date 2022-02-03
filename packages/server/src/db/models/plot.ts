@@ -5,8 +5,11 @@ import {
   Model,
   PrimaryKey,
   Default,
+  ForeignKey,
+  BelongsTo,
 } from "sequelize-typescript";
-import { Plot as IPlot } from "@ong-forestry/schema";
+import { Forest as IForest, Plot as IPlot } from "@ong-forestry/schema";
+import Forest from "./forest"
 
 @Table({
   tableName: "plots",
@@ -37,6 +40,13 @@ class Plot extends Model<IPlot> implements IPlot {
 
   @Column(DataTypes.FLOAT)
   width?: number;
+
+  @ForeignKey(()=> Forest)
+  @Column(DataTypes.INTEGER)
+  forestId?:number
+
+  @BelongsTo(()=>Forest)
+  forest?:IForest
 }
 
 export default Plot;
