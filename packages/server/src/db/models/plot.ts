@@ -4,7 +4,7 @@ import {
   Column,
   Model,
   PrimaryKey,
-  Default,
+  AutoIncrement,
 } from "sequelize-typescript";
 import { Plot as IPlot } from "@ong-forestry/schema";
 
@@ -19,9 +19,9 @@ import { Plot as IPlot } from "@ong-forestry/schema";
 })
 class Plot extends Model<IPlot> implements IPlot {
   @PrimaryKey
-  @Default(DataTypes.UUIDV4)
-  @Column({ type: DataTypes.UUID })
-  id?: string;
+  @AutoIncrement
+  @Column(DataTypes.INTEGER)
+  number: number;
 
   @Column(DataTypes.STRING)
   name?: string;

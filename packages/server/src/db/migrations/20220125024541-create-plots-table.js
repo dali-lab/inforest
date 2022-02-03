@@ -3,9 +3,9 @@
 module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable("plots", {
-      id: {
-        type: Sequelize.UUID,
-        defaultValue: Sequelize.UUIDV4,
+      number: {
+        type: Sequelize.INTEGER,
+        autoIncrement: true,
         primaryKey: true,
       },
       name: {
