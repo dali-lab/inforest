@@ -7,6 +7,7 @@ import {
   Default,
   BelongsToMany,
   AllowNull,
+  Unique,
 } from "sequelize-typescript";
 import { User as IUser} from "@ong-forestry/schema";
 import Team from "./team"
@@ -22,6 +23,7 @@ class User extends Model<IUser> implements IUser {
   id?: string;
 
   @Column(DataTypes.STRING)
+  @Unique
   @AllowNull(false)
   email?: string;
 
