@@ -23,25 +23,25 @@ import { Tree as ITree, TreePhoto as ITreePhoto } from "@ong-forestry/schema";
 })
 class TreePhotos extends Model<ITreePhoto> implements ITreePhoto {
   @PrimaryKey
-  @Column({ type: DataTypes.UUID })
+  @Column(DataTypes.UUID)
   @Default(DataTypes.UUIDV4)
-  id?: string;
+  id: string;
 
   @ForeignKey(() => Tree)
-  @Column(DataTypes.UUID)
+  @Column(DataTypes.STRING)
   @AllowNull(false)
-  treeTag?: string;
+  treeTag: string;
 
   @BelongsTo(() => Tree)
-  tree?: ITree;
+  tree: ITree;
 
   @Column(DataTypes.STRING)
   @AllowNull(false)
-  url?: string;
+  url: string;
 
   @Column(DataTypes.STRING)
   @AllowNull(false)
-  type?: ITreePhoto["type"];
+  type: ITreePhoto["type"];
 }
 
 export default TreePhotos;

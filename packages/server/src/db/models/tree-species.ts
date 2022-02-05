@@ -25,18 +25,22 @@ import {
 class TreeSpecies extends Model<ITreeSpecies> implements ITreeSpecies {
   @PrimaryKey
   @Column({ type: DataTypes.STRING })
-  code?: string;
+  code: string;
 
   @HasMany(() => Tree)
-  trees?: ITree[];
+  trees: ITree[];
 
   @Column(DataTypes.STRING)
   @AllowNull(false)
-  name?: string;
+  name: string;
 
   @Column(DataTypes.STRING)
   @AllowNull(false)
-  genus?: string;
+  genus: string;
+
+  @Column(DataTypes.STRING)
+  @AllowNull(false)
+  commonName: string;
 }
 
 export default TreeSpecies;

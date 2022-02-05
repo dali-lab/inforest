@@ -36,16 +36,16 @@ import {
 })
 class Tree extends Model<ITree> implements ITree {
   @PrimaryKey
-  @Column({ type: DataTypes.STRING })
-  tag?: string;
+  @Column(DataTypes.STRING)
+  tag: string;
 
   @ForeignKey(() => Plot)
-  @Column(DataTypes.UUID)
+  @Column(DataTypes.INTEGER)
   @AllowNull(false)
-  plotId?: string;
+  plotNumber: number;
 
   @BelongsTo(() => Plot)
-  plot?: IPlot;
+  plot: IPlot;
 
   @Column(DataTypes.FLOAT)
   lat?: number;
@@ -74,13 +74,13 @@ class Tree extends Model<ITree> implements ITree {
 
   @ForeignKey(() => TreeStatus)
   @Column(DataTypes.UUID)
-  statusId?: string;
+  statusName?: string;
 
   @BelongsTo(() => TreeStatus)
   status?: ITreeStatus;
 
   @HasMany(() => TreePhoto)
-  photos?: ITreePhoto[];
+  photos: ITreePhoto[];
 }
 
 export default Tree;

@@ -3,9 +3,9 @@
  */
 export interface Plot {
   /**
-   * Plot ID.
+   * Plot number.
    */
-  id: string;
+  number: number;
   /**
    * Plot name.
    */

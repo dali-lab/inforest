@@ -5,8 +5,6 @@ import {
   Model,
   PrimaryKey,
   HasMany,
-  Default,
-  AllowNull,
 } from "sequelize-typescript";
 import Tree from "db/models/tree";
 import { Tree as ITree, TreeStatus as ITreeStatus } from "@ong-forestry/schema";
@@ -16,16 +14,11 @@ import { Tree as ITree, TreeStatus as ITreeStatus } from "@ong-forestry/schema";
 })
 class TreeStatus extends Model<ITreeStatus> implements ITreeStatus {
   @PrimaryKey
-  @Column({ type: DataTypes.UUID })
-  @Default(DataTypes.UUIDV4)
-  id?: string;
+  @Column(DataTypes.STRING)
+  name: string;
 
   @HasMany(() => Tree)
-  trees?: ITree[];
-
-  @Column(DataTypes.STRING)
-  @AllowNull(false)
-  name?: string;
+  trees: ITree[];
 }
 
 export default TreeStatus;
