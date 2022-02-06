@@ -30,5 +30,5 @@ export interface Plot {
   // Forest this plot belongs to
   forest: Forest;
   // ID of plot's forest
-  forestId: number;
+  forestId: string;
 }

@@ -21,7 +21,7 @@ import { Tree as ITree, TreePhoto as ITreePhoto } from "@ong-forestry/schema";
     },
   ],
 })
-class TreePhotos extends Model<ITreePhoto> implements ITreePhoto {
+class TreePhoto extends Model<ITreePhoto> implements ITreePhoto {
   @PrimaryKey
   @Column(DataTypes.UUID)
   @Default(DataTypes.UUIDV4)
@@ -44,4 +44,4 @@ class TreePhotos extends Model<ITreePhoto> implements ITreePhoto {
   type: ITreePhoto["type"];
 }
 
-export default TreePhotos;
+export default TreePhoto;

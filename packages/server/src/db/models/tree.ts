@@ -14,11 +14,14 @@ import Plot from "db/models/plot";
 import TreeStatus from "db/models/tree-status";
 import TreeSpecies from "db/models/tree-species";
 import TreePhoto from "db/models/tree-photo";
+import Trip from "./trip";
+
 import {
   Tree as ITree,
   TreePhoto as ITreePhoto,
   TreeSpecies as ITreeSpecies,
   TreeStatus as ITreeStatus,
+  Trip as ITrip,
 } from "@ong-forestry/schema";
 
 @Table({
@@ -63,7 +66,7 @@ class Tree extends Model<ITree> implements ITree {
   dbh: number;
 
   @Column(DataTypes.FLOAT)
-  heigh: number;
+  height: number;
 
   @ForeignKey(() => TreeSpecies)
   @Column(DataTypes.STRING)
@@ -81,6 +84,13 @@ class Tree extends Model<ITree> implements ITree {
 
   @HasMany(() => TreePhoto)
   photos: ITreePhoto[];
+
+  @ForeignKey(() => Trip)
+  @Column(DataTypes.STRING)
+  tripId: string;
+
+  @BelongsTo(() => Trip)
+  trip: ITrip;
 }
 
 export default Tree;

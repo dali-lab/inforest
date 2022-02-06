@@ -6,7 +6,7 @@ import { Trip } from "./trip";
  */
 export interface Forest {
   // Forest ID
-  id: number;
+  id: string;
   // Forest Name
   name: string;
   // Forest description, likely containing some descriptive and identifying info.
@@ -16,7 +16,7 @@ export interface Forest {
   // Team this forest belongs to
   team: Team;
   // ID of team this forest belongs to
-  teamId: number;
+  teamId: string;
   // Trips undertaken in this forest
   trips: Trip[];
 }

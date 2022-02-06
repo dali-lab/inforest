@@ -46,17 +46,17 @@ export interface Tree {
    */
   status: TreeStatus;
   /**
-   * ID of the tree status.
+   * Name of the tree status.
    */
-  statusId: string;
+  statusName: string;
   /**
    * Object of the tree species.
    */
   species: TreeSpecies;
   /**
-   * ID of the tree species.
+   * Identifying code of the tree species.
    */
-  speciesId: string;
+  speciesCode: string;
   /**
    * Tree photos.
    */
@@ -64,7 +64,7 @@ export interface Tree {
   // Trip this entry was collected during
   trip: Trip;
   // ID of this entry's trip
-  tripId: number;
+  tripId: string;
 }
 
 export interface TreeStatus {

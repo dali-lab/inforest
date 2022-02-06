@@ -17,16 +17,16 @@ export interface Membership {
   id: string;
 
   // The User to be connected
-  user: User;
+  user?: User;
 
   // ID of connected user
-  userId: number;
+  userId: string;
 
   // The Team the User belongs to
-  team: Team;
+  team?: Team;
 
   // ID of connected team
-  teamId: number;
+  teamId: string;
 
   // Role of the user within that specific team
   role: MembershipRoles;

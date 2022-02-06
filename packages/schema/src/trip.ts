@@ -18,13 +18,13 @@ export enum TripStatuses {
  */
 export interface Trip {
   // Trip ID
-  id: number;
+  id: string;
   // Trip name
   name: string;
   // Forest where the trip was carried out
   forest: Forest;
   // ID of Forest
-  forestId: number;
+  forestId: string;
   // Tree entries which are a part of this trip
   entries: Tree[];
 }
