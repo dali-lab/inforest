@@ -2,7 +2,7 @@
 
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable("forests", {
+    await queryInterface.createTable("trips", {
       id: {
         type: Sequelize.UUID,
         primaryKey: true,
@@ -11,13 +11,10 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false,
       },
-      description: {
-        type: Sequelize.STRING,
-      },
-      teamId: {
+      forestId: {
         type: Sequelize.UUID,
         references: {
-          model: "team",
+          model: "forest",
           key: "id",
         },
       },

@@ -8,6 +8,7 @@ import {
   HasMany,
   ForeignKey,
   BelongsTo,
+  AllowNull,
 } from "sequelize-typescript";
 import Forest from "./forest";
 import Tree from "./tree";
@@ -27,6 +28,7 @@ class Trip extends Model<ITrip> implements ITrip {
   id: string;
 
   @Column(DataTypes.STRING)
+  @AllowNull(false)
   name: string;
 
   @BelongsTo(() => Forest)

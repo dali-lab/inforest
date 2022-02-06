@@ -8,6 +8,7 @@ import {
   HasMany,
   ForeignKey,
   BelongsTo,
+  AllowNull,
 } from "sequelize-typescript";
 import Team from "./team";
 import Plot from "./plot";
@@ -29,6 +30,7 @@ class Forest extends Model<IForest> implements IForest {
   id: string;
 
   @Column(DataTypes.STRING)
+  @AllowNull(false)
   name: string;
 
   @Column(DataTypes.STRING)
