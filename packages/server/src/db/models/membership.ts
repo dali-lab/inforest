@@ -20,7 +20,7 @@ const membershipRoles = ["ADMIN","MEMBER"]
 class Membership extends Model<IMembership> implements IMembership {
     @PrimaryKey
     @Default(DataTypes.UUIDV4)
-    @Column({ type: DataTypes.UUID })
+    @Column(DataTypes.UUID)
     id?: string;
 
     @ForeignKey(() => Team)

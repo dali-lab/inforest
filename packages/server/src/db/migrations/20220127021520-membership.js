@@ -8,11 +8,9 @@ module.exports = {
       },
       teamId: {
         type: Sequelize.UUID,
-        primaryKey:true
       },
       userId: {
         type:Sequelize.UUID,
-        primaryKey:true
       },
       role: {
         type: Sequelize.STRING,
