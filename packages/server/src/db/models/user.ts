@@ -20,30 +20,30 @@ class User extends Model<IUser> implements IUser {
   @PrimaryKey
   @Default(DataTypes.UUIDV4)
   @Column({ type: DataTypes.UUID })
-  id?: string;
+  id: string;
 
   @Column(DataTypes.STRING)
   @Unique
   @AllowNull(false)
-  email?: string;
+  email: string;
 
   @Column(DataTypes.STRING)
   @AllowNull(false)
-  password?: string;
+  password: string;
 
   @Column(DataTypes.STRING)
-  firstName?: string;
+  firstName: string;
 
   @Column(DataTypes.STRING)
-  lastName?: string;
+  lastName: string;
 
   @Default(false)
   @Column(DataTypes.BOOLEAN)
   @AllowNull(false)
-  verified?: boolean
+  verified: boolean
 
   @BelongsToMany(()=>Team,()=>Membership)
-  teams?: ITeam[]
+  teams: ITeam[]
 
 }
 

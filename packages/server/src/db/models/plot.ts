@@ -4,13 +4,9 @@ import {
   Column,
   Model,
   PrimaryKey,
-<<<<<<< HEAD
-  Default,
-  ForeignKey,
-  BelongsTo,
-=======
   AutoIncrement,
->>>>>>> tree-data-schemas
+  ForeignKey,
+  BelongsTo
 } from "sequelize-typescript";
 import { Forest as IForest, Plot as IPlot } from "@ong-forestry/schema";
 import Forest from "./forest"
@@ -43,14 +39,14 @@ class Plot extends Model<IPlot> implements IPlot {
   length: number;
 
   @Column(DataTypes.FLOAT)
-  width?: number;
+  width: number;
 
   @ForeignKey(()=> Forest)
   @Column(DataTypes.INTEGER)
-  forestId?:number
+  forestId:number
 
   @BelongsTo(()=>Forest)
-  forest?:IForest
+  forest:IForest
 }
 
 export default Plot;

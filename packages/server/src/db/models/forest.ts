@@ -20,23 +20,23 @@ class Forest extends Model<IForest> implements IForest {
   @PrimaryKey
   @Default(DataTypes.UUIDV4)
   @Column({ type: DataTypes.UUID })
-  id?: string;
+  id: string;
 
   @Column(DataTypes.STRING)
-  name?: string;
+  name: string;
 
   @Column(DataTypes.STRING)
-  description?: string;
+  description: string;
 
   @HasMany(()=>Plot)
-  plots?: IPlot[]
+  plots: IPlot[]
 
   @ForeignKey(()=>Team)
   @Column(DataTypes.INTEGER)
-  teamId?: number
+  teamId: number
 
   @BelongsTo(()=>Team)
-  team?: ITeam
+  team: ITeam
 }
 
 export default Forest

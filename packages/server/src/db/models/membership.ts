@@ -21,19 +21,19 @@ class Membership extends Model<IMembership> implements IMembership {
     @PrimaryKey
     @Default(DataTypes.UUIDV4)
     @Column(DataTypes.UUID)
-    id?: string;
+    id: string;
 
     @ForeignKey(() => Team)
     @Column(DataTypes.STRING)
-    teamId?: string
+    teamId: string
 
     @ForeignKey(()=> User)
     @Column(DataTypes.STRING)
-    userId?: string
+    userId: string
 
     @Column(DataTypes.ENUM({values:membershipRoles}))
     @AllowNull(false)
-    role?: MembershipRoles
+    role: MembershipRoles
 }
 
 export default Membership;

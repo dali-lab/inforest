@@ -48,36 +48,36 @@ class Tree extends Model<ITree> implements ITree {
   plot: IPlot;
 
   @Column(DataTypes.FLOAT)
-  lat?: number;
+  lat: number;
 
   @Column(DataTypes.FLOAT)
-  long?: number;
+  long: number;
 
   @Column(DataTypes.FLOAT)
-  plotX?: number;
+  plotX: number;
 
   @Column(DataTypes.FLOAT)
-  plotY?: number;
+  plotY: number;
 
   @Column(DataTypes.FLOAT)
-  dbh?: number;
+  dbh: number;
 
   @Column(DataTypes.FLOAT)
-  height?: number;
+  heigh: number;
 
   @ForeignKey(() => TreeSpecies)
   @Column(DataTypes.STRING)
-  speciesCode?: string;
+  speciesCode: string;
 
   @BelongsTo(() => TreeSpecies)
-  species?: ITreeSpecies;
+  species: ITreeSpecies;
 
   @ForeignKey(() => TreeStatus)
   @Column(DataTypes.UUID)
-  statusName?: string;
+  statusName: string;
 
   @BelongsTo(() => TreeStatus)
-  status?: ITreeStatus;
+  status: ITreeStatus;
 
   @HasMany(() => TreePhoto)
   photos: ITreePhoto[];

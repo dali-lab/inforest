@@ -21,20 +21,20 @@ class Team extends Model<ITeam> implements ITeam {
     @PrimaryKey
     @Default(DataTypes.UUIDV4)
     @Column({ type: DataTypes.UUID })
-    id?: string;
+    id: string;
 
     @Column(DataTypes.STRING)
     @AllowNull(false)
-    name?: string;
+    name: string;
 
     @Column(DataTypes.STRING)
-    description?: string;
+    description: string;
 
     @BelongsToMany(()=>User,()=>Membership)
-    members?: IUser[]
+    members: IUser[]
 
     @HasMany(()=>Forest)
-    forests?: IForest[]
+    forests: IForest[]
 
 
 }
