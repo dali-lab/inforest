@@ -1,3 +1,4 @@
+import { Forest } from "./forest";
 /**
  * Forestry census plot.
  */
@@ -26,4 +27,8 @@ export interface Plot {
    * Plot width along longitude in meters.
    */
   width: number;
+  // Forest this plot belongs to
+  forest: Forest;
+  // ID of plot's forest
+  forestId: number;
 }

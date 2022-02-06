@@ -1,4 +1,5 @@
 import { Plot } from "./plot";
+import { Trip } from "./trip";
 
 /**
  * Recorded tree in the forest.
@@ -19,47 +20,51 @@ export interface Tree {
   /**
    * Tree absolute latitude measured in decimal degrees.
    */
-  lat?: number;
+  lat: number;
   /**
    * Tree absolute longitude measured in decimal degrees.
    */
-  long?: number;
+  long: number;
   /**
    * Tree relative position along plot width measured in meters.
    */
-  plotX?: number;
+  plotX: number;
   /**
    * Tree relative position along plot length measured in meters.
    */
-  plotY?: number;
+  plotY: number;
   /**
    * Tree diameter breast height in centimeters.
    */
-  dbh?: number;
+  dbh: number;
   /**
    * Tree height in meters.
    */
-  height?: number;
+  height: number;
   /**
    * Object of the tree status.
    */
-  status?: TreeStatus;
+  status: TreeStatus;
   /**
    * ID of the tree status.
    */
-  statusId?: string;
+  statusId: string;
   /**
    * Object of the tree species.
    */
-  species?: TreeSpecies;
+  species: TreeSpecies;
   /**
    * ID of the tree species.
    */
-  speciesId?: string;
+  speciesId: string;
   /**
    * Tree photos.
    */
   photos: TreePhoto[];
+  // Trip this entry was collected during
+  trip: Trip;
+  // ID of this entry's trip
+  tripId: number;
 }
 
 export interface TreeStatus {
