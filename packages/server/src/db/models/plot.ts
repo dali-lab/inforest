@@ -4,9 +4,13 @@ import {
   Column,
   Model,
   PrimaryKey,
+<<<<<<< HEAD
   Default,
   ForeignKey,
   BelongsTo,
+=======
+  AutoIncrement,
+>>>>>>> tree-data-schemas
 } from "sequelize-typescript";
 import { Forest as IForest, Plot as IPlot } from "@ong-forestry/schema";
 import Forest from "./forest"
@@ -22,21 +26,21 @@ import Forest from "./forest"
 })
 class Plot extends Model<IPlot> implements IPlot {
   @PrimaryKey
-  @Default(DataTypes.UUIDV4)
-  @Column({ type: DataTypes.UUID })
-  id?: string;
+  @AutoIncrement
+  @Column(DataTypes.INTEGER)
+  number: number;
 
   @Column(DataTypes.STRING)
-  name?: string;
+  name: string;
 
   @Column(DataTypes.FLOAT)
-  lat?: number;
+  lat: number;
 
   @Column(DataTypes.FLOAT)
-  long?: number;
+  long: number;
 
   @Column(DataTypes.FLOAT)
-  length?: number;
+  length: number;
 
   @Column(DataTypes.FLOAT)
   width?: number;
