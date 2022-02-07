@@ -73,7 +73,7 @@ module.exports = {
         updatedAt: new Date(),
       }))
     );
-    await queryInterface.bulkInsert("tree_status", [
+    await queryInterface.bulkInsert("tree_statuses", [
       {
         name: "ALIVE",
         createdAt: new Date(),
@@ -90,6 +90,15 @@ module.exports = {
         updatedAt: new Date(),
       },
     ]);
+    const treePurposes = ["FULL", "CANOPY", "BARK", "LEAF", "SOIL"];
+    await queryInterface.bulkInsert(
+      "tree_photo_purposes",
+      treePurposes.map((name) => ({
+        name,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }))
+    );
 
     /**
      * Tree data.
@@ -168,7 +177,7 @@ module.exports = {
         id: uuid(),
         treeTag: trees[0].tag,
         url: "https://en.wikipedia.org/wiki/Acer_rubrum#/media/File:2014-10-30_11_09_40_Red_Maple_during_autumn_on_Lower_Ferry_Road_in_Ewing,_New_Jersey.JPG",
-        type: "FULL",
+        purposeName: "FULL",
         createdAt: new Date(),
         updatedAt: new Date(),
       },
@@ -176,7 +185,7 @@ module.exports = {
         id: uuid(),
         treeTag: trees[0].tag,
         url: "https://mywoodlot.com/images/blog/2019/1.10.19/image4.JPG",
-        type: "BARK",
+        purposeName: "BARK",
         createdAt: new Date(),
         updatedAt: new Date(),
       },
@@ -184,7 +193,7 @@ module.exports = {
         id: uuid(),
         treeTag: trees[0].tag,
         url: "https://statesymbolsusa.org/sites/statesymbolsusa.org/files/primary-images/redmapletreefallleaves.jpg",
-        type: "LEAF",
+        purposeName: "LEAF",
         createdAt: new Date(),
         updatedAt: new Date(),
       },
@@ -192,7 +201,7 @@ module.exports = {
         id: uuid(),
         treeTag: trees[1].tag,
         url: "https://upload.wikimedia.org/wikipedia/commons/a/a1/Acer_saccharum_1-jgreenlee_%285098070608%29.jpg",
-        type: "LEAF",
+        purposeName: "LEAF",
         createdAt: new Date(),
         updatedAt: new Date(),
       },
@@ -202,7 +211,7 @@ module.exports = {
   async down(queryInterface, Sequelize) {
     await queryInterface.bulkDelete("tree_photos", null, {});
     await queryInterface.bulkDelete("trees", null, {});
-    await queryInterface.bulkDelete("tree_status", null, {});
+    await queryInterface.bulkDelete("tree_statuses", null, {});
     await queryInterface.bulkDelete("tree_species", null, {});
     await queryInterface.bulkDelete("plots", null, {});
   },

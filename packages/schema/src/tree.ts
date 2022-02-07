@@ -80,5 +80,11 @@ export interface TreePhoto {
   url: string;
   treeTag: string;
   tree: Tree;
-  type: "FULL" | "CANOPY" | "BARK" | "LEAF" | "SOIL" | string;
+  purposeName: string;
+  purpose: TreePhotoPurpose;
+}
+
+export interface TreePhotoPurpose {
+  name: string;
+  photos: TreePhoto[];
 }

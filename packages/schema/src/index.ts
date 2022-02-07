@@ -2,6 +2,12 @@ import { Plot } from "plot";
 import { User } from "user";
 import { Team } from "team"
 import { Membership, MembershipRoles } from "membership";
-import { Tree, TreePhoto, TreeSpecies, TreeStatus } from "tree";
+import {
+    Tree,
+    TreePhoto,
+    TreePhotoPurpose,
+    TreeSpecies,
+    TreeStatus,
+  } from "tree";
 
-export { Plot, Tree, TreePhoto, TreeSpecies, TreeStatus, User, Team, Membership, MembershipRoles };
+export { Plot, Tree, TreePhoto, TreePhotoPurpose, TreeSpecies, TreeStatus, User, Team, Membership, MembershipRoles };
