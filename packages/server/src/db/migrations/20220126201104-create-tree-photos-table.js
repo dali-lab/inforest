@@ -2,30 +2,26 @@
 
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable("plots", {
+    await queryInterface.createTable("tree_photos", {
       id: {
         type: Sequelize.UUID,
-        defaultValue: Sequelize.UUIDV4,
         primaryKey: true,
+        defaultValue: Sequelize.UUIDV4,
       },
-      name: {
+      treeTag: {
+        type: Sequelize.STRING,
+        allowNull: false,
+        references: {
+          model: "trees",
+          key: "tag",
+        },
+      },
+      url: {
         type: Sequelize.STRING,
         allowNull: false,
       },
-      lat: {
-        type: Sequelize.FLOAT,
-        allowNull: false,
-      },
-      long: {
-        type: Sequelize.FLOAT,
-        allowNull: false,
-      },
-      length: {
-        type: Sequelize.FLOAT,
-        allowNull: false,
-      },
-      width: {
-        type: Sequelize.FLOAT,
+      type: {
+        type: Sequelize.STRING,
         allowNull: false,
       },
       createdAt: {
@@ -37,13 +33,13 @@ module.exports = {
         allowNull: false,
       },
     });
-    await queryInterface.addIndex("plots", {
-      name: "position",
-      fields: ["lat", "long"],
+    await queryInterface.addIndex("tree_photos", {
+      name: "type",
+      fields: ["type"],
     });
   },
 
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable("plots");
+    await queryInterface.dropTable("tree_photos");
   },
 };
