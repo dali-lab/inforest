@@ -1,20 +1,20 @@
-'use strict';
+"use strict";
 module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable("memberships", {
       id: {
         type: Sequelize.UUID,
-        primaryKey:true
+        primaryKey: true,
       },
       teamId: {
         type: Sequelize.UUID,
       },
       userId: {
-        type:Sequelize.UUID,
+        type: Sequelize.UUID,
       },
       role: {
         type: Sequelize.STRING,
-        allowNull: false
+        allowNull: false,
       },
       createdAt: {
         type: Sequelize.DATE,
