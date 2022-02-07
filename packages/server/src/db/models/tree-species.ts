@@ -30,16 +30,16 @@ class TreeSpecies extends Model<ITreeSpecies> implements ITreeSpecies {
   @HasMany(() => Tree)
   trees: ITree[];
 
-  @Column(DataTypes.STRING)
   @AllowNull(false)
+  @Column(DataTypes.STRING)
   name: string;
 
-  @Column(DataTypes.STRING)
   @AllowNull(false)
+  @Column(DataTypes.STRING)
   genus: string;
 
-  @Column(DataTypes.STRING)
   @AllowNull(false)
+  @Column(DataTypes.STRING)
   commonName: string;
 }
 

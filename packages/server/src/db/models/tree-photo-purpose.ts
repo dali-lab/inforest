@@ -11,6 +11,7 @@ import {
   TreePhoto as ITreePhoto,
   TreePhotoPurpose as ITreePhotoPurpose,
 } from "@ong-forestry/schema";
+import TreePhoto from "db/models/tree-photo";
 
 @Table({
   tableName: "tree_photo_purposes",
@@ -23,7 +24,7 @@ class TreePhotoPurpose
   @Column(DataTypes.STRING)
   name: string;
 
-  @HasMany(() => Tree)
+  @HasMany(() => TreePhoto)
   photos: ITreePhoto[];
 }
 

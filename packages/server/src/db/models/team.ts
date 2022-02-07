@@ -19,17 +19,17 @@ class Team extends Model<ITeam> implements ITeam {
   @PrimaryKey
   @Default(DataTypes.UUIDV4)
   @Column({ type: DataTypes.UUID })
-  id?: string;
+  id: string;
 
-  @Column(DataTypes.STRING)
   @AllowNull(false)
-  name?: string;
+  @Column(DataTypes.STRING)
+  name: string;
 
   @Column(DataTypes.STRING)
   description?: string;
 
   @BelongsToMany(() => User, () => Membership)
-  members?: User[];
+  members: User[];
 }
 
 export default Team;
