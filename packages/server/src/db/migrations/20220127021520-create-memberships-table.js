@@ -8,9 +8,17 @@ module.exports = {
       },
       teamId: {
         type: Sequelize.UUID,
+        references: {
+          model: "teams",
+          key: "id",
+        },
       },
       userId: {
         type: Sequelize.UUID,
+        references: {
+          model: "users",
+          key: "id",
+        },
       },
       role: {
         type: Sequelize.STRING,
