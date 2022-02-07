@@ -1,3 +1,4 @@
-import { Plot } from "plot";
+import { Plot } from "./plot";
+import { Tree, TreePhoto, TreeSpecies, TreeStatus } from "./tree";
 
-export { Plot };
+export { Plot, Tree, TreePhoto, TreeSpecies, TreeStatus };

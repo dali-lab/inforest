@@ -3,8 +3,10 @@
 
   "compilerOptions": {
     "baseUrl": "src",
-    "rootDir": ".",
-    "outDir": "dist"
+    "rootDir": "src",
+    "outDir": "lib",
+    "declaration": true,
+    "emitDeclarationOnly": true
   },
 
   "include": ["src/**/*"]
