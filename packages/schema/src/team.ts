@@ -5,14 +5,28 @@ import { Forest } from "forest";
  * A group of users that census together (i.e. a research team). Allows for collaboration and review of census data.
  */
 export interface Team {
-  // Team ID
+  /**
+   * Team ID
+   */
   id: string;
-  // Team name
+
+  /**
+   * Team name
+   */
   name: string;
-  // Description / summary of team
+
+  /**
+   * Description / summary of team
+   */
   description: string;
-  // List of non-admin Users, both admins and non-admins, who will be able to contribute data to the Team
+
+  /**
+   * List of non-admin Users, both admins and non-admins, who will be able to contribute data to the Team
+   */
   members: User[];
-  // Forests managed by this team
+
+  /**
+   * Forests managed by this team
+   */
   forests: Forest[];
 }

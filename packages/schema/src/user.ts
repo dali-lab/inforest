@@ -1,20 +1,40 @@
 import { Team } from "team";
 /**
- * User
+ * App user
  */
 export interface User {
-  // User ID
+  /**
+   * User ID
+   */
   id: string;
-  // User's email, also used as a username
+
+  /**
+   * User's email, also used as a username
+   */
   email: string;
-  // User's encrypted password
+
+  /**
+   * User's encrypted password
+   */
   password: string;
-  // User's first name
+
+  /**
+   * User's first name
+   */
   firstName: string;
-  // User's last name
+
+  /**
+   * User's last name
+   */
   lastName: string;
-  // True if user has verified their account via email
+
+  /**
+   * True if user has verified their account via email
+   */
   verified: boolean;
-  // Teams user is a member/admin of.
+
+  /**
+   * Teams user is a member/admin of
+   */
   teams: Team[];
 }

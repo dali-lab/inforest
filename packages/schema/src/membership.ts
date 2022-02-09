@@ -13,21 +13,33 @@ export enum MembershipRoles {
  * Through-table to connect Users and Teams.
  */
 export interface Membership {
-  // The PK of the through table entity
+  /**
+   * The PK of the through table entity
+   */
   id: string;
 
-  // The User to be connected (currently not used)
+  /**
+   * The User to be connected (currently not used)
+   */
   user?: User;
 
-  // ID of connected user
+  /**
+   * ID of connected user
+   */
   userId: string;
 
-  // The Team the User belongs to (currently not used)
+  /**
+   * The Team the User belongs to (currently not used)
+   */
   team?: Team;
 
-  // ID of connected team
+  /**
+   * ID of connected team
+   */
   teamId: string;
 
-  // Role of the user within that specific team
+  /**
+   * Role of the user within that specific team
+   */
   role: MembershipRoles;
 }

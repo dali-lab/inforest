@@ -5,18 +5,38 @@ import { Trip } from "./trip";
  * Set of plots managed by a team
  */
 export interface Forest {
-  // Forest ID
+  /**
+   * Forest ID
+   */
   id: string;
-  // Forest Name
+
+  /**
+   * Forest Name
+   */
   name: string;
-  // Forest description, likely containing some descriptive and identifying info.
+
+  /**
+   * Forest description, likely containing some descriptive and identifying info.
+   */
   description: string;
-  // Plots contained within this forest
+
+  /**
+   * Plots contained within this forest
+   */
   plots: Plot[];
-  // Team this forest belongs to
+
+  /**
+   * Team this forest belongs to
+   */
   team: Team;
-  // ID of team this forest belongs to
+
+  /**
+   * ID of team this forest belongs to
+   */
   teamId: string;
-  // Trips undertaken in this forest
+
+  /**
+   * Trips undertaken in this forest
+   */
   trips: Trip[];
 }
