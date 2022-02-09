@@ -9,12 +9,12 @@ import {
   HasMany,
   AllowNull,
 } from "sequelize-typescript";
-import { Plot as IPlot } from "@ong-forestry/schema";
 import Plot from "db/models/plot";
 import TreeStatus from "db/models/tree-status";
 import TreeSpecies from "db/models/tree-species";
 import TreePhoto from "db/models/tree-photo";
-import Trip from "./trip";
+import Trip from "db/models/trip";
+import User from "db/models/user";
 
 import {
   Tree as ITree,
@@ -22,6 +22,8 @@ import {
   TreeSpecies as ITreeSpecies,
   TreeStatus as ITreeStatus,
   Trip as ITrip,
+  Plot as IPlot,
+  User as IUser,
 } from "@ong-forestry/schema";
 
 @Table({
@@ -87,10 +89,19 @@ class Tree extends Model<ITree> implements ITree {
 
   @ForeignKey(() => Trip)
   @Column(DataTypes.STRING)
+  @AllowNull(false)
   tripId: string;
 
   @BelongsTo(() => Trip)
   trip: ITrip;
+
+  @ForeignKey(() => User)
+  @Column(DataTypes.STRING)
+  @AllowNull(false)
+  authorId: string;
+
+  @BelongsTo(() => User)
+  author: IUser;
 }
 
 export default Tree;
