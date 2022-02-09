@@ -10,7 +10,7 @@ import Tree from "db/models/tree";
 import { Tree as ITree, TreeStatus as ITreeStatus } from "@ong-forestry/schema";
 
 @Table({
-  tableName: "tree_status",
+  tableName: "tree_statuses",
 })
 class TreeStatus extends Model<ITreeStatus> implements ITreeStatus {
   @PrimaryKey

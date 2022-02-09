@@ -1,26 +1,28 @@
 "use strict";
-
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable("tree_photos", {
+    await queryInterface.createTable("memberships", {
       id: {
         type: Sequelize.UUID,
         primaryKey: true,
-        defaultValue: Sequelize.UUIDV4,
       },
-      treeTag: {
-        type: Sequelize.STRING,
+      teamId: {
+        type: Sequelize.UUID,
         allowNull: false,
         references: {
-          model: "trees",
-          key: "tag",
+          model: "teams",
+          key: "id",
         },
       },
-      url: {
-        type: Sequelize.STRING,
+      userId: {
+        type: Sequelize.UUID,
         allowNull: false,
+        references: {
+          model: "users",
+          key: "id",
+        },
       },
-      type: {
+      role: {
         type: Sequelize.STRING,
         allowNull: false,
       },
@@ -33,13 +35,9 @@ module.exports = {
         allowNull: false,
       },
     });
-    await queryInterface.addIndex("tree_photos", {
-      name: "type",
-      fields: ["type"],
-    });
   },
 
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable("tree_photos");
+    await queryInterface.dropTable("memberships");
   },
 };

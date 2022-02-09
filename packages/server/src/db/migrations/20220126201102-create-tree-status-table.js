@@ -2,7 +2,7 @@
 
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable("tree_status", {
+    await queryInterface.createTable("tree_statuses", {
       name: {
         type: Sequelize.STRING,
         primaryKey: true,
@@ -19,6 +19,6 @@ module.exports = {
   },
 
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable("tree_status");
+    await queryInterface.dropTable("tree_statuses");
   },
 };

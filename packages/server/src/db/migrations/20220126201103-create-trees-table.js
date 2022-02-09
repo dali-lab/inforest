@@ -43,7 +43,7 @@ module.exports = {
       statusName: {
         type: Sequelize.STRING,
         references: {
-          model: "tree_status",
+          model: "tree_statuses",
           key: "name",
         },
       },

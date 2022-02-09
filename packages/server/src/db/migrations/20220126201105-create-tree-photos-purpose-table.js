@@ -2,15 +2,10 @@
 
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable("tree_status", {
-      id: {
-        type: Sequelize.UUID,
-        primaryKey: true,
-        defaultValue: Sequelize.UUIDV4,
-      },
+    await queryInterface.createTable("tree_photo_purposes", {
       name: {
         type: Sequelize.STRING,
-        allowNull: false,
+        primaryKey: true,
       },
       createdAt: {
         type: Sequelize.DATE,
@@ -24,6 +19,6 @@ module.exports = {
   },
 
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable("tree_status");
+    await queryInterface.dropTable("tree_photo_purposes");
   },
 };

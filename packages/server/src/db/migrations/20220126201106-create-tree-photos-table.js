@@ -20,9 +20,13 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false,
       },
-      type: {
+      purposeName: {
         type: Sequelize.STRING,
         allowNull: false,
+        references: {
+          model: "tree_photo_purposes",
+          key: "name",
+        },
       },
       createdAt: {
         type: Sequelize.DATE,
@@ -34,8 +38,8 @@ module.exports = {
       },
     });
     await queryInterface.addIndex("tree_photos", {
-      name: "type",
-      fields: ["type"],
+      name: "purposeName",
+      fields: ["purposeName"],
     });
   },
 

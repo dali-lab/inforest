@@ -28,10 +28,12 @@ class Membership extends Model<IMembership> implements IMembership {
 
   @ForeignKey(() => Team)
   @Column(DataTypes.STRING)
+  @AllowNull(false)
   teamId: string;
 
   @ForeignKey(() => User)
   @Column(DataTypes.STRING)
+  @AllowNull(false)
   userId: string;
 
   @Column(DataTypes.ENUM({ values: membershipRoles }))

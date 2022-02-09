@@ -10,7 +10,11 @@ import {
   AllowNull,
 } from "sequelize-typescript";
 import Tree from "db/models/tree";
-import { Tree as ITree, TreePhoto as ITreePhoto } from "@ong-forestry/schema";
+import {
+  Tree as ITree,
+  TreePhoto as ITreePhoto,
+  TreePhotoPurpose as ITreePhotoPurpose,
+} from "@ong-forestry/schema";
 
 @Table({
   tableName: "tree_photos",
@@ -41,7 +45,11 @@ class TreePhoto extends Model<ITreePhoto> implements ITreePhoto {
 
   @Column(DataTypes.STRING)
   @AllowNull(false)
-  type: ITreePhoto["type"];
+  @ForeignKey(() => TreePhotos)
+  purposeName: string;
+
+  @BelongsTo(() => TreePhotos)
+  purpose: ITreePhotoPurpose;
 }
 
 export default TreePhoto;
