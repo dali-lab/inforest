@@ -8,6 +8,7 @@ module.exports = {
       },
       teamId: {
         type: Sequelize.UUID,
+        allowNull: false,
         references: {
           model: "teams",
           key: "id",
@@ -15,6 +16,7 @@ module.exports = {
       },
       userId: {
         type: Sequelize.UUID,
+        allowNull: false,
         references: {
           model: "users",
           key: "id",

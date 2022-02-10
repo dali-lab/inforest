@@ -9,6 +9,8 @@ import {
   TreeSpecies,
   TreeStatus,
 } from "./tree";
+import { Forest } from "./forest";
+import { Trip, TripStatuses } from "./trip";
 
 export {
   Plot,
@@ -21,4 +23,7 @@ export {
   Team,
   Membership,
   MembershipRoles,
+  Forest,
+  Trip,
+  TripStatuses,
 };
