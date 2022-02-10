@@ -9,7 +9,7 @@ export interface Team {
   // Team name
   name: string;
   // Description / summary of team
-  description: string;
+  description?: string;
   // List of non-admin Users, both admins and non-admins, who will be able to contribute data to the Team
   members: User[];
 }

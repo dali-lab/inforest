@@ -47,7 +47,7 @@ export interface Tree {
   /**
    * ID of the tree status.
    */
-  statusId?: string;
+  statusName?: string;
   /**
    * Object of the tree species.
    */
@@ -55,7 +55,7 @@ export interface Tree {
   /**
    * ID of the tree species.
    */
-  speciesId?: string;
+  speciesCode?: string;
   /**
    * Tree photos.
    */

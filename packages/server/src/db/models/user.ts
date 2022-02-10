@@ -20,16 +20,16 @@ class User extends Model<IUser> implements IUser {
   @PrimaryKey
   @Default(DataTypes.UUIDV4)
   @Column({ type: DataTypes.UUID })
-  id?: string;
+  id: string;
 
-  @Column(DataTypes.STRING)
   @Unique
   @AllowNull(false)
-  email?: string;
-
   @Column(DataTypes.STRING)
+  email: string;
+
   @AllowNull(false)
-  password?: string;
+  @Column(DataTypes.STRING)
+  password: string;
 
   @Column(DataTypes.STRING)
   firstName?: string;
@@ -38,12 +38,12 @@ class User extends Model<IUser> implements IUser {
   lastName?: string;
 
   @Default(false)
-  @Column(DataTypes.BOOLEAN)
   @AllowNull(false)
-  verified?: boolean;
+  @Column(DataTypes.BOOLEAN)
+  verified: boolean;
 
   @BelongsToMany(() => Team, () => Membership)
-  teams?: Team[];
+  teams: Team[];
 }
 
 export default User;

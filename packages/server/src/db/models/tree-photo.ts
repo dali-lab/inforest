@@ -10,6 +10,7 @@ import {
   AllowNull,
 } from "sequelize-typescript";
 import Tree from "db/models/tree";
+import TreePhotoPurpose from "db/models/tree-photo-purpose";
 import {
   Tree as ITree,
   TreePhoto as ITreePhoto,
@@ -27,28 +28,28 @@ import {
 })
 class TreePhotos extends Model<ITreePhoto> implements ITreePhoto {
   @PrimaryKey
-  @Column(DataTypes.UUID)
   @Default(DataTypes.UUIDV4)
+  @Column(DataTypes.UUID)
   id: string;
 
   @ForeignKey(() => Tree)
-  @Column(DataTypes.STRING)
   @AllowNull(false)
+  @Column(DataTypes.STRING)
   treeTag: string;
 
   @BelongsTo(() => Tree)
   tree: ITree;
 
-  @Column(DataTypes.STRING)
   @AllowNull(false)
+  @Column(DataTypes.STRING)
   url: string;
 
-  @Column(DataTypes.STRING)
   @AllowNull(false)
-  @ForeignKey(() => TreePhotos)
+  @ForeignKey(() => TreePhotoPurpose)
+  @Column(DataTypes.STRING)
   purposeName: string;
 
-  @BelongsTo(() => TreePhotos)
+  @BelongsTo(() => TreePhotoPurpose)
   purpose: ITreePhotoPurpose;
 }
 
