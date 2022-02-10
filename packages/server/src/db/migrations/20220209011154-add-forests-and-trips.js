@@ -10,6 +10,7 @@ module.exports = {
   async up(queryInterface, Sequelize) {
     const transaction = await queryInterface.sequelize.transaction();
     try {
+      // Create forests table.
       await queryInterface.createTable(
         "forests",
         {
@@ -42,6 +43,7 @@ module.exports = {
         },
         { transaction }
       );
+      // Create trips table.
       await queryInterface.createTable(
         "trips",
         {
@@ -71,11 +73,13 @@ module.exports = {
         },
         { transaction }
       );
+
+      // Check if there's already data in the database.
       const existingTrees = await queryInterface.sequelize.query(
         "SELECT COUNT(tag) FROM trees;",
         { transaction }
       );
-      console.log(existingTrees[0][0].count);
+      // If so, we need to create a default 'forest', 'trip', 'user', 'team', 'membership', since they're required fields for 'trees.tripId', 'trees,authorId', 'plots.forestId'.
       if (existingTrees[0][0].count > 0) {
         await queryInterface.bulkInsert(
           "teams",
@@ -149,6 +153,7 @@ module.exports = {
         );
       }
 
+      // Add new columns to existing tables with default values based on temporary seed data.
       await queryInterface.addColumn(
         "trees",
         "tripId",
@@ -194,6 +199,7 @@ module.exports = {
         { transaction }
       );
 
+      // Remove the default value parameters on new columns.
       await queryInterface.changeColumn(
         "trees",
         "tripId",
