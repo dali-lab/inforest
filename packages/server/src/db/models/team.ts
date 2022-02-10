@@ -7,10 +7,16 @@ import {
   Default,
   BelongsToMany,
   AllowNull,
+  HasMany,
 } from "sequelize-typescript";
-import { Team as ITeam } from "@ong-forestry/schema";
-import User from "./user";
-import Membership from "./membership";
+import {
+  Team as ITeam,
+  Forest as IForest,
+  User as IUser,
+} from "@ong-forestry/schema";
+import User from "db/models/user";
+import Membership from "db/models/membership";
+import Forest from "db/models/forest";
 
 @Table({
   tableName: "teams",
@@ -26,10 +32,13 @@ class Team extends Model<ITeam> implements ITeam {
   name: string;
 
   @Column(DataTypes.STRING)
-  description?: string;
+  description: string;
 
   @BelongsToMany(() => User, () => Membership)
-  members: User[];
+  members: IUser[];
+
+  @HasMany(() => Forest)
+  forests: IForest[];
 }
 
 export default Team;

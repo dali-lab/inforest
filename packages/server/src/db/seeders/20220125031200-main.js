@@ -5,6 +5,90 @@ const uuid = require("uuid4");
 module.exports = {
   async up(queryInterface, Sequelize) {
     /**
+     * User Data
+     */
+    const robertTestUserId = uuid();
+    const rebeccaTestUserId = uuid();
+    const users = [
+      {
+        id: robertTestUserId,
+        email: "test@test.com",
+        password: "kshdaskjdhaksjdhaksdnakjsdblakhsjdbahjsdkjad",
+        firstName: "Robert",
+        lastName: "Test",
+        verified: false,
+      },
+      {
+        id: rebeccaTestUserId,
+        email: "fakeemail@emails.net",
+        password: "asdasfgasdsdgkajsnjsndadasd",
+        firstName: "Rebecca",
+        lastName: "Test",
+        verified: false,
+      },
+    ];
+    await queryInterface.bulkInsert(
+      "users",
+      users.map((user) => ({
+        ...user,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }))
+    );
+    const happyTreeFriendsTeamId = uuid();
+    await queryInterface.bulkInsert("teams", [
+      {
+        id: happyTreeFriendsTeamId,
+        name: "Happy Tree Friends",
+        description:
+          "Just a bunch of happy tree friends who do forest censusing",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    ]);
+    await queryInterface.bulkInsert("memberships", [
+      {
+        id: uuid(),
+        teamId: happyTreeFriendsTeamId,
+        userId: robertTestUserId,
+        role: "ADMIN",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: uuid(),
+        teamId: happyTreeFriendsTeamId,
+        userId: rebeccaTestUserId,
+        role: "MEMBER",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    ]);
+    /**
+     * Forests & Trips
+     */
+    const testOFarmForestId = uuid();
+    await queryInterface.bulkInsert("forests", [
+      {
+        id: testOFarmForestId,
+        name: "Test O-Farm",
+        description: "This is a test forest added by the seeder",
+        teamId: happyTreeFriendsTeamId,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    ]);
+    const testTripId = uuid();
+    await queryInterface.bulkInsert("trips", [
+      {
+        id: testTripId,
+        name: "First Test Trip",
+        forestId: testOFarmForestId,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    ]);
+    /**
      * Plot data.
      */
     await queryInterface.bulkInsert("plots", [
@@ -15,6 +99,7 @@ module.exports = {
         long: -72.25,
         length: 20,
         width: 20,
+        forestId: testOFarmForestId,
         createdAt: new Date(),
         updatedAt: new Date(),
       },
@@ -25,6 +110,7 @@ module.exports = {
         long: -72.251,
         length: 20,
         width: 20,
+        forestId: testOFarmForestId,
         createdAt: new Date(),
         updatedAt: new Date(),
       },
@@ -109,42 +195,56 @@ module.exports = {
         plotNumber: 1,
         speciesCode: species[0].code,
         statusName: "ALIVE",
+        tripId: testTripId,
+        authorId: rebeccaTestUserId,
       },
       {
         tag: "04740",
         plotNumber: 1,
         speciesCode: species[0].code,
         statusName: "ALIVE",
+        tripId: testTripId,
+        authorId: rebeccaTestUserId,
       },
       {
         tag: "04741",
         plotNumber: 1,
         speciesCode: species[0].code,
         statusName: "ALIVE",
+        tripId: testTripId,
+        authorId: rebeccaTestUserId,
       },
       {
         tag: "04742",
         plotNumber: 1,
         speciesCode: species[0].code,
         statusName: "DEAD_STANDING",
+        tripId: testTripId,
+        authorId: robertTestUserId,
       },
       {
         tag: "04743",
         plotNumber: 1,
         speciesCode: species[0].code,
         statusName: "DEAD_STANDING",
+        tripId: testTripId,
+        authorId: robertTestUserId,
       },
       {
         tag: "04744",
         plotNumber: 1,
         speciesCode: species[0].code,
         statusName: "DEAD_STANDING",
+        tripId: testTripId,
+        authorId: robertTestUserId,
       },
       {
         tag: "04745",
         plotNumber: 1,
         speciesCode: species[0].code,
         statusName: "DEAD_FALLEN",
+        tripId: testTripId,
+        authorId: robertTestUserId,
       },
     ];
     const genTreeFields = () => ({
@@ -209,10 +309,16 @@ module.exports = {
   },
 
   async down(queryInterface, Sequelize) {
+    await queryInterface.bulkDelete("memberships", null, {});
     await queryInterface.bulkDelete("tree_photos", null, {});
+    await queryInterface.bulkDelete("tree_photo_purposes", null, {});
     await queryInterface.bulkDelete("trees", null, {});
-    await queryInterface.bulkDelete("tree_statuses", null, {});
     await queryInterface.bulkDelete("tree_species", null, {});
+    await queryInterface.bulkDelete("tree_statuses", null, {});
+    await queryInterface.bulkDelete("users", null, {});
     await queryInterface.bulkDelete("plots", null, {});
+    await queryInterface.bulkDelete("trips", null, {});
+    await queryInterface.bulkDelete("forests", null, {});
+    await queryInterface.bulkDelete("teams", null, {});
   },
 };

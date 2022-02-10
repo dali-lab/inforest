@@ -26,7 +26,7 @@ import {
     },
   ],
 })
-class TreePhotos extends Model<ITreePhoto> implements ITreePhoto {
+class TreePhoto extends Model<ITreePhoto> implements ITreePhoto {
   @PrimaryKey
   @Default(DataTypes.UUIDV4)
   @Column(DataTypes.UUID)
@@ -53,4 +53,4 @@ class TreePhotos extends Model<ITreePhoto> implements ITreePhoto {
   purpose: ITreePhotoPurpose;
 }
 
-export default TreePhotos;
+export default TreePhoto;

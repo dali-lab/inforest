@@ -9,16 +9,21 @@ import {
   HasMany,
   AllowNull,
 } from "sequelize-typescript";
-import { Plot as IPlot } from "@ong-forestry/schema";
 import Plot from "db/models/plot";
 import TreeStatus from "db/models/tree-status";
 import TreeSpecies from "db/models/tree-species";
 import TreePhoto from "db/models/tree-photo";
+import Trip from "db/models/trip";
+import User from "db/models/user";
+
 import {
   Tree as ITree,
   TreePhoto as ITreePhoto,
   TreeSpecies as ITreeSpecies,
   TreeStatus as ITreeStatus,
+  Trip as ITrip,
+  Plot as IPlot,
+  User as IUser,
 } from "@ong-forestry/schema";
 
 @Table({
@@ -48,39 +53,55 @@ class Tree extends Model<ITree> implements ITree {
   plot: IPlot;
 
   @Column(DataTypes.FLOAT)
-  lat?: number;
+  lat: number;
 
   @Column(DataTypes.FLOAT)
-  long?: number;
+  long: number;
 
   @Column(DataTypes.FLOAT)
-  plotX?: number;
+  plotX: number;
 
   @Column(DataTypes.FLOAT)
-  plotY?: number;
+  plotY: number;
 
   @Column(DataTypes.FLOAT)
-  dbh?: number;
+  dbh: number;
 
   @Column(DataTypes.FLOAT)
-  height?: number;
+  height: number;
 
   @ForeignKey(() => TreeSpecies)
   @Column(DataTypes.STRING)
-  speciesCode?: string;
+  speciesCode: string;
 
   @BelongsTo(() => TreeSpecies)
-  species?: ITreeSpecies;
+  species: ITreeSpecies;
 
   @ForeignKey(() => TreeStatus)
   @Column(DataTypes.STRING)
-  statusName?: string;
+  statusName: string;
 
   @BelongsTo(() => TreeStatus)
-  status?: ITreeStatus;
+  status: ITreeStatus;
 
   @HasMany(() => TreePhoto)
   photos: ITreePhoto[];
+
+  @ForeignKey(() => Trip)
+  @Column(DataTypes.STRING)
+  @AllowNull(false)
+  tripId: string;
+
+  @BelongsTo(() => Trip)
+  trip: ITrip;
+
+  @ForeignKey(() => User)
+  @Column(DataTypes.STRING)
+  @AllowNull(false)
+  authorId: string;
+
+  @BelongsTo(() => User)
+  author: IUser;
 }
 
 export default Tree;
