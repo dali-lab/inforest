@@ -1,6 +1,13 @@
-import { Tree } from "@ong-forestry/schema";
+import { Tree, TreePhoto } from "@ong-forestry/schema";
 import express from "express";
-import { createTreeEntry, getTrees, GetTreesParams } from "services";
+import {
+  createTreeEntry,
+  getTrees,
+  GetTreesParams,
+  createTreePhoto,
+  getTreePhotos,
+  GetTreePhotosParams,
+} from "services";
 
 const treeRouter = express.Router();
 
@@ -35,10 +42,38 @@ treeRouter.get("/", async (req, res) => {
       dbhMax: parseFloat(req.query.dbhMax as string),
       heightMin: parseFloat(req.query.heightMin as string),
       heightMax: parseFloat(req.query.heightMax as string),
+      tripId: req.query.tripId as string,
+      authorId: req.query.authorId as string,
       limit: parseInt(req.query.limit as string),
       offset: parseInt(req.query.offset as string),
     });
     res.status(200).json(trees);
+  } catch (e: any) {
+    console.error(e);
+    res.status(500).send(e?.message ?? "Unknown error.");
+  }
+});
+
+treeRouter.post<{}, any, TreePhoto>("/photos", async (req, res) => {
+  try {
+    await createTreePhoto(req.body);
+    res.status(201).send("Team created.");
+  } catch (e: any) {
+    console.error(e);
+    res.status(500).send(e?.message ?? "Unknown error.");
+  }
+});
+
+treeRouter.get("/photos", async (req, res) => {
+  try {
+    const photos = await getTreePhotos({
+      id: req.query.id as string,
+      treeTag: req.query.treeTag as string,
+      purposeName: req.query.purposeName as string,
+      limit: parseInt(req.query.limit as string),
+      offset: parseInt(req.query.offset as string),
+    });
+    res.status(200).json(photos);
   } catch (e: any) {
     console.error(e);
     res.status(500).send(e?.message ?? "Unknown error.");

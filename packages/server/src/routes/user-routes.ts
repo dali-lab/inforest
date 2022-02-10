@@ -28,3 +28,5 @@ userRouter.get("/", async (req, res) => {
     res.status(500).send(e?.message ?? "Unknown error.");
   }
 });
+
+export { userRouter };

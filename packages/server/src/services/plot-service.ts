@@ -10,6 +10,8 @@ export interface GetPlotsParams {
   number?: number;
   name?: string;
 
+  forestId?: string;
+
   latMin?: number;
   latMax?: number;
   longMin?: number;
@@ -23,6 +25,7 @@ export const getPlots = async (params: GetPlotsParams) => {
   const {
     number,
     name,
+    forestId,
     latMin,
     latMax,
     longMin,
@@ -41,6 +44,11 @@ export const getPlots = async (params: GetPlotsParams) => {
   if (name) {
     query.where.name = {
       [Op.eq]: name,
+    };
+  }
+  if (forestId) {
+    query.where.forestId = {
+      [Op.eq]: forestId,
     };
   }
   if (latMin) {
