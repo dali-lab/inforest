@@ -301,13 +301,16 @@ module.exports = {
   },
 
   async down(queryInterface, Sequelize) {
-    await queryInterface.bulkDelete("tree_photos", null, {});
-    await queryInterface.bulkDelete("trees", null, {});
-    await queryInterface.bulkDelete("tree_statuses", null, {});
-    await queryInterface.bulkDelete("tree_species", null, {});
-    await queryInterface.bulkDelete("plots", null, {});
-    await queryInterface.bulkDelete("teams", null, {});
-    await queryInterface.bulkDelete("users", null, {});
     await queryInterface.bulkDelete("memberships", null, {});
+    await queryInterface.bulkDelete("tree_photos", null, {});
+    await queryInterface.bulkDelete("tree_photo_purposes", null, {});
+    await queryInterface.bulkDelete("trees", null, {});
+    await queryInterface.bulkDelete("tree_species", null, {});
+    await queryInterface.bulkDelete("tree_statuses", null, {});
+    await queryInterface.bulkDelete("users", null, {});
+    await queryInterface.bulkDelete("plots", null, {});
+    await queryInterface.bulkDelete("trips", null, {});
+    await queryInterface.bulkDelete("forests", null, {});
+    await queryInterface.bulkDelete("teams", null, {});
   },
 };
