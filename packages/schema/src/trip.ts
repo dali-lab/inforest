@@ -12,7 +12,7 @@ export enum TripStatuses {
   /**
    * Indicates that all data has been collected and that admins are reviewing the entries
    */
-  InReview = "INREVIEW",
+  InReview = "IN_REVIEW",
   /**
    * Indicates that the trip is finished and all its data has been reviewed
    */

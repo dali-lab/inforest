@@ -41,6 +41,7 @@ class Forest extends Model<IForest> implements IForest {
 
   @ForeignKey(() => Team)
   @Column(DataTypes.STRING)
+  @AllowNull(false)
   teamId: string;
 
   @BelongsTo(() => Team)

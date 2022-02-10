@@ -36,6 +36,7 @@ class Trip extends Model<ITrip> implements ITrip {
 
   @ForeignKey(() => Forest)
   @Column(DataTypes.STRING)
+  @AllowNull(false)
   forestId: string;
 
   @HasMany(() => Tree)

@@ -16,6 +16,7 @@ module.exports = {
         {
           id: {
             type: Sequelize.UUID,
+            defaultValue: Sequelize.UUIDV4,
             primaryKey: true,
           },
           name: {
@@ -31,6 +32,7 @@ module.exports = {
               model: "teams",
               key: "id",
             },
+            allowNull: false,
           },
           createdAt: {
             type: Sequelize.DATE,
@@ -49,6 +51,7 @@ module.exports = {
         {
           id: {
             type: Sequelize.UUID,
+            defaultValue: Sequelize.UUIDV4,
             primaryKey: true,
           },
           name: {
@@ -61,6 +64,7 @@ module.exports = {
               model: "forests",
               key: "id",
             },
+            allowNull: false,
           },
           createdAt: {
             type: Sequelize.DATE,
