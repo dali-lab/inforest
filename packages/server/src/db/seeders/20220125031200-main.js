@@ -264,6 +264,14 @@ module.exports = {
         updatedAt: new Date(),
       }))
     );
+    await queryInterface.bulkInsert("trees", [
+      {
+        tag: "04746",
+        plotNumber: 1,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    ]);
     await queryInterface.bulkInsert("tree_photos", [
       {
         id: uuid(),
