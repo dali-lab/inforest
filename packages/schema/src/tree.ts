@@ -87,28 +87,84 @@ export interface Tree {
 }
 
 export interface TreeStatus {
+  /**
+   * Status's name
+   */
   name: string;
+
+  /**
+   * Tree entries possessing this status
+   */
   trees: Tree[];
 }
 
 export interface TreeSpecies {
+  /**
+   * Code used by researchers as a shorthand for the species
+   */
   code: string;
+
+  /**
+   * Species name
+   */
   name: string;
+
+  /**
+   * Genus the species belongs to
+   */
   genus: string;
+
+  /**
+   * Common, non-Latin name
+   */
   commonName: string;
+
+  /**
+   * Entries for trees of this species
+   */
   trees: Tree[];
 }
 
 export interface TreePhoto {
+  /**
+   * Tree photo ID
+   */
   id: string;
+
+  /**
+   * URL link to photo
+   */
   url: string;
+
+  /**
+   * Tag of tree being photographed
+   */
   treeTag: string;
+
+  /**
+   * Tree entry this photo belongs to
+   */
   tree: Tree;
+
+  /**
+   * Name/foreign key of photo's associated purpose
+   */
   purposeName: string;
+
+  /**
+   * Photo's full associated purpose
+   */
   purpose: TreePhotoPurpose;
 }
 
 export interface TreePhotoPurpose {
+  /**
+   * Name/Title of this purpose
+   */
   name: string;
+
+  /**
+   * Photos with this purpose
+   */
   photos: TreePhoto[];
 }
