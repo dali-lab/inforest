@@ -45,8 +45,8 @@ class Tree extends Model<ITree> implements ITree {
   tag: string;
 
   @ForeignKey(() => Plot)
-  @Column(DataTypes.INTEGER)
   @AllowNull(false)
+  @Column(DataTypes.INTEGER)
   plotNumber: number;
 
   @BelongsTo(() => Plot)
@@ -78,7 +78,7 @@ class Tree extends Model<ITree> implements ITree {
   species: ITreeSpecies;
 
   @ForeignKey(() => TreeStatus)
-  @Column(DataTypes.UUID)
+  @Column(DataTypes.STRING)
   statusName: string;
 
   @BelongsTo(() => TreeStatus)

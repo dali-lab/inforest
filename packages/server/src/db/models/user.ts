@@ -10,8 +10,8 @@ import {
   Unique,
 } from "sequelize-typescript";
 import { User as IUser, Team as ITeam } from "@ong-forestry/schema";
-import Team from "./team";
-import Membership from "./membership";
+import Team from "db/models/team";
+import Membership from "db/models/membership";
 
 @Table({
   tableName: "users",
@@ -22,13 +22,13 @@ class User extends Model<IUser> implements IUser {
   @Column({ type: DataTypes.UUID })
   id: string;
 
-  @Column(DataTypes.STRING)
   @Unique
   @AllowNull(false)
+  @Column(DataTypes.STRING)
   email: string;
 
-  @Column(DataTypes.STRING)
   @AllowNull(false)
+  @Column(DataTypes.STRING)
   password: string;
 
   @Column(DataTypes.STRING)
@@ -38,8 +38,8 @@ class User extends Model<IUser> implements IUser {
   lastName: string;
 
   @Default(false)
-  @Column(DataTypes.BOOLEAN)
   @AllowNull(false)
+  @Column(DataTypes.BOOLEAN)
   verified: boolean;
 
   @BelongsToMany(() => Team, () => Membership)

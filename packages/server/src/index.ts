@@ -4,12 +4,14 @@ import cors from "cors";
 import dotenv from "dotenv";
 import { Sequelize } from "sequelize-typescript";
 
-import { Plot } from "db/models";
+import * as models from "db/models";
+import { treeRouter } from "routes";
 
 dotenv.config();
 
 const app = express();
 app.use(cors());
+app.use(express.json());
 const server = createServer(app);
 server.listen({ port: 3000 }, () => {
   console.log("Server listening on port 3000!");
@@ -24,7 +26,7 @@ const sequelize = new Sequelize(
     host: process.env.DB_HOST,
     port: parseInt(process.env.DB_PORT || "5432"),
     logging: false,
-    models: [Plot],
+    models: Object.values(models),
   }
 );
 
@@ -36,6 +38,8 @@ try {
 }
 
 app.get("/plots", async (_, res) => {
-  const plots = await Plot.findAll();
+  const plots = await models.Plot.findAll();
   res.json(plots);
 });
+
+app.use("/trees", treeRouter);

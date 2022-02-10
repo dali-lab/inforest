@@ -14,9 +14,9 @@ import {
   Forest as IForest,
   User as IUser,
 } from "@ong-forestry/schema";
-import User from "./user";
-import Membership from "./membership";
-import Forest from "./forest";
+import User from "db/models/user";
+import Membership from "db/models/membership";
+import Forest from "db/models/forest";
 
 @Table({
   tableName: "teams",
@@ -27,8 +27,8 @@ class Team extends Model<ITeam> implements ITeam {
   @Column({ type: DataTypes.UUID })
   id: string;
 
-  @Column(DataTypes.STRING)
   @AllowNull(false)
+  @Column(DataTypes.STRING)
   name: string;
 
   @Column(DataTypes.STRING)

@@ -6,13 +6,16 @@ import {
   PrimaryKey,
   Default,
   AllowNull,
+  BelongsTo,
 } from "sequelize-typescript";
 import {
+  Team as ITeam,
+  User as IUser,
   Membership as IMembership,
   MembershipRoles,
 } from "@ong-forestry/schema";
-import Team from "./team";
-import User from "./user";
+import Team from "db/models/team";
+import User from "db/models/user";
 import { DataTypes } from "sequelize";
 
 const membershipRoles = ["ADMIN", "MEMBER"];
@@ -27,17 +30,23 @@ class Membership extends Model<IMembership> implements IMembership {
   id: string;
 
   @ForeignKey(() => Team)
-  @Column(DataTypes.STRING)
   @AllowNull(false)
+  @Column(DataTypes.UUID)
   teamId: string;
 
+  @BelongsTo(() => Team)
+  team: ITeam;
+
   @ForeignKey(() => User)
-  @Column(DataTypes.STRING)
   @AllowNull(false)
+  @Column(DataTypes.UUID)
   userId: string;
 
-  @Column(DataTypes.ENUM({ values: membershipRoles }))
+  @BelongsTo(() => User)
+  user: IUser;
+
   @AllowNull(false)
+  @Column(DataTypes.ENUM({ values: membershipRoles }))
   role: MembershipRoles;
 }
 
