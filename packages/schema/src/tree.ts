@@ -1,4 +1,5 @@
 import { Plot } from "./plot";
+import { Trip } from "./trip";
 
 /**
  * Recorded tree in the forest.
@@ -8,83 +9,162 @@ export interface Tree {
    * Tree tag.
    */
   tag: string;
+
   /**
    * Number of the plot where the tree is located.
    */
   plotNumber: number;
+
   /**
    * Object of the plot where the tree is located.
    */
   plot: Plot;
+
   /**
    * Tree absolute latitude measured in decimal degrees.
    */
-  lat?: number;
+  lat: number;
+
   /**
    * Tree absolute longitude measured in decimal degrees.
    */
-  long?: number;
+  long: number;
+
   /**
    * Tree relative position along plot width measured in meters.
    */
-  plotX?: number;
+  plotX: number;
+
   /**
    * Tree relative position along plot length measured in meters.
    */
-  plotY?: number;
+  plotY: number;
+
   /**
    * Tree diameter breast height in centimeters.
    */
-  dbh?: number;
+  dbh: number;
+
   /**
    * Tree height in meters.
    */
-  height?: number;
+  height: number;
+
   /**
    * Object of the tree status.
    */
-  status?: TreeStatus;
+  status: TreeStatus;
+
   /**
-   * ID of the tree status.
+   * Name of the tree status.
    */
-  statusName?: string;
+  statusName: string;
+
   /**
    * Object of the tree species.
    */
-  species?: TreeSpecies;
+  species: TreeSpecies;
+
   /**
-   * ID of the tree species.
+   * Identifying code of the tree species.
    */
-  speciesCode?: string;
+  speciesCode: string;
+
   /**
    * Tree photos.
    */
   photos: TreePhoto[];
+
+  /**
+   * Trip this entry was collected during
+   */
+  trip: Trip;
+
+  /**
+   * ID of this entry's trip
+   */
+  tripId: string;
 }
 
 export interface TreeStatus {
+  /**
+   * Status's name
+   */
   name: string;
+
+  /**
+   * Tree entries possessing this status
+   */
   trees: Tree[];
 }
 
 export interface TreeSpecies {
+  /**
+   * Code used by researchers as a shorthand for the species
+   */
   code: string;
+
+  /**
+   * Species name
+   */
   name: string;
+
+  /**
+   * Genus the species belongs to
+   */
   genus: string;
+
+  /**
+   * Common, non-Latin name
+   */
   commonName: string;
+
+  /**
+   * Entries for trees of this species
+   */
   trees: Tree[];
 }
 
 export interface TreePhoto {
+  /**
+   * Tree photo ID
+   */
   id: string;
+
+  /**
+   * URL link to photo
+   */
   url: string;
+
+  /**
+   * Tag of tree being photographed
+   */
   treeTag: string;
+
+  /**
+   * Tree entry this photo belongs to
+   */
   tree: Tree;
+
+  /**
+   * Name/foreign key of photo's associated purpose
+   */
   purposeName: string;
+
+  /**
+   * Photo's full associated purpose
+   */
   purpose: TreePhotoPurpose;
 }
 
 export interface TreePhotoPurpose {
+  /**
+   * Name/Title of this purpose
+   */
   name: string;
+
+  /**
+   * Photos with this purpose
+   */
   photos: TreePhoto[];
 }

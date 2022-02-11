@@ -9,9 +9,9 @@ import {
   AllowNull,
   Unique,
 } from "sequelize-typescript";
-import { User as IUser } from "@ong-forestry/schema";
-import Team from "./team";
-import Membership from "./membership";
+import { User as IUser, Team as ITeam } from "@ong-forestry/schema";
+import Team from "db/models/team";
+import Membership from "db/models/membership";
 
 @Table({
   tableName: "users",
@@ -32,10 +32,10 @@ class User extends Model<IUser> implements IUser {
   password: string;
 
   @Column(DataTypes.STRING)
-  firstName?: string;
+  firstName: string;
 
   @Column(DataTypes.STRING)
-  lastName?: string;
+  lastName: string;
 
   @Default(false)
   @AllowNull(false)
@@ -43,7 +43,7 @@ class User extends Model<IUser> implements IUser {
   verified: boolean;
 
   @BelongsToMany(() => Team, () => Membership)
-  teams: Team[];
+  teams: ITeam[];
 }
 
 export default User;
