@@ -10,9 +10,9 @@ export interface User {
   // User's encrypted password
   password: string;
   // User's first name
-  firstName: string;
+  firstName?: string;
   // User's last name
-  lastName: string;
+  lastName?: string;
   // True if user has verified their account via email
   verified: boolean;
   // Teams user is a member/admin of.
