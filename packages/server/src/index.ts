@@ -5,7 +5,15 @@ import dotenv from "dotenv";
 import { Sequelize } from "sequelize-typescript";
 
 import * as models from "db/models";
-import { treeRouter } from "routes";
+import {
+  treeRouter,
+  plotRouter,
+  userRouter,
+  teamRouter,
+  forestRouter,
+  membershipRouter,
+  tripRouter,
+} from "routes";
 
 dotenv.config();
 
@@ -37,9 +45,10 @@ try {
   console.error("Unable to connect to the database:", error);
 }
 
-app.get("/plots", async (_, res) => {
-  const plots = await models.Plot.findAll();
-  res.json(plots);
-});
-
 app.use("/trees", treeRouter);
+app.use("/plots", plotRouter);
+app.use("/users", userRouter);
+app.use("/teams", teamRouter);
+app.use("/forests", forestRouter);
+app.use("/memberships", membershipRouter);
+app.use("/trips", tripRouter);
