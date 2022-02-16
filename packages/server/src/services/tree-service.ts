@@ -28,6 +28,9 @@ export interface GetTreesParams {
   heightMin?: number;
   heightMax?: number;
 
+  tripId?: string;
+  authorId?: string;
+
   limit?: number;
   offset?: number;
 }
@@ -49,6 +52,8 @@ export const getTrees = async (params: GetTreesParams) => {
     heightMax,
     speciesCodes,
     statusNames,
+    tripId,
+    authorId,
     limit = 30,
     offset = 0,
   } = params;
@@ -133,6 +138,16 @@ export const getTrees = async (params: GetTreesParams) => {
   if (heightMax) {
     query.where.height = {
       [Op.lte]: heightMax,
+    };
+  }
+  if (tripId) {
+    query.where.tripId = {
+      [Op.eq]: tripId,
+    };
+  }
+  if (authorId) {
+    query.where.authorId = {
+      [Op.eq]: authorId,
     };
   }
   if (limit) {
