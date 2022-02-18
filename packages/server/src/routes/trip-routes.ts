@@ -16,7 +16,7 @@ tripRouter.post<{}, any, Trip>("/", async (req, res) => {
 
 tripRouter.get<{}, any, Trip>("/", async (req, res) => {
   try {
-    const trips = getTrips({
+    const trips = await getTrips({
       id: req.query.id as string,
       name: req.query.name as string,
       forestId: req.query.forestId as string,

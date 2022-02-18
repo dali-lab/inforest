@@ -26,7 +26,7 @@ server.listen({ port: 3000 }, () => {
 });
 
 const sequelize = new Sequelize(
-  process.env.DB_NAME || "ong_forestry_dev",
+  process.env.DB_NAME || "forestree_dev",
   process.env.DB_USER || "postgres",
   process.env.DB_PASSWORD || "password",
   {

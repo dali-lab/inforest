@@ -5,22 +5,20 @@ import { Provider } from "react-redux";
 import useCachedResources from "./hooks/useCachedResources";
 import useColorScheme from "./hooks/useColorScheme";
 import Navigation from "./navigation";
-import { store } from "./middleware/store";
+import { store } from "./services/store";
 
 export default function App() {
   const isLoadingComplete = useCachedResources();
   const colorScheme = useColorScheme();
 
-  if (!isLoadingComplete) {
-    return null;
-  } else {
-    return (
-      <Provider store={store}>
+  return (
+    <Provider store={store}>
+      {isLoadingComplete && (
         <SafeAreaProvider>
           <Navigation colorScheme={colorScheme} />
           <StatusBar />
         </SafeAreaProvider>
-      </Provider>
-    );
-  }
+      )}
+    </Provider>
+  );
 }

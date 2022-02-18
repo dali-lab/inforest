@@ -16,7 +16,7 @@ forestRouter.post<{}, any, Forest>("/", async (req, res) => {
 
 forestRouter.get<{}, any, Forest>("/", async (req, res) => {
   try {
-    const forests = getForests({
+    const forests = await getForests({
       id: req.query.id as string,
       name: req.query.name as string,
       teamId: req.query.teamId as string,

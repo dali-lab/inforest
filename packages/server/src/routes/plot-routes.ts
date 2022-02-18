@@ -16,7 +16,7 @@ plotRouter.post<{}, any, Plot>("/", async (req, res) => {
 
 plotRouter.get<{}, any, Plot>("/", async (req, res) => {
   try {
-    const plots = getPlots({
+    const plots = await getPlots({
       number: parseInt(req.query.number as string),
       name: req.query.name as string,
       forestId: req.query.forestId as string,

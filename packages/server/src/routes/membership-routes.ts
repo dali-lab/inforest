@@ -20,7 +20,7 @@ membershipRouter.post<{}, any, Membership>("/", async (req, res) => {
 
 membershipRouter.get<{}, any, Membership>("/", async (req, res) => {
   try {
-    const memberships = getMemberships({
+    const memberships = await getMemberships({
       id: req.query.id as string,
       teamId: req.query.teamId as string,
       userId: req.query.userId as string,
