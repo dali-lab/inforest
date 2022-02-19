@@ -8,7 +8,9 @@ import {
   BelongsToMany,
   AllowNull,
   Unique,
+  BeforeCreate,
 } from "sequelize-typescript";
+import bcrypt from "bcrypt";
 import { User as IUser, Team as ITeam } from "@ong-forestry/schema";
 import Team from "db/models/team";
 import Membership from "db/models/membership";
@@ -44,6 +46,11 @@ class User extends Model<IUser> implements IUser {
 
   @BelongsToMany(() => Team, () => Membership)
   teams: ITeam[];
+
+  @BeforeCreate
+  static encryptPassword = async (instance: IUser) => {
+    instance.password = await bcrypt.hash(instance.password, 10);
+  };
 }
 
 export default User;

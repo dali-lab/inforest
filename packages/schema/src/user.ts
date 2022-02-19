@@ -6,7 +6,7 @@ export interface User {
   /**
    * User ID
    */
-  id: string;
+  id?: string;
 
   /**
    * User's email, also used as a username
@@ -21,20 +21,20 @@ export interface User {
   /**
    * User's first name
    */
-  firstName: string;
+  firstName?: string;
 
   /**
    * User's last name
    */
-  lastName: string;
+  lastName?: string;
 
   /**
    * True if user has verified their account via email
    */
-  verified: boolean;
+  verified?: boolean;
 
   /**
    * Teams user is a member/admin of
    */
-  teams: Team[];
+  teams?: Team[];
 }

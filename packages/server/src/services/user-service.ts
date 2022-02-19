@@ -1,9 +1,10 @@
 import { User } from "@ong-forestry/schema";
 import UserModel from "db/models/user";
 import { Op } from "sequelize";
+import bcrypt from "bcrypt";
 
 export const createUser = async (user: User) => {
-  await UserModel.create(user);
+  return await UserModel.create(user);
 };
 
 export interface GetUsersParams {
@@ -38,3 +39,6 @@ export const getUsers = async (params: GetUsersParams) => {
   const users = await UserModel.findAll(query);
   return users;
 };
+
+export const isValidPassword = async (user: User, password: string) =>
+  await bcrypt.compare(password, user.password);

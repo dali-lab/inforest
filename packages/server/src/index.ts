@@ -3,6 +3,7 @@ import { createServer } from "http";
 import cors from "cors";
 import dotenv from "dotenv";
 import { Sequelize } from "sequelize-typescript";
+import passport from "passport";
 
 import * as models from "db/models";
 import {
@@ -24,6 +25,8 @@ const server = createServer(app);
 server.listen({ port: 3000 }, () => {
   console.log("Server listening on port 3000!");
 });
+
+app.use(passport.initialize());
 
 const sequelize = new Sequelize(
   process.env.DB_NAME || "forestree_dev",
