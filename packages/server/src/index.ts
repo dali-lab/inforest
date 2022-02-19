@@ -4,6 +4,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import { Sequelize } from "sequelize-typescript";
 import passport from "passport";
+import bodyParser from "body-parser";
 
 import * as models from "db/models";
 import {
@@ -26,6 +27,7 @@ server.listen({ port: 3000 }, () => {
   console.log("Server listening on port 3000!");
 });
 
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(passport.initialize());
 
 const sequelize = new Sequelize(

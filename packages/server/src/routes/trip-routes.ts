@@ -1,10 +1,11 @@
 import { Trip } from "@ong-forestry/schema";
 import express from "express";
 import { createTrip, getTrips, GetTripsParams } from "services";
+import { requireAuth } from "services/auth-service";
 
 const tripRouter = express.Router();
 
-tripRouter.post<{}, any, Trip>("/", async (req, res) => {
+tripRouter.post<{}, any, Trip>("/", requireAuth, async (req, res) => {
   try {
     await createTrip(req.body);
     res.status(201).send("Trip created.");
@@ -14,7 +15,7 @@ tripRouter.post<{}, any, Trip>("/", async (req, res) => {
   }
 });
 
-tripRouter.get<{}, any, Trip>("/", async (req, res) => {
+tripRouter.get<{}, any, Trip>("/", requireAuth, async (req, res) => {
   try {
     const trips = await getTrips({
       id: req.query.id as string,

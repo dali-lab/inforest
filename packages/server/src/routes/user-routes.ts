@@ -47,19 +47,19 @@ userRouter.post<{}, any, User>("/login", async (req, res, next) => {
   })(req, res, next);
 });
 
-userRouter.get("/", async (req, res) => {
-  try {
-    const users = await getUsers({
-      id: req.query?.id as string,
-      email: req.query?.email as string,
-      limit: parseInt(req.query.limit as string),
-      offset: parseInt(req.query.offset as string),
-    });
-    res.status(200).json(users);
-  } catch (e: any) {
-    console.error(e);
-    res.status(500).send(e?.message ?? "Unknown error.");
-  }
-});
+// userRouter.get("/", async (req, res) => {
+//   try {
+//     const users = await getUsers({
+//       id: req.query?.id as string,
+//       email: req.query?.email as string,
+//       limit: parseInt(req.query.limit as string),
+//       offset: parseInt(req.query.offset as string),
+//     });
+//     res.status(200).json(users);
+//   } catch (e: any) {
+//     console.error(e);
+//     res.status(500).send(e?.message ?? "Unknown error.");
+//   }
+// });
 
 export { userRouter };

@@ -1,10 +1,11 @@
 import { Team } from "@ong-forestry/schema";
 import express from "express";
 import { createTeam, getTeams, GetTeamsParams } from "services";
+import { requireAuth } from "services/auth-service";
 
 const teamRouter = express.Router();
 
-teamRouter.post<{}, any, Team>("/", async (req, res) => {
+teamRouter.post<{}, any, Team>("/", requireAuth, async (req, res) => {
   try {
     await createTeam(req.body);
     res.status(201).send("Team created.");
@@ -14,7 +15,7 @@ teamRouter.post<{}, any, Team>("/", async (req, res) => {
   }
 });
 
-teamRouter.get("/", async (req, res) => {
+teamRouter.get("/", requireAuth, async (req, res) => {
   try {
     const teams = await getTeams({
       id: req.query?.id as string,

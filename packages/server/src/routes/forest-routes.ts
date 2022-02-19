@@ -1,10 +1,11 @@
 import { Forest } from "@ong-forestry/schema";
 import express from "express";
 import { createForest, getForests, GetForestsParams } from "services";
+import { requireAuth } from "services/auth-service";
 
 const forestRouter = express.Router();
 
-forestRouter.post<{}, any, Forest>("/", async (req, res) => {
+forestRouter.post<{}, any, Forest>("/", requireAuth, async (req, res) => {
   try {
     await createForest(req.body);
     res.status(201).send("Forest created.");
@@ -14,7 +15,7 @@ forestRouter.post<{}, any, Forest>("/", async (req, res) => {
   }
 });
 
-forestRouter.get<{}, any, Forest>("/", async (req, res) => {
+forestRouter.get<{}, any, Forest>("/", requireAuth, async (req, res) => {
   try {
     const forests = await getForests({
       id: req.query.id as string,

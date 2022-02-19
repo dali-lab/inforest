@@ -10,16 +10,6 @@ const options = {
   usernameField: "email",
   passwordField: "password",
 };
-// options.jwtFromRequest = ExtractJwt.fromHeader("authorization");
-// options.secretOrKey = process.env.AUTH_SECRET;
-
-// passport.use(
-//   new Strategy(options, async (payload, done) => {
-//     const user = await User.findOne({ where: { id: payload.sub } });
-//     console.log("new user");
-//     done(user);
-//   })
-// );
 
 passport.use(
   "signup",

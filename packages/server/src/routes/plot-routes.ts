@@ -1,10 +1,11 @@
 import { Plot } from "@ong-forestry/schema";
 import express from "express";
 import { createPlot, getPlots, GetPlotsParams } from "services";
+import { requireAuth } from "services/auth-service";
 
 const plotRouter = express.Router();
 
-plotRouter.post<{}, any, Plot>("/", async (req, res) => {
+plotRouter.post<{}, any, Plot>("/", requireAuth, async (req, res) => {
   try {
     await createPlot(req.body);
     res.status(201).send("Plot created.");
@@ -14,7 +15,7 @@ plotRouter.post<{}, any, Plot>("/", async (req, res) => {
   }
 });
 
-plotRouter.get<{}, any, Plot>("/", async (req, res) => {
+plotRouter.get<{}, any, Plot>("/", requireAuth, async (req, res) => {
   try {
     const plots = await getPlots({
       number: parseInt(req.query.number as string),

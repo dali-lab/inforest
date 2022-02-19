@@ -8,10 +8,11 @@ import {
   getTreePhotos,
   GetTreePhotosParams,
 } from "services";
+import { requireAuth } from "services/auth-service";
 
 const treeRouter = express.Router();
 
-treeRouter.post<{}, any, Tree>("/", async (req, res) => {
+treeRouter.post<{}, any, Tree>("/", requireAuth, async (req, res) => {
   try {
     await createTreeEntry(req.body);
     res.status(201).send("Tree entry created.");
@@ -21,7 +22,7 @@ treeRouter.post<{}, any, Tree>("/", async (req, res) => {
   }
 });
 
-treeRouter.get("/", async (req, res) => {
+treeRouter.get("/", requireAuth, async (req, res) => {
   try {
     const trees = await getTrees({
       tags: (req.query.tags as string)?.split(","),
