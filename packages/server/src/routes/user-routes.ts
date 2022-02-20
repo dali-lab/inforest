@@ -1,9 +1,16 @@
 import { User } from "@ong-forestry/schema";
 import express from "express";
 import dotenv from "dotenv";
-import { createUser, getUsers, GetUsersParams } from "services";
+import {
+  createUser,
+  deleteUsers,
+  editUsers,
+  getUsers,
+  GetUsersParams,
+} from "services";
 import passport from "passport";
 import jwt from "jsonwebtoken";
+import { requireAuth } from "services/auth-service";
 
 dotenv.config();
 
@@ -30,7 +37,8 @@ userRouter.post<{}, any, User>(
 userRouter.post<{}, any, User>("/login", async (req, res, next) => {
   passport.authenticate("login", async (err, user, info) => {
     try {
-      if (err || !user) return next(new Error("An error occurred."));
+      if (err) throw err;
+      if (!user) throw new Error("Incorrect credentials");
       req.login(user, { session: false }, async (error) => {
         if (error) return next(error);
         const body = { id: user.id, email: user.email };
@@ -39,23 +47,50 @@ userRouter.post<{}, any, User>("/login", async (req, res, next) => {
           // TODO enforce this better
           process.env.AUTH_SECRET as string
         );
-        return res.json({ token });
+        // TODO: do we need cookies?
+        // res.header("Set-Cookie", `user_token=${token}`);
+        res.status(200).json({ user, token });
       });
-    } catch (error) {
-      return next(error);
+    } catch (e: any) {
+      console.error(e);
+      res.status(500).send(e?.message ?? "An unknown error has occurred");
     }
   })(req, res, next);
 });
 
-// userRouter.get("/", async (req, res) => {
+// userRouter.delete<{},any,User>("/logout")
+
+const parseParams = (query: any) => ({
+  id: query?.id as string,
+  email: query?.email as string,
+  limit: parseInt(query.limit as string),
+  offset: parseInt(query.offset as string),
+});
+
+userRouter.get<{}, any, User>("/", requireAuth, async (req, res) => {
+  try {
+    const users = await getUsers(parseParams(req.query));
+    res.status(200).json(users);
+  } catch (e: any) {
+    console.error(e);
+    res.status(500).send(e?.message ?? "Unknown error.");
+  }
+});
+
+userRouter.patch<{}, any, User>("/", requireAuth, async (req, res) => {
+  try {
+    const users = await editUsers(req.body, parseParams(req.query));
+    res.status(200).json(users);
+  } catch (e: any) {
+    console.error(e);
+    res.status(500).send(e?.message ?? "Unknown error.");
+  }
+});
+
+// userRouter.delete<{}, any, User>("/", requireAuth, async (req, res) => {
 //   try {
-//     const users = await getUsers({
-//       id: req.query?.id as string,
-//       email: req.query?.email as string,
-//       limit: parseInt(req.query.limit as string),
-//       offset: parseInt(req.query.offset as string),
-//     });
-//     res.status(200).json(users);
+//     await deleteUsers(parseParams(req.query));
+//     res.status(200).send("Users successfully deleted.");
 //   } catch (e: any) {
 //     console.error(e);
 //     res.status(500).send(e?.message ?? "Unknown error.");

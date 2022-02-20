@@ -275,7 +275,7 @@ module.exports = {
     await queryInterface.bulkInsert("tree_photos", [
       {
         id: uuid(),
-        treeTag: trees[0].tag,
+        treeId: trees[0].id,
         url: "https://en.wikipedia.org/wiki/Acer_rubrum#/media/File:2014-10-30_11_09_40_Red_Maple_during_autumn_on_Lower_Ferry_Road_in_Ewing,_New_Jersey.JPG",
         purposeName: "FULL",
         createdAt: new Date(),
@@ -283,7 +283,7 @@ module.exports = {
       },
       {
         id: uuid(),
-        treeTag: trees[0].tag,
+        treeId: trees[0].id,
         url: "https://mywoodlot.com/images/blog/2019/1.10.19/image4.JPG",
         purposeName: "BARK",
         createdAt: new Date(),
@@ -291,7 +291,7 @@ module.exports = {
       },
       {
         id: uuid(),
-        treeTag: trees[0].tag,
+        treeId: trees[0].id,
         url: "https://statesymbolsusa.org/sites/statesymbolsusa.org/files/primary-images/redmapletreefallleaves.jpg",
         purposeName: "LEAF",
         createdAt: new Date(),
@@ -299,7 +299,7 @@ module.exports = {
       },
       {
         id: uuid(),
-        treeTag: trees[1].tag,
+        treeId: trees[1].id,
         url: "https://upload.wikimedia.org/wikipedia/commons/a/a1/Acer_saccharum_1-jgreenlee_%285098070608%29.jpg",
         purposeName: "LEAF",
         createdAt: new Date(),

@@ -3,7 +3,7 @@ import PlotModel from "db/models/plot";
 import { Op } from "sequelize";
 
 export const createPlot = async (plot: Plot) => {
-  await PlotModel.create(plot);
+  return await PlotModel.create(plot);
 };
 
 export interface GetPlotsParams {
@@ -21,7 +21,7 @@ export interface GetPlotsParams {
   offset?: number;
 }
 
-export const getPlots = async (params: GetPlotsParams) => {
+const constructQuery = (params: GetPlotsParams) => {
   const {
     number,
     name,
@@ -77,6 +77,23 @@ export const getPlots = async (params: GetPlotsParams) => {
   if (offset) {
     query.offset = offset;
   }
-  const plots = await PlotModel.findAll(query);
-  return plots;
+  return query;
+};
+
+export const editPlots = async (
+  plot: Partial<Plot>,
+  params: GetPlotsParams
+) => {
+  const query = constructQuery(params);
+  return await PlotModel.update(plot, query);
+};
+
+export const getPlots = async (params: GetPlotsParams) => {
+  const query = constructQuery(params);
+  return await PlotModel.findAll(query);
+};
+
+export const deletePlots = async (params: GetPlotsParams) => {
+  const query = constructQuery(params);
+  return await PlotModel.destroy(query);
 };

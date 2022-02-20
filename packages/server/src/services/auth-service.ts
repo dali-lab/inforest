@@ -27,10 +27,9 @@ passport.use(
   "login",
   new localStrategy(options, async (email, password, done) => {
     try {
-      const user = (await getUsers({ email }))?.[0];
-      if (!user) return done(null, false, { message: "User not found" });
-      const valid = await isValidPassword(user, password);
+      const valid = await isValidPassword(email, password);
       if (!valid) return done(null, false, { message: "Wrong Password" });
+      const user = (await getUsers({ email }))?.[0];
       return done(null, user, { message: "Logged in Successfully" });
     } catch (e: any) {
       return done(e);
@@ -43,7 +42,7 @@ passport.use(
     {
       //TODO: replace this
       secretOrKey: process.env.AUTH_SECRET as string,
-      jwtFromRequest: ExtractJwt.fromUrlQueryParameter("secret_token"),
+      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
     },
     async (token, done) => {
       try {

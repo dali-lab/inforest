@@ -139,7 +139,7 @@ export interface TreePhoto {
   /**
    * Tag of tree being photographed
    */
-  treeTag: string;
+  treeId: string;
 
   /**
    * Tree entry this photo belongs to

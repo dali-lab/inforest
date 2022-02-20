@@ -1,18 +1,17 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { Plot } from "@ong-forestry/schema";
+import { RootState } from "./store";
 
 export const api = createApi({
   reducerPath: "api",
-  baseQuery: fetchBaseQuery({ baseUrl: "http://localhost:3000/" }),
-  endpoints: (builder) => ({
-    getPlotByNumber: builder.query<Plot, number>({
-      query: (number) => ({ url: `plots?number=${number}` }),
-      transformResponse: (response: any) => response?.[0] || null,
-    }),
-    getPlotsByForestId: builder.query<Plot[], string>({
-      query: (id) => ({ url: "plots", data: { forestId: id } }),
-    }),
+  baseQuery: fetchBaseQuery({
+    baseUrl: "http://localhost:3000/",
+    prepareHeaders: (headers, { getState }) => {
+      const token = (getState() as RootState).auth.token;
+      if (token) {
+        headers.set("authorization", `Bearer ${token}`);
+      }
+      return headers;
+    },
   }),
+  endpoints: (builder) => ({}),
 });
-
-export const { useGetPlotByNumberQuery } = api;

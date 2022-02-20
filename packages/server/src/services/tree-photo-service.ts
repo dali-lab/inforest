@@ -3,21 +3,21 @@ import TreePhotoModel from "db/models/tree-photo";
 import { Op } from "sequelize";
 
 export const createTreePhoto = async (treePhoto: TreePhoto) => {
-  await TreePhotoModel.create(treePhoto);
+  return await TreePhotoModel.create(treePhoto);
 };
 
 export interface GetTreePhotosParams {
   id?: string;
 
-  treeTag?: string;
+  treeId?: string;
   purposeName?: string;
 
   limit?: number;
   offset?: number;
 }
 
-export const getTreePhotos = async (params: GetTreePhotosParams) => {
-  const { id, treeTag, purposeName, limit, offset } = params;
+const constructQuery = (params: GetTreePhotosParams) => {
+  const { id, treeId, purposeName, limit, offset } = params;
   const query: any = {
     where: {},
   };
@@ -26,9 +26,9 @@ export const getTreePhotos = async (params: GetTreePhotosParams) => {
       [Op.eq]: id,
     };
   }
-  if (treeTag) {
-    query.where.treeTag = {
-      [Op.eq]: treeTag,
+  if (treeId) {
+    query.where.treeId = {
+      [Op.eq]: treeId,
     };
   }
   if (purposeName) {
@@ -42,6 +42,23 @@ export const getTreePhotos = async (params: GetTreePhotosParams) => {
   if (offset) {
     query.offset = offset;
   }
-  const treePhotos = await TreePhotoModel.findAll(query);
-  return treePhotos;
+  return query;
+};
+
+export const editTreePhotos = async (
+  treePhoto: Partial<TreePhoto>,
+  params: GetTreePhotosParams
+) => {
+  const query = constructQuery(params);
+  return await TreePhotoModel.update(treePhoto, query);
+};
+
+export const getTreePhotos = async (params: GetTreePhotosParams) => {
+  const query = constructQuery(params);
+  return await TreePhotoModel.findAll(query);
+};
+
+export const deleteTreePhotos = async (params: GetTreePhotosParams) => {
+  const query = constructQuery(params);
+  return await TreePhotoModel.destroy(query);
 };

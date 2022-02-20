@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dimensions, StyleSheet } from "react-native";
 import MapView, {
   Marker,
@@ -10,7 +10,11 @@ import MapView, {
 import EditScreenInfo from "../components/EditScreenInfo";
 import { Text, View } from "../components/Themed";
 import { RootTabScreenProps } from "../types";
-import { useGetPlotByNumberQuery } from "../services/api";
+
+import { userApi } from "../services/endpoints";
+import { useDispatch } from "react-redux";
+import { setCredentials } from "../services/slices/authSlice";
+import { User } from "@ong-forestry/schema";
 
 export default function TabOneScreen({
   navigation,
@@ -18,8 +22,16 @@ export default function TabOneScreen({
   // const [markerPos, setMarkerPos] = useState<EventUserLocation['nativeEvent']['coordinate']>()
   const [markerPos, setMarkerPos] = useState<LatLng>();
   const [region, setRegion] = useState<Region>();
-  const { data, error, isLoading } = useGetPlotByNumberQuery(1);
-  console.log(data);
+  const [login, { isLoading }] = userApi.useLoginMutation();
+  const dispatch = useDispatch();
+  // this is what the login logic will likely look like, but it'd be nice to move it into the endpoints
+  useEffect(() => {
+    login({ email: "juliancgeorge@gmail.com", password: "redred" })
+      .unwrap()
+      .then((data) => {
+        dispatch(setCredentials(data));
+      });
+  }, []);
   return (
     <View style={styles.container}>
       <MapView
