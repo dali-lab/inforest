@@ -11,25 +11,12 @@ import EditScreenInfo from "../components/EditScreenInfo";
 import { Text, View } from "../components/Themed";
 import { RootTabScreenProps } from "../types";
 
-import { userApi } from "../services/endpoints";
-import { useDispatch, useStore } from "react-redux";
-import { selectCurrentUser } from "../services/slices/authSlice";
-
 export default function TabOneScreen({
   navigation,
 }: RootTabScreenProps<"TabOne">) {
   // const [markerPos, setMarkerPos] = useState<EventUserLocation['nativeEvent']['coordinate']>()
   const [markerPos, setMarkerPos] = useState<LatLng>();
   const [region, setRegion] = useState<Region>();
-  const [login, { isLoading }] = userApi.useLoginMutation();
-  const store = useStore();
-  // this is what the login logic will likely look like, but it'd be nice to move it into the endpoints
-  useEffect(() => {
-    login({ email: "juliancgeorge@gmail.com", password: "redred" }).then(() => {
-      console.log(store.getState());
-      console.log(selectCurrentUser(store.getState()));
-    });
-  }, []);
   return (
     <View style={styles.container}>
       <MapView
