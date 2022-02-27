@@ -6,7 +6,6 @@ const BASE_URL = "users";
 const userApi = api.injectEndpoints({
   overrideExisting: true,
   endpoints: (builder) => ({
-    // TODO: figure out cookies and stuff
     signup: builder.mutation<User, any>({
       query: (credentials) => ({
         url: BASE_URL + "/signup",
@@ -20,8 +19,6 @@ const userApi = api.injectEndpoints({
         method: "POST",
         body: credentials,
       }),
-      // eventually we'll want to automatically dispatch the redux setCredentials from here
-      onCacheEntryAdded: async () => {},
     }),
     getUserById: builder.query<User, string>({
       query: (id) => ({ url: BASE_URL + `?id=${id}` }),

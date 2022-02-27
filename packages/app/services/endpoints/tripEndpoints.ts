@@ -30,3 +30,5 @@ const tripApi = api.injectEndpoints({
     }),
   }),
 });
+
+export default tripApi;

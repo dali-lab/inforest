@@ -25,3 +25,5 @@ const teamApi = api.injectEndpoints({
     }),
   }),
 });
+
+export default teamApi;

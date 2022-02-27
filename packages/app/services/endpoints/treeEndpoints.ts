@@ -31,3 +31,5 @@ const treeApi = api.injectEndpoints({
     }),
   }),
 });
+
+export default treeApi;

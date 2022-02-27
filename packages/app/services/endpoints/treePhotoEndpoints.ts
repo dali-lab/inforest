@@ -35,3 +35,5 @@ const treePhotoApi = api.injectEndpoints({
     }),
   }),
 });
+
+export default treePhotoApi;

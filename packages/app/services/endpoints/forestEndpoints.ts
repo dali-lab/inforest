@@ -28,3 +28,5 @@ const forestApi = api.injectEndpoints({
     }),
   }),
 });
+
+export default forestApi;

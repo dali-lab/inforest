@@ -28,3 +28,5 @@ const plotApi = api.injectEndpoints({
     }),
   }),
 });
+
+export default plotApi;

@@ -1,5 +1,7 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { User } from "@ong-forestry/schema";
+import { userApi } from "../endpoints";
+import { RootState } from "../store";
 
 export type AuthState = {
   /**
@@ -24,8 +26,18 @@ const authSlice = createSlice({
       state.token = token;
     },
   },
+  extraReducers: (builder) => {
+    builder.addMatcher(
+      // whenever the login action is 'fulfilled' or finished successfully, grab its payload and use it to set the auth state's credentials
+      userApi.endpoints.login.matchFulfilled,
+      (state, { payload }) => {
+        state.token = payload.token;
+        state.user = payload.user;
+      }
+    );
+  },
 });
 
 export const { setCredentials } = authSlice.actions;
-
+export const selectCurrentUser = (state: RootState) => state.auth.user;
 export default authSlice.reducer;
