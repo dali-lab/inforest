@@ -1,7 +1,7 @@
 import { combineReducers, configureStore } from "@reduxjs/toolkit";
 import { userReducer } from "./slices";
 import { persistReducer } from "redux-persist";
-import storage from "redux-persist/lib/storage";
+import ExpoFileSystemStorage from "redux-persist-expo-filesystem";
 
 const rootReducer = combineReducers({
   user: userReducer,
@@ -9,7 +9,7 @@ const rootReducer = combineReducers({
 
 const persistConfig = {
   key: "root",
-  storage,
+  storage: ExpoFileSystemStorage,
 };
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
