@@ -10,6 +10,11 @@ import MapView, {
 import EditScreenInfo from "../components/EditScreenInfo";
 import { Text, View } from "../components/Themed";
 import { RootTabScreenProps } from "../types";
+import useAppDispatch from "../hooks/useAppDispatch";
+import useAppSelector from "../hooks/useAppSelector";
+
+import { login } from "../redux/slices/userSlice";
+import { RootState } from "../redux";
 
 export default function TabOneScreen({
   navigation,
@@ -17,6 +22,11 @@ export default function TabOneScreen({
   // const [markerPos, setMarkerPos] = useState<EventUserLocation['nativeEvent']['coordinate']>()
   const [markerPos, setMarkerPos] = useState<LatLng>();
   const [region, setRegion] = useState<Region>();
+  const dispatch = useAppDispatch();
+
+  dispatch(login({ email: "juliancgeorge@gmail.com", password: "redred" }));
+  const credentials = useAppSelector((state: RootState) => state.user.token);
+  console.log(credentials);
   return (
     <View style={styles.container}>
       <MapView

@@ -30,7 +30,7 @@ userRouter.post<{}, any, User>(
   "/signup",
   passport.authenticate("signup", { session: false }),
   async (req, res) => {
-    res.status(201).send({ message: "Signup successful", user: req.user });
+    res.status(201).json({ message: "Signup successful" });
   }
 );
 
@@ -58,7 +58,10 @@ userRouter.post<{}, any, User>("/login", async (req, res, next) => {
   })(req, res, next);
 });
 
-// userRouter.delete<{},any,User>("/logout")
+// userRouter.delete<{}, any, User>("/logout", async (req, res, next) => {
+//   await req.logout();
+//   res.status(200).json({});
+// });
 
 const parseParams = (query: any) => ({
   id: query?.id as string,
