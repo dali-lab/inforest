@@ -1,29 +1,58 @@
 import { Trip } from "@ong-forestry/schema";
 import express from "express";
-import { createTrip, getTrips, GetTripsParams } from "services";
+import {
+  createTrip,
+  deleteTrips,
+  editTrips,
+  getTrips,
+  GetTripsParams,
+} from "services";
+import { requireAuth } from "services/auth-service";
 
 const tripRouter = express.Router();
 
-tripRouter.post<{}, any, Trip>("/", async (req, res) => {
+tripRouter.post<{}, any, Trip>("/", requireAuth, async (req, res) => {
   try {
-    await createTrip(req.body);
-    res.status(201).send("Trip created.");
+    const trip = await createTrip(req.body);
+    res.status(201).json(trip);
   } catch (e: any) {
     console.error(e);
     res.status(500).send(e?.message ?? "Unknown error.");
   }
 });
 
-tripRouter.get<{}, any, Trip>("/", async (req, res) => {
+const parseParams = (query: any) => ({
+  id: query.id as string,
+  name: query.name as string,
+  forestId: query.forestId as string,
+  limit: parseInt(query.limit as string),
+  offset: parseInt(query.offset as string),
+});
+
+tripRouter.patch<{}, any, Trip>("/", requireAuth, async (req, res) => {
   try {
-    const trips = getTrips({
-      id: req.query.id as string,
-      name: req.query.name as string,
-      forestId: req.query.forestId as string,
-      limit: parseInt(req.query.limit as string),
-      offset: parseInt(req.query.offset as string),
-    });
-    res.status(201).send(trips);
+    const trips = await editTrips(req.body, parseParams(req.query));
+    res.status(201).json(trips);
+  } catch (e: any) {
+    console.error(e);
+    res.status(500).send(e?.message ?? "Unknown error.");
+  }
+});
+
+tripRouter.get<{}, any, Trip>("/", requireAuth, async (req, res) => {
+  try {
+    const trips = await getTrips(parseParams(req.query));
+    res.status(201).json(trips);
+  } catch (e: any) {
+    console.error(e);
+    res.status(500).send(e?.message ?? "Unknown error.");
+  }
+});
+
+tripRouter.delete<{}, any, Trip>("/", requireAuth, async (req, res) => {
+  try {
+    await deleteTrips(parseParams(req.query));
+    res.status(201).send("Trips successfully deleted.");
   } catch (e: any) {
     console.error(e);
     res.status(500).send(e?.message ?? "Unknown error.");

@@ -3,7 +3,7 @@ import MembershipModel from "db/models/membership";
 import { Op } from "sequelize";
 
 export const createMembership = async (membership: Membership) => {
-  await MembershipModel.create(membership);
+  return await MembershipModel.create(membership);
 };
 
 export interface GetMembershipsParams {
@@ -18,7 +18,7 @@ export interface GetMembershipsParams {
   limit?: number;
 }
 
-export const getMemberships = async (params: GetMembershipsParams) => {
+const constructQuery = (params: GetMembershipsParams) => {
   const { id, teamId, userId, role, offset, limit } = params;
   const query: any = {
     where: {},
@@ -49,6 +49,22 @@ export const getMemberships = async (params: GetMembershipsParams) => {
   if (offset) {
     query.offset = offset;
   }
-  const memberships = MembershipModel.findAll(query);
-  return memberships;
+  return query;
+};
+export const editMemberships = async (
+  membership: Partial<Membership>,
+  params: GetMembershipsParams
+) => {
+  const query = constructQuery(params);
+  return await MembershipModel.update(membership, query);
+};
+
+export const getMemberships = async (params: GetMembershipsParams) => {
+  const query = constructQuery(params);
+  return await MembershipModel.findAll(query);
+};
+
+export const deleteMemberships = async (params: GetMembershipsParams) => {
+  const query = constructQuery(params);
+  return await MembershipModel.destroy(query);
 };

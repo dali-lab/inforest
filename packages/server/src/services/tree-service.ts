@@ -2,8 +2,8 @@ import { Tree } from "@ong-forestry/schema";
 import TreeModel from "db/models/tree";
 import { Op } from "sequelize";
 
-export const createTreeEntry = async (tree: Tree) => {
-  await TreeModel.create(tree);
+export const createTrees = async (tree: Tree) => {
+  return await TreeModel.create(tree);
 };
 
 export interface GetTreesParams {
@@ -34,7 +34,8 @@ export interface GetTreesParams {
   limit?: number;
   offset?: number;
 }
-export const getTrees = async (params: GetTreesParams) => {
+
+const constructQuery = (params: GetTreesParams) => {
   const {
     tags,
     plotNumbers,
@@ -156,6 +157,23 @@ export const getTrees = async (params: GetTreesParams) => {
   if (offset) {
     query.offset = offset;
   }
-  const trees = await TreeModel.findAll(query);
-  return trees;
+  return query;
+};
+
+export const editTrees = async (
+  tree: Partial<Tree>,
+  params: GetTreesParams
+) => {
+  const query = constructQuery(params);
+  return await TreeModel.update(tree, query);
+};
+
+export const getTrees = async (params: GetTreesParams) => {
+  const query = constructQuery(params);
+  return await TreeModel.findAll(query);
+};
+
+export const deleteTrees = async (params: GetTreesParams) => {
+  const query = constructQuery(params);
+  return await TreeModel.destroy(query);
 };

@@ -88,16 +88,16 @@ class Tree extends Model<ITree> implements ITree {
   photos: ITreePhoto[];
 
   @ForeignKey(() => Trip)
-  @Column(DataTypes.STRING)
   @AllowNull(false)
+  @Column(DataTypes.STRING)
   tripId: string;
 
   @BelongsTo(() => Trip)
   trip: ITrip;
 
   @ForeignKey(() => User)
-  @Column(DataTypes.STRING)
   @AllowNull(false)
+  @Column(DataTypes.STRING)
   authorId: string;
 
   @BelongsTo(() => User)

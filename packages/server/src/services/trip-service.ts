@@ -3,7 +3,7 @@ import TripModel from "db/models/trip";
 import { Op } from "sequelize";
 
 export const createTrip = async (trip: Trip) => {
-  await TripModel.create(trip);
+  return await TripModel.create(trip);
 };
 
 export interface GetTripsParams {
@@ -16,7 +16,7 @@ export interface GetTripsParams {
   offset?: number;
 }
 
-export const getTrips = async (params: GetTripsParams) => {
+const constructQuery = (params: GetTripsParams) => {
   const { id, name, forestId, limit, offset } = params;
   const query: any = {
     where: {},
@@ -42,6 +42,23 @@ export const getTrips = async (params: GetTripsParams) => {
   if (offset) {
     query.offset = offset;
   }
-  const trips = await TripModel.findAll(query);
-  return trips;
+  return query;
+};
+
+export const editTrips = async (
+  trip: Partial<Trip>,
+  params: GetTripsParams
+) => {
+  const query = constructQuery(params);
+  return await TripModel.update(trip, query);
+};
+
+export const getTrips = async (params: GetTripsParams) => {
+  const query = constructQuery(params);
+  return await TripModel.findAll(query);
+};
+
+export const deleteTrips = async (params: GetTripsParams) => {
+  const query = constructQuery(params);
+  return await TripModel.destroy(query);
 };

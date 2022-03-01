@@ -3,7 +3,7 @@ import TeamModel from "db/models/team";
 import { Op } from "sequelize";
 
 export const createTeam = async (team: Team) => {
-  await TeamModel.create(team);
+  return await TeamModel.create(team);
 };
 
 export interface GetTeamsParams {
@@ -14,7 +14,7 @@ export interface GetTeamsParams {
   offset?: number;
 }
 
-export const getTeams = async (params: GetTeamsParams) => {
+const constructQuery = (params: GetTeamsParams) => {
   const { id, name, limit = 30, offset = 0 } = params;
   const query: any = {
     where: {},
@@ -35,6 +35,23 @@ export const getTeams = async (params: GetTeamsParams) => {
   if (offset) {
     query.offset = offset;
   }
-  const teams = await TeamModel.findAll(query);
-  return teams;
+  return query;
+};
+
+export const editTeams = async (
+  team: Partial<Team>,
+  params: GetTeamsParams
+) => {
+  const query = constructQuery(params);
+  return await TeamModel.update(team, query);
+};
+
+export const getTeams = async (params: GetTeamsParams) => {
+  const query = constructQuery(params);
+  return await TeamModel.findAll(query);
+};
+
+export const deleteTeams = async (params: GetTeamsParams) => {
+  const query = constructQuery(params);
+  return await TeamModel.destroy(query);
 };

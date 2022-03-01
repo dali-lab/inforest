@@ -3,7 +3,7 @@ import ForestModel from "db/models/forest";
 import { Op } from "sequelize";
 
 export const createForest = async (forest: Forest) => {
-  await ForestModel.create(forest);
+  return await ForestModel.create(forest);
 };
 
 export interface GetForestsParams {
@@ -16,7 +16,7 @@ export interface GetForestsParams {
   offset?: number;
 }
 
-export const getForests = async (params: GetForestsParams) => {
+const constructQuery = (params: GetForestsParams) => {
   const { id, name, teamId, limit, offset } = params;
   const query: any = {
     where: {},
@@ -42,6 +42,23 @@ export const getForests = async (params: GetForestsParams) => {
   if (offset) {
     query.offset = offset;
   }
-  const forests = await ForestModel.findAll(query);
-  return forests;
+  return query;
+};
+
+export const editForests = async (
+  forest: Partial<Forest>,
+  params: GetForestsParams
+) => {
+  const query = constructQuery(params);
+  return await ForestModel.update(forest, query);
+};
+
+export const getForests = async (params: GetForestsParams) => {
+  const query = constructQuery(params);
+  return await ForestModel.findAll(query);
+};
+
+export const deleteForests = async (params: GetForestsParams) => {
+  const query = constructQuery(params);
+  return await ForestModel.destroy(query);
 };

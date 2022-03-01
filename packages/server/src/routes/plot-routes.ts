@@ -1,33 +1,62 @@
 import { Plot } from "@ong-forestry/schema";
 import express from "express";
-import { createPlot, getPlots, GetPlotsParams } from "services";
+import {
+  createPlot,
+  deletePlots,
+  editPlots,
+  getPlots,
+  GetPlotsParams,
+} from "services";
+import { requireAuth } from "services/auth-service";
 
 const plotRouter = express.Router();
 
-plotRouter.post<{}, any, Plot>("/", async (req, res) => {
+plotRouter.post<{}, any, Plot>("/", requireAuth, async (req, res) => {
   try {
-    await createPlot(req.body);
-    res.status(201).send("Plot created.");
+    const plot = await createPlot(req.body);
+    res.status(201).send(plot);
   } catch (e: any) {
     console.error(e);
     res.status(500).send(e?.message ?? "Unknown error.");
   }
 });
 
-plotRouter.get<{}, any, Plot>("/", async (req, res) => {
+const parseParams = (query: any) => ({
+  number: parseInt(query.number as string),
+  name: query.name as string,
+  forestId: query.forestId as string,
+  latMin: parseFloat(query.latMin as string),
+  latMax: parseFloat(query.latMax as string),
+  longMin: parseFloat(query.longMin as string),
+  longMax: parseFloat(query.longMax as string),
+  limit: parseInt(query.limit as string),
+  offset: parseInt(query.offset as string),
+});
+
+plotRouter.patch<{}, any, Plot>("/", requireAuth, async (req, res) => {
   try {
-    const plots = getPlots({
-      number: parseInt(req.query.number as string),
-      name: req.query.name as string,
-      forestId: req.query.forestId as string,
-      latMin: parseFloat(req.query.latMin as string),
-      latMax: parseFloat(req.query.latMax as string),
-      longMin: parseFloat(req.query.longMin as string),
-      longMax: parseFloat(req.query.longMax as string),
-      limit: parseInt(req.query.limit as string),
-      offset: parseInt(req.query.offset as string),
-    });
+    const plots = await editPlots(req.body, parseParams(req.query));
     res.status(201).send(plots);
+  } catch (e: any) {
+    console.error(e);
+    res.status(500).send(e?.message ?? "Unknown error.");
+  }
+});
+
+plotRouter.get<{}, any, Plot>("/", requireAuth, async (req, res) => {
+  try {
+    const plots = await getPlots(parseParams(req.query));
+    res.status(201).send(plots);
+  } catch (e: any) {
+    console.error(e);
+    res.status(500).send(e?.message ?? "Unknown error.");
+  }
+});
+
+plotRouter.delete<{}, any, Plot>("/", requireAuth, async (req, res) => {
+  try {
+    await deletePlots(parseParams(req.query));
+    res.status(201).send("Plots successfully deleted.");
   } catch (e: any) {
     console.error(e);
     res.status(500).send(e?.message ?? "Unknown error.");

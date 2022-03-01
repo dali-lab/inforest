@@ -29,8 +29,8 @@ class Forest extends Model<IForest> implements IForest {
   @Column({ type: DataTypes.UUID })
   id: string;
 
-  @Column(DataTypes.STRING)
   @AllowNull(false)
+  @Column(DataTypes.STRING)
   name: string;
 
   @Column(DataTypes.STRING)
@@ -40,8 +40,8 @@ class Forest extends Model<IForest> implements IForest {
   plots: IPlot[];
 
   @ForeignKey(() => Team)
-  @Column(DataTypes.STRING)
   @AllowNull(false)
+  @Column(DataTypes.STRING)
   teamId: string;
 
   @BelongsTo(() => Team)

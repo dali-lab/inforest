@@ -1,6 +1,6 @@
 module.exports = {
   development: {
-    database: "ong_forestry_dev",
+    database: "forestree_dev",
     username: "postgres",
     password: "password",
     host: process.env.DB_HOST,
@@ -8,7 +8,7 @@ module.exports = {
     logging: true,
   },
   test: {
-    database: "ong_forestry_test",
+    database: "forestree_test",
     username: "postgres",
     password: "password",
     host: process.env.TEST_DB_HOST,
@@ -16,7 +16,7 @@ module.exports = {
     logging: false,
   },
   production: {
-    database: "ong_forestry_prod",
+    database: "forestree_prod",
     username: "postgres",
     password: "password",
     host: process.env.DB_HOST,

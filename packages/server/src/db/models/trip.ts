@@ -27,16 +27,16 @@ class Trip extends Model<ITrip> implements ITrip {
   @Column({ type: DataTypes.UUID })
   id: string;
 
-  @Column(DataTypes.STRING)
   @AllowNull(false)
+  @Column(DataTypes.STRING)
   name: string;
 
   @BelongsTo(() => Forest)
   forest: IForest;
 
   @ForeignKey(() => Forest)
-  @Column(DataTypes.STRING)
   @AllowNull(false)
+  @Column(DataTypes.STRING)
   forestId: string;
 
   @HasMany(() => Tree)
