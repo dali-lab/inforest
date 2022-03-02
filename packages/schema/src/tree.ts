@@ -1,3 +1,4 @@
+import { User } from "./user";
 import { Plot } from "./plot";
 import { Trip } from "./trip";
 
@@ -13,7 +14,7 @@ export interface Tree {
   /**
    * Number of the plot where the tree is located.
    */
-  plotNumber: number;
+  plotNumber: string;
 
   /**
    * Object of the plot where the tree is located.
@@ -23,52 +24,52 @@ export interface Tree {
   /**
    * Tree absolute latitude measured in decimal degrees.
    */
-  latitude: number;
+  latitude?: number;
 
   /**
    * Tree absolute longitude measured in decimal degrees.
    */
-  longitude: number;
+  longitude?: number;
 
   /**
    * Tree relative position along plot width measured in meters.
    */
-  plotX: number;
+  plotX?: number;
 
   /**
    * Tree relative position along plot length measured in meters.
    */
-  plotY: number;
+  plotY?: number;
 
   /**
    * Tree diameter breast height in centimeters.
    */
-  dbh: number;
+  dbh?: number;
 
   /**
    * Tree height in meters.
    */
-  height: number;
+  height?: number;
 
   /**
    * Object of the tree status.
    */
-  status: TreeStatus;
+  status?: TreeStatus;
 
   /**
    * Name of the tree status.
    */
-  statusName: string;
+  statusName?: string;
 
   /**
    * Object of the tree species.
    */
-  species: TreeSpecies;
+  species?: TreeSpecies;
 
   /**
    * Identifying code of the tree species.
    */
-  speciesCode: string;
+  speciesCode?: string;
 
   /**
    * Tree photos.
@@ -84,6 +85,10 @@ export interface Tree {
    * ID of this entry's trip
    */
   tripId: string;
+
+  author: User;
+
+  authorId: string;
 }
 
 export interface TreeStatus {
@@ -99,9 +104,9 @@ export interface TreeStatus {
 }
 
 export enum TreeSpeciesTypes {
-  Conifer = 'CONIFER',
-  Deciduous = 'DECIDUOUS'
-};
+  Conifer = "CONIFER",
+  Deciduous = "DECIDUOUS",
+}
 
 export interface TreeSpecies {
   /**

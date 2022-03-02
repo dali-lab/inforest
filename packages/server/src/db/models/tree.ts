@@ -46,8 +46,8 @@ class Tree extends Model<ITree> implements ITree {
 
   @ForeignKey(() => Plot)
   @AllowNull(false)
-  @Column(DataTypes.INTEGER)
-  plotNumber: number;
+  @Column(DataTypes.STRING)
+  plotNumber: string;
 
   @BelongsTo(() => Plot)
   plot: IPlot;

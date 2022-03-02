@@ -1,11 +1,14 @@
 import { combineReducers, configureStore } from "@reduxjs/toolkit";
-import { userReducer } from "./slices";
+import { userReducer, forestReducer, plotReducer, treeReducer } from "./slices";
 import { persistReducer } from "redux-persist";
 import ExpoFileSystemStorage from "redux-persist-expo-filesystem";
 
 // Combine reducers from slices here, so that it can be passed to Redux Persist
 const rootReducer = combineReducers({
   user: userReducer,
+  forest: forestReducer,
+  plots: plotReducer,
+  trees: treeReducer,
 });
 
 const persistConfig = {
@@ -17,6 +20,8 @@ const persistedReducer = persistReducer(persistConfig, rootReducer);
 
 const store = configureStore({
   reducer: persistedReducer,
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({ serializableCheck: false }),
 });
 
 export type RootState = ReturnType<typeof store.getState>;

@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 import { Sequelize } from "sequelize-typescript";
 import passport from "passport";
 import bodyParser from "body-parser";
+import morgan from "morgan";
 
 import * as models from "db/models";
 import {
@@ -21,6 +22,7 @@ dotenv.config();
 
 const app = express();
 app.use(cors());
+app.use(morgan("dev"));
 app.use(express.json());
 const server = createServer(app);
 server.listen({ port: 3000 }, () => {

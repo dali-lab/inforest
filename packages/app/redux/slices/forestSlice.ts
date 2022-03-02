@@ -3,7 +3,7 @@ import { Forest } from "@ong-forestry/schema";
 import ROOT_URL from "../../constants/Url";
 import axios from "axios";
 
-const BASE_URL = ROOT_URL + "forests/";
+const BASE_URL = ROOT_URL + "forests";
 
 type GetForestParams = {
   id: string;
@@ -22,7 +22,7 @@ export const getForest = createAsyncThunk(
   "forest/getForest",
   async (params: GetForestParams, thunkApi) => {
     return await axios
-      .get<Forest>(`${BASE_URL}/${params.id}`)
+      .get<Forest>(`${BASE_URL}?id=${params.id}`)
       .then((response) => {
         return response.data;
       });
