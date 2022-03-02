@@ -8,7 +8,7 @@ module.exports = {
         primaryKey: true,
       },
       plotNumber: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.STRING,
         allowNull: false,
         references: {
           model: "plots",

@@ -4,19 +4,14 @@ module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable("plots", {
       number: {
-        type: Sequelize.INTEGER,
-        autoIncrement: true,
+        type: Sequelize.STRING,
         primaryKey: true,
       },
-      name: {
-        type: Sequelize.STRING,
-        allowNull: false,
-      },
-      lat: {
+      latitude: {
         type: Sequelize.FLOAT,
         allowNull: false,
       },
-      long: {
+      longitude: {
         type: Sequelize.FLOAT,
         allowNull: false,
       },
@@ -39,7 +34,7 @@ module.exports = {
     });
     await queryInterface.addIndex("plots", {
       name: "position",
-      fields: ["lat", "long"],
+      fields: ["latitude", "longitude"],
     });
   },
 

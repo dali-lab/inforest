@@ -6,22 +6,17 @@ export interface Plot {
   /**
    * Plot number.
    */
-  number: number;
-
-  /**
-   * Plot name.
-   */
-  name: string;
+  number: string;
 
   /**
    * Plot latitude in decimal degrees.
    */
-  lat: number;
+  latitude: number;
 
   /**
    * Plot longitude in decimal degrees.
    */
-  long: number;
+  longitude: number;
 
   /**
    * Plot length along latitude in meters.
