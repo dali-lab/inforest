@@ -2152,6 +2152,16 @@
   resolved "https://registry.yarnpkg.com/@types/strip-json-comments/-/strip-json-comments-0.0.30.tgz#9aa30c04db212a9a0649d6ae6fd50accc40748a1"
   integrity sha512-7NQmHra/JILCd1QqpSzl8+mJRc8ZHz3uDm8YV1Ks9IhK0epEiTw8aIErbvH9PI+6XbqhyIQy3462nEsn7UVzjQ==
 
+"@types/utm@^1.1.1":
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/@types/utm/-/utm-1.1.1.tgz#50f08a5bfd62dfad3916a8af34e96a70de5f3241"
+  integrity sha512-iIqxs3T7X2drAkeTn0DE3Xpcx5z0MHXJFnjvvWCTzZDF0CnM5D2CGn4eEFZi+uHNnCXx4j/3vA8MO6+xXpQYqA==
+
+"@types/uuid@^8.3.4":
+  version "8.3.4"
+  resolved "https://registry.yarnpkg.com/@types/uuid/-/uuid-8.3.4.tgz#bd86a43617df0594787d38b735f55c805becf1bc"
+  integrity sha512-c/I8ZRb51j+pYGAu5CrFMRxqZ2ke4y2grEBO5AUjgSkSk+qT2Ea+OdWElz/OiMf5MNpn2b17kuVBwZLQJXzihw==
+
 "@types/yargs-parser@*":
   version "20.2.1"
   resolved "https://registry.yarnpkg.com/@types/yargs-parser/-/yargs-parser-20.2.1.tgz#3b9ce2489919d9e4fea439b76916abc34b2df129"
@@ -2619,7 +2629,7 @@ balanced-match@^1.0.0:
   resolved "https://registry.yarnpkg.com/balanced-match/-/balanced-match-1.0.2.tgz#e83e3a7e3f300b34cb9d87f615fa0cbf357690ee"
   integrity sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==
 
-base64-js@^1.1.2, base64-js@^1.2.3, base64-js@^1.5.1:
+base64-js@^1.1.2, base64-js@^1.2.3, base64-js@^1.3.0, base64-js@^1.5.1:
   version "1.5.1"
   resolved "https://registry.yarnpkg.com/base64-js/-/base64-js-1.5.1.tgz#1b1b440160a5bf7ad40b650f095963481903930a"
   integrity sha512-AKpaYlHn8t4SVbOHCy+b5+KKgvR4vrsD8vbvrbiQJps7fKDTkjkDry6ji0rUJjC0kzbNePLwzxq8iypo41qeWA==
@@ -3858,6 +3868,14 @@ expo-linking@~3.0.0:
     qs "^6.9.1"
     url-parse "^1.4.4"
 
+expo-location@^14.0.2:
+  version "14.0.2"
+  resolved "https://registry.yarnpkg.com/expo-location/-/expo-location-14.0.2.tgz#933276b36558f546964753f107493b37953068b7"
+  integrity sha512-xFlj03NM0g9LZfWyIyL8q6AIXDhXskctX96806QGqZKv9C+JI2osEiTiyFxG8ei1MeTJojHfx+E07ORuByWiMw==
+  dependencies:
+    "@expo/config-plugins" "^4.0.2"
+    unimodules-task-manager-interface "~7.1.0"
+
 expo-modules-autolinking@0.5.5, expo-modules-autolinking@~0.5.1:
   version "0.5.5"
   resolved "https://registry.yarnpkg.com/expo-modules-autolinking/-/expo-modules-autolinking-0.5.5.tgz#6bcc42072dcbdfca79d207b7f549f1fdb54a2b74"
@@ -3876,6 +3894,13 @@ expo-modules-core@0.6.5:
   dependencies:
     compare-versions "^3.4.0"
     invariant "^2.2.4"
+
+expo-random@~12.1.1:
+  version "12.1.2"
+  resolved "https://registry.yarnpkg.com/expo-random/-/expo-random-12.1.2.tgz#ed4e7f85728b609bcb373bc4c4a1a05192ec44b9"
+  integrity sha512-ajB+Mwff9PdglsyLliaU4K9BtVwKvAVVI2hQhnvlS3QgsAhHf+jQVUfAysQJHuioF6ADMEsab/kRUy4Dy03aoQ==
+  dependencies:
+    base64-js "^1.3.0"
 
 expo-splash-screen@~0.14.0:
   version "0.14.2"
@@ -4286,6 +4311,11 @@ gensync@^1.0.0-beta.2:
   version "1.0.0-beta.2"
   resolved "https://registry.yarnpkg.com/gensync/-/gensync-1.0.0-beta.2.tgz#32a6ee76c3d7f52d46b2b1ae5d93fea8580a25e0"
   integrity sha512-3hN7NaskYvMDLQY55gnW3NQ+mesEAepTqlg+VEbj7zzqEMBVNhzcGYYeqFo/TlYz6eQiFcp1HcsCZO+nGgS8zg==
+
+geolib@^3.3.3:
+  version "3.3.3"
+  resolved "https://registry.yarnpkg.com/geolib/-/geolib-3.3.3.tgz#17f5a0dcdc0b051bd631b66f7131d2c14c54a15b"
+  integrity sha512-YO704pzdB/8QQekQuDmFD5uv5RAwAf4rOUPdcMhdEOz+HoPWD0sC7Qqdwb+LAvwIjXVRawx0QgZlocKYh8PFOQ==
 
 get-caller-file@^2.0.1, get-caller-file@^2.0.5:
   version "2.0.5"
@@ -7138,10 +7168,22 @@ react-native-codegen@^0.0.6:
     jscodeshift "^0.11.0"
     nullthrows "^1.1.1"
 
-react-native-maps@^0.30.1:
-  version "0.30.1"
-  resolved "https://registry.yarnpkg.com/react-native-maps/-/react-native-maps-0.30.1.tgz#b227f3cbf68947bbd22fcf2b7470a7ab3a4f3fbb"
-  integrity sha512-VDgGygFcXwKLFNmdGb5DVy3DJhjP3qCe3txzDfeO6kQyNELj875ZbZMTYW84XsLUBFNpAWXKffWvMKHMQKv2Gg==
+react-native-dashed-line@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/react-native-dashed-line/-/react-native-dashed-line-1.1.0.tgz#dd586dbeabee3bc7d51aef0b8ae0d9fda418b1fc"
+  integrity sha512-eO1YxTSYuE/1eaOO/mnV/DSQ45e7LQ690D6iv24Oyl9FcZFFiIIwoCurHnS+myJQvydppsshY1d0WwaQroNx/Q==
+
+react-native-draggable@^3.3.0:
+  version "3.3.0"
+  resolved "https://registry.yarnpkg.com/react-native-draggable/-/react-native-draggable-3.3.0.tgz#6f07c3ad4cff018bf0455fc48dbfe5f0af9b72cd"
+  integrity sha512-aU20CaKBmzXrwE9eTJZ+GDOr52mXLchg5Vydbx5rz8nYXlN+ppHIoTPgyXduyWNwpZ/DR6tyFtMwdgUHpuN6oA==
+  dependencies:
+    prop-types "^15.7.2"
+
+react-native-maps@0.29.4:
+  version "0.29.4"
+  resolved "https://registry.yarnpkg.com/react-native-maps/-/react-native-maps-0.29.4.tgz#eb4a446104ed2aca5361422d06712f26d4c0d562"
+  integrity sha512-Td2KE8+KODcHOxfB1GBNnzFo4/89rlLiC7yTvqQZh0tGVrEzIcgSleUZRrjtq/WvSWSR4rql4AS+0VsBgDkYrw==
   dependencies:
     "@types/geojson" "^7946.0.7"
 
@@ -8523,6 +8565,11 @@ unicode-property-aliases-ecmascript@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/unicode-property-aliases-ecmascript/-/unicode-property-aliases-ecmascript-2.0.0.tgz#0a36cb9a585c4f6abd51ad1deddb285c165297c8"
   integrity sha512-5Zfuy9q/DFr4tfO7ZPeVXb1aPoeQSdeFMLpYuFebehDAhbuevLs5yxSZmIFN1tP5F9Wl4IpJrYojg85/zgyZHQ==
+
+unimodules-task-manager-interface@~7.1.0:
+  version "7.1.1"
+  resolved "https://registry.yarnpkg.com/unimodules-task-manager-interface/-/unimodules-task-manager-interface-7.1.1.tgz#1d48585012018971a0f0b62bc5ac53508a7addb4"
+  integrity sha512-vvtxJO3O6fJXvSc9qvgB2FS9xJk2nWG4NOvwCMmTmfblmvzGPFcTheOKzV7Z1dvjlqTZZ+TDqd5XOGa+0+NXVA==
 
 union-value@^1.0.0:
   version "1.0.1"
