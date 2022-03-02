@@ -1,324 +1,283 @@
 "use strict";
 
 const uuid = require("uuid4");
+const utm = require("utm");
+const csv = require("csvtojson");
+const path = require("path");
+
+const ROOT_PLOT_LAT = 43.7348569458618;
+const ROOT_PLOT_LONG = -72.2519099587406;
+const NUM_PLOTS_EASTWARD = 25;
+const NUM_PLOTS_NORTHWARD = 10;
 
 module.exports = {
   async up(queryInterface, Sequelize) {
-    /**
-     * User Data
-     */
-    const robertTestUserId = uuid();
-    const rebeccaTestUserId = uuid();
-    const users = [
-      {
-        id: robertTestUserId,
-        email: "test@test.com",
-        password: "kshdaskjdhaksjdhaksdnakjsdblakhsjdbahjsdkjad",
-        firstName: "Robert",
-        lastName: "Test",
-        verified: false,
-      },
-      {
-        id: rebeccaTestUserId,
-        email: "fakeemail@emails.net",
-        password: "asdasfgasdsdgkajsnjsndadasd",
-        firstName: "Rebecca",
-        lastName: "Test",
-        verified: false,
-      },
-    ];
-    await queryInterface.bulkInsert(
-      "users",
-      users.map((user) => ({
-        ...user,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }))
-    );
-    const happyTreeFriendsTeamId = uuid();
-    await queryInterface.bulkInsert("teams", [
-      {
-        id: happyTreeFriendsTeamId,
-        name: "Happy Tree Friends",
-        description:
-          "Just a bunch of happy tree friends who do forest censusing",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-    ]);
-    await queryInterface.bulkInsert("memberships", [
-      {
-        id: uuid(),
-        teamId: happyTreeFriendsTeamId,
-        userId: robertTestUserId,
-        role: "ADMIN",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-      {
-        id: uuid(),
-        teamId: happyTreeFriendsTeamId,
-        userId: rebeccaTestUserId,
-        role: "MEMBER",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-    ]);
-    /**
-     * Forests & Trips
-     */
-    const testOFarmForestId = uuid();
-    await queryInterface.bulkInsert("forests", [
-      {
-        id: testOFarmForestId,
-        name: "Test O-Farm",
-        description: "This is a test forest added by the seeder",
-        teamId: happyTreeFriendsTeamId,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-    ]);
-    const testTripId = uuid();
-    await queryInterface.bulkInsert("trips", [
-      {
-        id: testTripId,
-        name: "First Test Trip",
-        forestId: testOFarmForestId,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-    ]);
-    /**
-     * Plot data.
-     */
-    await queryInterface.bulkInsert("plots", [
-      {
-        number: 1,
-        name: "Plot 1",
-        lat: 43.73,
-        long: -72.25,
-        length: 20,
-        width: 20,
-        forestId: testOFarmForestId,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-      {
-        number: 2,
-        name: "Plot 2",
-        lat: 43.731,
-        long: -72.251,
-        length: 20,
-        width: 20,
-        forestId: testOFarmForestId,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-    ]);
+    const transaction = await queryInterface.sequelize.transaction();
+    try {
+      /**
+       * User Data
+       */
+      const dataSeederUserId = uuid();
+      const rebeccaTestUserId = uuid();
+      const users = [
+        {
+          id: dataSeederUserId,
+          email: "agroforestry@dali.dartmouth.edu",
+          password: "foo",
+          firstName: "Data",
+          lastName: "Seeder",
+          verified: true,
+        },
+        {
+          id: rebeccaTestUserId,
+          email: "fakeemail@emails.net",
+          password: "asdasfgasdsdgkajsnjsndadasd",
+          firstName: "Rebecca",
+          lastName: "Test",
+          verified: false,
+        },
+      ];
+      await queryInterface.bulkInsert(
+        "users",
+        users.map((user) => ({
+          ...user,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        })),
+        { transaction }
+      );
+      const dataSeederTeamId = uuid();
+      await queryInterface.bulkInsert(
+        "teams",
+        [
+          {
+            id: dataSeederTeamId,
+            name: "Data Seeder Team",
+            description:
+              "Default seed data. Do not delete. This team is used to seed the database with data.",
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        ],
+        { transaction }
+      );
+      await queryInterface.bulkInsert(
+        "memberships",
+        [
+          {
+            id: uuid(),
+            teamId: dataSeederTeamId,
+            userId: dataSeederUserId,
+            role: "ADMIN",
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        ],
+        { transaction }
+      );
 
-    /**
-     * Tree metadata.
-     */
-    const species = [
-      {
-        code: "ACERUB",
-        genus: "Acer",
-        name: "Rubrum",
-        commonName: "Red maple",
-      },
-      {
-        code: "ACESAC",
-        genus: "Acer",
-        name: "Saccharum",
-        commonName: "Sugar maple",
-      },
-      {
-        code: "PINSTO",
-        genus: "Pinus",
-        name: "Strobus",
-        commonName: "Eastern white pine",
-      },
-      {
-        code: "POPTRE",
-        genus: "Populus",
-        name: "Tremuloides",
-        commonName: "Quaking aspen",
-      },
-      {
-        code: "QUEABU",
-        genus: "Quercus",
-        name: "Albalus",
-        commonName: "White oak",
-      },
-    ];
-    await queryInterface.bulkInsert(
-      "tree_species",
-      species.map((s) => ({
-        ...s,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }))
-    );
-    await queryInterface.bulkInsert("tree_statuses", [
-      {
-        name: "ALIVE",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-      {
-        name: "DEAD_STANDING",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-      {
-        name: "DEAD_FALLEN",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-    ]);
-    const treePurposes = ["FULL", "CANOPY", "BARK", "LEAF", "SOIL"];
-    await queryInterface.bulkInsert(
-      "tree_photo_purposes",
-      treePurposes.map((name) => ({
-        name,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }))
-    );
+      /**
+       * Forests & Trips
+       */
+      const oFarmForestId = uuid();
+      await queryInterface.bulkInsert(
+        "forests",
+        [
+          {
+            id: oFarmForestId,
+            name: "Dartmouth O-Farm",
+            description: "Dartmouth O-Farm forest.",
+            teamId: dataSeederTeamId,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        ],
+        { transaction }
+      );
+      const dataSeederTrip = uuid();
+      await queryInterface.bulkInsert(
+        "trips",
+        [
+          {
+            id: dataSeederTrip,
+            name: "Data Seeder Trip",
+            forestId: oFarmForestId,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        ],
+        { transaction }
+      );
 
-    /**
-     * Tree data.
-     */
-    const trees = [
-      {
-        tag: "04739",
-        plotNumber: 1,
-        speciesCode: species[0].code,
-        statusName: "ALIVE",
-        tripId: testTripId,
-        authorId: rebeccaTestUserId,
-      },
-      {
-        tag: "04740",
-        plotNumber: 1,
-        speciesCode: species[0].code,
-        statusName: "ALIVE",
-        tripId: testTripId,
-        authorId: rebeccaTestUserId,
-      },
-      {
-        tag: "04741",
-        plotNumber: 1,
-        speciesCode: species[0].code,
-        statusName: "ALIVE",
-        tripId: testTripId,
-        authorId: rebeccaTestUserId,
-      },
-      {
-        tag: "04742",
-        plotNumber: 1,
-        speciesCode: species[0].code,
-        statusName: "DEAD_STANDING",
-        tripId: testTripId,
-        authorId: robertTestUserId,
-      },
-      {
-        tag: "04743",
-        plotNumber: 1,
-        speciesCode: species[0].code,
-        statusName: "DEAD_STANDING",
-        tripId: testTripId,
-        authorId: robertTestUserId,
-      },
-      {
-        tag: "04744",
-        plotNumber: 1,
-        speciesCode: species[0].code,
-        statusName: "DEAD_STANDING",
-        tripId: testTripId,
-        authorId: robertTestUserId,
-      },
-      {
-        tag: "04745",
-        plotNumber: 1,
-        speciesCode: species[0].code,
-        statusName: "DEAD_FALLEN",
-        tripId: testTripId,
-        authorId: robertTestUserId,
-      },
-    ];
-    const genTreeFields = () => ({
-      lat: 43.73 + Math.random() * 0.001,
-      long: -(72.25 + Math.random() * 0.001),
-      plotX: Math.random() * 20,
-      plotY: Math.random() * 20,
-      dbh: Math.random() * 5,
-      height: Math.random() * 30,
-    });
-    await queryInterface.bulkInsert(
-      "trees",
-      trees.map((t) => ({
-        ...genTreeFields(),
-        ...t,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }))
-    );
-    await queryInterface.bulkInsert("trees", [
-      {
-        tag: "04746",
-        plotNumber: 1,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-    ]);
-    await queryInterface.bulkInsert("tree_photos", [
-      {
-        id: uuid(),
-        treeId: trees[0].id,
-        url: "https://en.wikipedia.org/wiki/Acer_rubrum#/media/File:2014-10-30_11_09_40_Red_Maple_during_autumn_on_Lower_Ferry_Road_in_Ewing,_New_Jersey.JPG",
-        purposeName: "FULL",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-      {
-        id: uuid(),
-        treeId: trees[0].id,
-        url: "https://mywoodlot.com/images/blog/2019/1.10.19/image4.JPG",
-        purposeName: "BARK",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-      {
-        id: uuid(),
-        treeId: trees[0].id,
-        url: "https://statesymbolsusa.org/sites/statesymbolsusa.org/files/primary-images/redmapletreefallleaves.jpg",
-        purposeName: "LEAF",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-      {
-        id: uuid(),
-        treeId: trees[1].id,
-        url: "https://upload.wikimedia.org/wikipedia/commons/a/a1/Acer_saccharum_1-jgreenlee_%285098070608%29.jpg",
-        purposeName: "LEAF",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-    ]);
+      const rows = await csv().fromFile(
+        path.resolve(__dirname, "initial-forest-data.csv")
+      );
+      console.log(rows[0]);
+
+      /**
+       * Plot data.
+       */
+      const plots = {};
+      const ROOT_PLOT_UTM = utm.fromLatLon(ROOT_PLOT_LAT, ROOT_PLOT_LONG);
+      for (let i = 0; i < NUM_PLOTS_EASTWARD; i += 1) {
+        for (let j = 0; j < NUM_PLOTS_NORTHWARD; j += 1) {
+          const { latitude, longitude } = utm.toLatLon(
+            ROOT_PLOT_UTM.easting + i * 20,
+            ROOT_PLOT_UTM.northing - j * 20,
+            ROOT_PLOT_UTM.zoneNum,
+            ROOT_PLOT_UTM.zoneLetter
+          );
+          plots[`${j >= 10 ? j : `0${j}`}${i >= 10 ? i : `0${i}`}`] = {
+            number: `${j >= 10 ? j : `0${j}`}${i >= 10 ? i : `0${i}`}`,
+            latitude,
+            longitude,
+            length: 20,
+            width: 20,
+            forestId: oFarmForestId,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          };
+        }
+      }
+      await queryInterface.bulkInsert("plots", Object.values(plots), {
+        transaction,
+      });
+
+      const trees = {};
+      const species = {};
+      rows.forEach((row) => {
+        const tree = {};
+        const {
+          Quadrat,
+          Date: date,
+          Tag,
+          Species,
+          DBH,
+          local_x,
+          local_y,
+          ["Scientific Name"]: scientificName,
+          ["Common Name"]: commonName,
+          Family,
+          Type,
+        } = row;
+        tree.plotNumber = Quadrat;
+        if (tree.plotNumber in plots) {
+          const plot = plots[tree.plotNumber];
+          tree.tag = Tag;
+          if (!species[Species]) {
+            species[Species] = {
+              code: Species,
+              family: Family,
+              genus: scientificName.split(" ")[0],
+              name: scientificName.split(" ")[1],
+              commonName,
+              type: Type.toUpperCase(),
+            };
+          }
+          tree.speciesCode = Species;
+          tree.dbh = parseFloat(DBH);
+          tree.plotX = parseFloat(local_x);
+          tree.plotY = parseFloat(local_y);
+          const plotUtm = utm.fromLatLon(plot.latitude, plot.longitude);
+          const { latitude, longitude } = utm.toLatLon(
+            plotUtm.easting + tree.plotX,
+            plotUtm.northing - tree.plotY,
+            plotUtm.zoneNum,
+            plotUtm.zoneLetter
+          );
+          tree.latitude = latitude;
+          tree.longitude = longitude;
+          tree.createdAt = new Date(date);
+          tree.updatedAt = tree.createdAt;
+          tree.statusName = "ALIVE";
+          tree.tripId = dataSeederTrip;
+          tree.authorId = dataSeederUserId;
+          if (!!trees[tree.tag]) {
+            console.log("Duplicate tree entry", tree.tag);
+          }
+          trees[tree.tag] = tree;
+        }
+      });
+
+      /**
+       * Tree metadata.
+       */
+      await queryInterface.bulkInsert(
+        "tree_species",
+        Object.values(species).map((s) => ({
+          ...s,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        })),
+        { transaction }
+      );
+      await queryInterface.bulkInsert(
+        "tree_statuses",
+        [
+          {
+            name: "ALIVE",
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+          {
+            name: "DEAD_STANDING",
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+          {
+            name: "DEAD_FALLEN",
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        ],
+        { transaction }
+      );
+      const treePurposes = ["FULL", "CANOPY", "BARK", "LEAF", "SOIL"];
+      await queryInterface.bulkInsert(
+        "tree_photo_purposes",
+        treePurposes.map((name) => ({
+          name,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        })),
+        { transaction }
+      );
+
+      /**
+       * Tree data.
+       */
+      await queryInterface.bulkInsert("trees", Object.values(trees), {
+        transaction,
+      });
+      await transaction.commit();
+    } catch (err) {
+      console.log(err);
+      await transaction.rollback();
+      throw err;
+    }
   },
 
   async down(queryInterface, Sequelize) {
-    await queryInterface.bulkDelete("memberships", null, {});
-    await queryInterface.bulkDelete("tree_photos", null, {});
-    await queryInterface.bulkDelete("tree_photo_purposes", null, {});
-    await queryInterface.bulkDelete("trees", null, {});
-    await queryInterface.bulkDelete("tree_species", null, {});
-    await queryInterface.bulkDelete("tree_statuses", null, {});
-    await queryInterface.bulkDelete("users", null, {});
-    await queryInterface.bulkDelete("plots", null, {});
-    await queryInterface.bulkDelete("trips", null, {});
-    await queryInterface.bulkDelete("forests", null, {});
-    await queryInterface.bulkDelete("teams", null, {});
+    const transaction = await queryInterface.sequelize.transaction();
+    try {
+      await queryInterface.bulkDelete("memberships", null, { transaction });
+      await queryInterface.bulkDelete("tree_photos", null, { transaction });
+      await queryInterface.bulkDelete("tree_photo_purposes", null, {
+        transaction,
+      });
+      await queryInterface.bulkDelete("trees", null, { transaction });
+      await queryInterface.bulkDelete("tree_species", null, { transaction });
+      await queryInterface.bulkDelete("tree_statuses", null, { transaction });
+      await queryInterface.bulkDelete("users", null, { transaction });
+      await queryInterface.bulkDelete("plots", null, { transaction });
+      await queryInterface.bulkDelete("trips", null, { transaction });
+      await queryInterface.bulkDelete("forests", null, { transaction });
+      await queryInterface.bulkDelete("teams", null, { transaction });
+      await transaction.commit();
+    } catch (err) {
+      console.log(err);
+      await transaction.rollback();
+      throw err;
+    }
   },
 };
