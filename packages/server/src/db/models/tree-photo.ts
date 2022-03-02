@@ -35,7 +35,7 @@ class TreePhoto extends Model<ITreePhoto> implements ITreePhoto {
   @ForeignKey(() => Tree)
   @AllowNull(false)
   @Column(DataTypes.STRING)
-  treeId: string;
+  treeTag: string;
 
   @BelongsTo(() => Tree)
   tree: ITree;
