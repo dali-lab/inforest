@@ -53,10 +53,10 @@ class Tree extends Model<ITree> implements ITree {
   plot: IPlot;
 
   @Column(DataTypes.FLOAT)
-  lat: number;
+  latitude: number;
 
   @Column(DataTypes.FLOAT)
-  long: number;
+  longitude: number;
 
   @Column(DataTypes.FLOAT)
   plotX: number;
