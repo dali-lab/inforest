@@ -1,3 +1,3 @@
-const ROOT_URL = "http://10.0.0.51:3000/";
+const ROOT_URL = "http://10.134.215.13:3000/";
 
 export default ROOT_URL;
