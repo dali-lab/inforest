@@ -7,7 +7,7 @@ const BASE_URL = ROOT_URL + "trees";
 
 type GetForestTreesParams = {
   forestId: string;
-  limit: number;
+  limit?: number;
 };
 
 export const getForestTrees = createAsyncThunk(
@@ -24,15 +24,23 @@ export const getForestTrees = createAsyncThunk(
 );
 
 export interface TreeState {
-  currentForestTrees: Tree[];
+  all: Record<string, Tree>;
+  indices: {
+    byPlots: Record<string, string[]>;
+  };
   newlyDraftedTrees: Tree[];
-  selectedTree?: Tree;
+  drafts: string[];
+  selected?: Tree;
 }
 
 const initialState: TreeState = {
-  currentForestTrees: [],
+  all: {},
+  indices: {
+    byPlots: {},
+  },
+  drafts: [],
   newlyDraftedTrees: [],
-  selectedTree: undefined,
+  selected: undefined,
 };
 
 export const treeSlice = createSlice({
@@ -41,7 +49,11 @@ export const treeSlice = createSlice({
   reducers: {
     draftNewTree: (state, action) => {
       const newTree = action.payload;
+      if (!state.newlyDraftedTrees) {
+        state.newlyDraftedTrees = [];
+      }
       state.newlyDraftedTrees.push(newTree);
+      return state;
     },
     deleteDraftedTree: (state, action) => {
       const treeTag = action.payload;
@@ -49,17 +61,27 @@ export const treeSlice = createSlice({
         (tree) => tree.tag === treeTag
       );
       state.newlyDraftedTrees.splice(index, 1);
+      return state;
     },
     selectTree: (state, action) => {
-      state.selectedTree = action.payload;
+      state.selected = action.payload;
+      return state;
     },
     deselectTree: (state, _) => {
-      state.selectedTree = undefined;
+      state.selected = undefined;
+      return state;
     },
   },
   extraReducers: (builder) => {
     builder.addCase(getForestTrees.fulfilled, (state, action) => {
-      state.currentForestTrees = action.payload;
+      action.payload.forEach((tree) => {
+        state.all[tree.tag] = tree;
+        if (!state.indices.byPlots[tree.plotNumber]) {
+          state.indices.byPlots[tree.plotNumber] = [];
+        }
+        state.indices.byPlots[tree.plotNumber].push(tree.tag);
+      });
+      return state;
     });
   },
 });

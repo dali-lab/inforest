@@ -9,9 +9,10 @@ import { Text } from "./Themed";
 import { Plot, Tree } from "@ong-forestry/schema";
 import { DraftTreesAction, DraftTreesState } from "../constants";
 import { TreeMarker } from "./TreeMarker";
-import useAppSelector from "../hooks/useAppSelector";
+import useAppSelector, { useTrees } from "../hooks/useAppSelector";
 import { draftNewTree } from "../redux/slices/treeSlice";
 import { getRandomBytes } from "expo-random";
+import useAppDispatch from "../hooks/useAppDispatch";
 
 interface PlottingSheetProps {
   plot: Plot;
@@ -48,9 +49,12 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
     },
     [mapWidth]
   );
-  const { currentForestTrees, newlyDraftedTrees, selectedTree } =
-    useAppSelector((state) => state.trees);
-  console.log(newlyDraftedTrees);
+  const dispatch = useAppDispatch();
+  const { selected } = useAppSelector((state) => state.trees);
+  const trees = useTrees(
+    useAppSelector((state) => state),
+    { plotNumbers: new Set([plot.number]) }
+  );
 
   return (
     <Pressable
@@ -122,18 +126,20 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
                   zoneNum,
                   zoneLetter
                 );
-                draftNewTree({
-                  tag: getRandomBytes(8).join(),
-                  plotNumber: plot.number,
-                  plotX: markerPos.x,
-                  plotY: markerPos.y,
-                  latitude,
-                  longitude,
-                  tripId: "f03c4244-55d2-4f59-b5b1-0ea595982476",
-                  authorId: "24ea9f85-5352-4f69-b642-23291a27ff1e",
-                  photos: [],
-                } as Omit<Tree, "plot" | "trip" | "author">);
-                expandDrawer();
+                dispatch(
+                  draftNewTree({
+                    tag: getRandomBytes(8).join(),
+                    plotNumber: plot.number,
+                    plotX: markerPos.x,
+                    plotY: markerPos.y,
+                    latitude,
+                    longitude,
+                    tripId: "f03c4244-55d2-4f59-b5b1-0ea595982476",
+                    authorId: "24ea9f85-5352-4f69-b642-23291a27ff1e",
+                    photos: [],
+                  } as Omit<Tree, "plot" | "trip" | "author">)
+                );
+                // expandDrawer();
                 setMarkerPos(undefined);
               }}
               title="Plot tree"
@@ -171,30 +177,7 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
 
       {/* trees */}
       <>
-        {/* {newlyDraftedTrees
-          .filter((draftTree) => draftTree.plotNumber === plot.number)
-          .map((tree) => {
-            const { plotX, plotY } = tree;
-            if (!!plotX && !!plotY) {
-              const treePixelSize = getTreePixelSize(tree.dbh ?? DEFAULT_DBH);
-              return (
-                <View
-                  key={tree.tag}
-                  style={{
-                    ...styles.tree,
-                    left: plotX - treePixelSize / 2,
-                    top: plotY - treePixelSize / 2,
-                  }}
-                >
-                  <TreeMarker
-                    color={Colors.primary.normal}
-                    size={treePixelSize}
-                  ></TreeMarker>
-                </View>
-              );
-            } else return null;
-          })} */}
-        {currentForestTrees
+        {trees
           .filter((tree) => tree.plotNumber === plot.number)
           .map((tree) => {
             const { plotX, plotY } = tree;
@@ -206,8 +189,8 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
                   key={tree.tag}
                   style={{
                     ...styles.tree,
-                    left: plotX - treePixelSize / 2,
-                    top: plotY - treePixelSize / 2,
+                    left: plotX * (mapWidth / PLOT_SIZE) - treePixelSize / 2,
+                    top: plotY * (mapWidth / PLOT_SIZE) - treePixelSize / 2,
                   }}
                 >
                   <TreeMarker

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useReducer, useState } from "react";
+import { useCallback, useEffect, useMemo, useReducer, useState } from "react";
 import {
   Alert,
   Button,
@@ -39,13 +39,22 @@ import {
 import Colors from "../constants/Colors";
 import { TreeMarker } from "../components/TreeMarker";
 import useAppDispatch from "../hooks/useAppDispatch";
-import useAppSelector from "../hooks/useAppSelector";
+import useAppSelector, {
+  useMoreTrees,
+  usePlots,
+  useTrees,
+} from "../hooks/useAppSelector";
 
 import { login } from "../redux/slices/userSlice";
 import { RootState } from "../redux";
 import { getForest } from "../redux/slices/forestSlice";
 import { getForestPlots } from "../redux/slices/plotSlice";
 import { getForestTrees } from "../redux/slices/treeSlice";
+import {
+  formPlotNumber,
+  getPlotCorners,
+  parsePlotNumber,
+} from "../constants/plots";
 
 const O_FARM_LAT = 43.7348569458618;
 const O_FARM_LNG = -72.2519099587406;
@@ -55,34 +64,8 @@ const O_FARM_UMT_NUM = 18;
 const MIN_REGION_DELTA = 0.000005;
 const FOLIAGE_MAGNIFICATION = 3;
 
-const getPlotCorners = (plot: Plot): LatLng[] => {
-  const { easting, northing, zoneNum, zoneLetter } = utm.fromLatLon(
-    plot.latitude,
-    plot.longitude
-  );
-  return [
-    utm.toLatLon(easting, northing, zoneNum, zoneLetter),
-    utm.toLatLon(easting + 20, northing, zoneNum, zoneLetter),
-    utm.toLatLon(easting + 20, northing - 20, zoneNum, zoneLetter),
-    utm.toLatLon(easting, northing - 20, zoneNum, zoneLetter),
-  ];
-};
-
-const formPlotNumber = (i: number, j: number) =>
-  `${j >= 10 ? j : `0${j}`}${i >= 10 ? i : `0${i}`}`;
-const parsePlotNumber = (plotNumber: string) => ({
-  i: parseInt(plotNumber.substring(2, 4)),
-  j: parseInt(plotNumber.substring(0, 2)),
-});
-
 export default function MapScreen() {
   const dispatch = useAppDispatch();
-
-  // dispatch(
-  //   login({ email: "agroforestry@dali.dartmouth.edu", password: "foo" })
-  // );
-  // const credentials = useAppSelector((state: RootState) => state.user.token);
-  // console.log(credentials);
 
   useEffect(() => {
     dispatch(getForest({ id: "53dfd605-8189-44c7-ac9a-4b6ef8a203cf" }));
@@ -92,22 +75,30 @@ export default function MapScreen() {
     dispatch(
       getForestTrees({
         forestId: "53dfd605-8189-44c7-ac9a-4b6ef8a203cf",
-        limit: 1000,
       })
     );
   }, []);
 
-  const forest = useAppSelector(
-    (state: RootState) => state.forest.currentForest
+  const mapRef = useRef<MapView>(null);
+  const [locationPermissionStatus, setLocationPermissionStatus] =
+    useState<PermissionStatus>();
+  const [regionSnapshot, setRegionSnapshot] = useState<Region>();
+
+  const plots = usePlots({ viewingBox: regionSnapshot });
+
+  const { drafts = [], selected } = useAppSelector(
+    (state: RootState) => state.trees
   );
-  const plots = useAppSelector(
-    (state: RootState) => state.plots.currentForestPlots
+
+  const [density, setDensity] = useState(0.1);
+
+  const trees = useTrees(
+    useAppSelector((state: RootState) => state),
+    {
+      density,
+      plotNumbers: new Set(Object.keys(plots)),
+    }
   );
-  const {
-    currentForestTrees: trees,
-    newlyDraftedTrees,
-    selectedTree,
-  } = useAppSelector((state: RootState) => state.trees);
 
   useEffect(() => {
     (async () => {
@@ -123,9 +114,6 @@ export default function MapScreen() {
     })();
   }, []);
 
-  const mapRef = useRef<MapView>(null);
-  const [locationPermissionStatus, setLocationPermissionStatus] =
-    useState<PermissionStatus>();
   const [mode, setMode] = useState<MapScreenModes>(MapScreenModes.Explore);
   const [drawerState, setDrawerState] = useState<DrawerStates>(
     DrawerStates.Closed
@@ -153,30 +141,6 @@ export default function MapScreen() {
   const [selectedPlot, setSelectedPlot] = useState<Plot>();
   const [selectedPlotIndices, setSelectedPlotIndices] =
     useState<{ i: number; j: number }>();
-  const [regionSnapshot, setRegionSnapshot] = useState<Region>();
-  const [selectedTreeId, setSelectedTreeId] = useState<string>();
-  const [draftTrees, setDraftTrees] = useReducer<
-    (state: DraftTreesState, action: DraftTreesAction) => DraftTreesState,
-    DraftTreesState
-  >(
-    (state: DraftTreesState, action: DraftTreesAction) => {
-      switch (action.type) {
-        case "ADD_TREE":
-          const id = Random.getRandomBytes(8).join();
-          setSelectedTreeId(id);
-          return {
-            ...state,
-            [id]: action.payload.tree,
-          };
-        case "REMOVE_TREE":
-          setSelectedTreeId(undefined);
-          const { [action.payload.id]: _, ...newState } = state;
-          return newState;
-      }
-    },
-    {},
-    () => ({})
-  );
 
   const selectPlot = useCallback((plot: Plot) => {
     setSelectedPlot(plot);
@@ -209,7 +173,7 @@ export default function MapScreen() {
             style={styles.map}
             ref={mapRef}
             mapPadding={{ top: 24, right: 24, bottom: 0, left: 24 }}
-            // provider='google'
+            // provider="google"
             // mapType='satellite'
             showsCompass={true}
             showsScale={true}
@@ -242,7 +206,17 @@ export default function MapScreen() {
               }
             }
             onRegionChangeComplete={(region) => {
-              setRegionSnapshot(region);
+              mapRef.current?.getCamera().then((camera) => {
+                const DENSITY_ONE_THIRD = 377;
+                const DENSITY_TWO_THIRDS = 517;
+                if (camera.altitude < DENSITY_ONE_THIRD) {
+                  setDensity(0.4);
+                } else if (camera.altitude < DENSITY_TWO_THIRDS) {
+                  setDensity(0.2);
+                } else {
+                  setDensity(0.1);
+                }
+              });
             }}
             onPress={(e) => {
               if (mode === "EXPLORE") {
@@ -264,54 +238,13 @@ export default function MapScreen() {
             showsMyLocationButton={true}
             // followsUserLocation={true}
             onUserLocationChange={({ nativeEvent: { coordinate } }) => {
-              setUserPos({
-                latitude: coordinate.latitude,
-                longitude: coordinate.longitude,
-                utm: utm.fromLatLon(coordinate.latitude, coordinate.longitude),
-              });
+              // setUserPos({
+              //   latitude: coordinate.latitude,
+              //   longitude: coordinate.longitude,
+              //   utm: utm.fromLatLon(coordinate.latitude, coordinate.longitude),
+              // });
             }}
           >
-            {trees.length > 0 && (
-              <View style={styles.trees}>
-                {/* {Object.entries(draftTrees).map(([id, tree]) => {
-                  if (!!tree.latitude && !!tree.longitude) {
-                    const treePixelSize = (tree.dbh ?? 1) * PIXEL_SIZE_PER_DBH;
-                    return (
-                      <Circle
-                        key={id}
-                        center={{
-                          latitude: tree.latitude,
-                          longitude: tree.longitude,
-                        }}
-                        radius={treePixelSize}
-                        fillColor={Colors.primary.dark}
-                      ></Circle>
-                    );
-                  }
-                })} */}
-                {trees.map((tree) => {
-                  // console.log(tree.latitude, tree.longitude);
-                  if (!!tree.latitude && !!tree.longitude) {
-                    const treePixelSize =
-                      (tree.dbh ?? 10) * 0.01 * 0.5 * FOLIAGE_MAGNIFICATION;
-                    return (
-                      <>
-                        <Circle
-                          key={tree.tag}
-                          center={{
-                            latitude: tree.latitude,
-                            longitude: tree.longitude,
-                          }}
-                          radius={treePixelSize}
-                          strokeColor={Colors.primary.dark}
-                          fillColor={Colors.primary.dark}
-                        ></Circle>
-                      </>
-                    );
-                  }
-                })}
-              </View>
-            )}
             {!!selectedPlot && (
               <>
                 <Marker
@@ -336,48 +269,53 @@ export default function MapScreen() {
                 </Marker>
               </>
             )}
-            {!!plots && (
-              <>
-                {Object.values(plots).map((plot) => {
-                  return (
-                    <View key={plot.number}>
-                      <Polygon
-                        style={styles.plot}
-                        coordinates={[
-                          ...getPlotCorners(plot),
-                          getPlotCorners(plot)[0],
-                        ]}
-                        strokeWidth={2}
-                        strokeColor="rgba(255, 255, 255, 0.6)"
-                        fillColor={
-                          selectedPlot?.number === plot.number
-                            ? "rgba(255, 255, 255, 0.6)"
-                            : "rgba(255, 255, 255, 0.3)"
-                        }
-                        tappable={true}
-                        onPress={() => {
-                          if (
-                            !!selectedPlot &&
-                            selectedPlot.number === plot.number
-                          ) {
-                            deSelectPlot();
-                          } else {
-                            selectPlot(plot);
-                          }
-                        }}
-                      />
-                      {/* <Marker
-                                    coordinate={utm.toLatLon(plot.utmEasting + 10, plot.utmNorthing + 10, plot.utmZoneNum, plot.utmZoneLetter)} tappable={false} onPress={(e) => {
-                                      selectPlot(plot, i, j)
-                                    }}
-                                  >
-                                    <Text>{plot.name}</Text>
-                                  </Marker> */}
-                    </View>
-                  );
-                })}
-              </>
-            )}
+            {Object.values(plots).map((plot) => {
+              return (
+                <Polygon
+                  key={plot.number}
+                  style={styles.plot}
+                  coordinates={[
+                    ...getPlotCorners(plot),
+                    getPlotCorners(plot)[0],
+                  ]}
+                  strokeWidth={2}
+                  strokeColor="rgba(255, 255, 255, 0.6)"
+                  fillColor={
+                    selectedPlot?.number === plot.number
+                      ? "rgba(255, 255, 255, 0.6)"
+                      : "rgba(255, 255, 255, 0.3)"
+                  }
+                  tappable={true}
+                  onPress={() => {
+                    if (!!selectedPlot && selectedPlot.number === plot.number) {
+                      deSelectPlot();
+                    } else {
+                      selectPlot(plot);
+                    }
+                  }}
+                  zIndex={1}
+                />
+              );
+            })}
+            {trees.map((tree) => {
+              if (!!tree.latitude && !!tree.longitude) {
+                const treePixelSize =
+                  (tree.dbh ?? 10) * 0.01 * 0.5 * FOLIAGE_MAGNIFICATION;
+                return (
+                  <Circle
+                    key={tree.tag}
+                    center={{
+                      latitude: tree.latitude,
+                      longitude: tree.longitude,
+                    }}
+                    radius={treePixelSize}
+                    strokeColor={Colors.primary.dark}
+                    fillColor={Colors.primary.dark}
+                    zIndex={2}
+                  ></Circle>
+                );
+              }
+            })}
           </MapView>
           <View
             style={{
