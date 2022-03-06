@@ -8,12 +8,12 @@ module.exports = {
         primaryKey: true,
         defaultValue: Sequelize.UUIDV4,
       },
-      treeId: {
+      treeTag: {
         type: Sequelize.STRING,
         allowNull: false,
         references: {
           model: "trees",
-          key: "id",
+          key: "tag",
         },
       },
       url: {

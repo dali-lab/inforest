@@ -11,11 +11,19 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false,
       },
+      family: {
+        type: Sequelize.STRING,
+        allowNull: false,
+      },
       genus: {
         type: Sequelize.STRING,
         allowNull: false,
       },
       commonName: {
+        type: Sequelize.STRING,
+        allowNull: false,
+      },
+      type: {
         type: Sequelize.STRING,
         allowNull: false,
       },
@@ -28,10 +36,17 @@ module.exports = {
         allowNull: false,
       },
     });
-    await queryInterface.addIndex("tree_species", {
-      name: "genus",
-      fields: ["genus"],
-    });
+    await queryInterface.addIndex(
+      "tree_species",
+      {
+        name: "taxonomy",
+        fields: ["family", "genus"],
+      },
+      {
+        name: "type",
+        fields: ["type"],
+      }
+    );
   },
 
   async down(queryInterface, Sequelize) {

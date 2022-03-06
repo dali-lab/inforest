@@ -8,17 +8,17 @@ module.exports = {
         primaryKey: true,
       },
       plotNumber: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.STRING,
         allowNull: false,
         references: {
           model: "plots",
           key: "number",
         },
       },
-      lat: {
+      latitude: {
         type: Sequelize.FLOAT,
       },
-      long: {
+      longitude: {
         type: Sequelize.FLOAT,
       },
       plotX: {
@@ -60,7 +60,7 @@ module.exports = {
       "trees",
       {
         name: "asolute_position",
-        fields: ["lat", "long"],
+        fields: ["latitude", "longitude"],
       },
       {
         name: "relative_position",

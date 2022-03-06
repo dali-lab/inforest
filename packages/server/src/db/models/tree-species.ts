@@ -12,6 +12,7 @@ import {
   Tree as ITree,
   TreeSpecies as ITreeSpecies,
 } from "@ong-forestry/schema";
+import { TreeSpeciesTypes } from "@ong-forestry/schema/src/tree";
 
 @Table({
   tableName: "tree_species",
@@ -36,11 +37,19 @@ class TreeSpecies extends Model<ITreeSpecies> implements ITreeSpecies {
 
   @AllowNull(false)
   @Column(DataTypes.STRING)
+  family: string;
+
+  @AllowNull(false)
+  @Column(DataTypes.STRING)
   genus: string;
 
   @AllowNull(false)
   @Column(DataTypes.STRING)
   commonName: string;
+
+  @AllowNull(false)
+  @Column(DataTypes.ENUM({ values: [TreeSpeciesTypes.Conifer, TreeSpeciesTypes.Deciduous] }))
+  type: TreeSpeciesTypes
 }
 
 export default TreeSpecies;

@@ -23,17 +23,14 @@ import Forest from "./forest";
 class Plot extends Model<IPlot> implements IPlot {
   @PrimaryKey
   @AutoIncrement
-  @Column(DataTypes.INTEGER)
-  number: number;
-
   @Column(DataTypes.STRING)
-  name: string;
+  number: string;
 
   @Column(DataTypes.FLOAT)
-  lat: number;
+  latitude: number;
 
   @Column(DataTypes.FLOAT)
-  long: number;
+  longitude: number;
 
   @Column(DataTypes.FLOAT)
   length: number;

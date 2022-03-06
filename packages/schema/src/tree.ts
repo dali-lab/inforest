@@ -23,12 +23,12 @@ export interface Tree {
   /**
    * Tree absolute latitude measured in decimal degrees.
    */
-  lat: number;
+  latitude: number;
 
   /**
    * Tree absolute longitude measured in decimal degrees.
    */
-  long: number;
+  longitude: number;
 
   /**
    * Tree relative position along plot width measured in meters.
@@ -98,6 +98,11 @@ export interface TreeStatus {
   trees: Tree[];
 }
 
+export enum TreeSpeciesTypes {
+  Conifer = 'CONIFER',
+  Deciduous = 'DECIDUOUS'
+};
+
 export interface TreeSpecies {
   /**
    * Code used by researchers as a shorthand for the species
@@ -110,6 +115,11 @@ export interface TreeSpecies {
   name: string;
 
   /**
+   * Family the species belongs to
+   */
+  family: string;
+
+  /**
    * Genus the species belongs to
    */
   genus: string;
@@ -118,6 +128,11 @@ export interface TreeSpecies {
    * Common, non-Latin name
    */
   commonName: string;
+
+  /**
+   * Species type
+   */
+  type: TreeSpeciesTypes;
 
   /**
    * Entries for trees of this species
@@ -139,7 +154,7 @@ export interface TreePhoto {
   /**
    * Tag of tree being photographed
    */
-  treeId: string;
+  treeTag: string;
 
   /**
    * Tree entry this photo belongs to
