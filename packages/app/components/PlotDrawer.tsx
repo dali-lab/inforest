@@ -36,7 +36,7 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
     };
   }, []);
 
-  const { selectedTree } = useAppSelector((state) => state.trees);
+  const { selected } = useAppSelector((state) => state.trees);
 
   const setStyle = useCallback(() => {
     switch (drawerState) {
@@ -74,23 +74,23 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
       {drawerState !== "CLOSED" && mode === MapScreenModes.Plot && (
         <>
           <View style={styles.header}>
-            {drawerState === "MINIMIZED" && !!selectedTree && (
+            {drawerState === "MINIMIZED" && !!selected && (
               <Text>
                 Tap anywhere to create a new tree in Plot #{plot?.number}
               </Text>
             )}
-            {drawerState === "MINIMIZED" && !!selectedTree && (
+            {drawerState === "MINIMIZED" && !!selected && (
               <Text>
-                Tree #{selectedTree.tag} in Plot #{plot?.number}
+                Tree #{selected.tag} in Plot #{plot?.number}
               </Text>
             )}
-            {drawerState === "EXPANDED" && !!selectedTree && (
+            {drawerState === "EXPANDED" && !!selected && (
               <>
                 <Text>New tree</Text>
                 <View style={{ flexDirection: "row" }}>
                   <Button
                     onPress={() => {
-                      deleteDraftedTree(selectedTree.tag);
+                      deleteDraftedTree(selected.tag);
                       minimizeDrawer();
                     }}
                     title="Delete tree"

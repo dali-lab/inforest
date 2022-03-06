@@ -13,18 +13,18 @@ import MapScreen from "./screens/MapScreen";
 export default function App() {
   const isLoadingComplete = useCachedResources();
 
-  const persistedStore = persistStore(store);
+  // const persistedStore = persistStore(store);
 
   return (
     <Provider store={store}>
-      <PersistGate loading={null} persistor={persistedStore}>
-        {isLoadingComplete && (
-          <SafeAreaProvider>
-            <MapScreen />
-            <StatusBar />
-          </SafeAreaProvider>
-        )}
-      </PersistGate>
+      {/* <PersistGate loading={null} persistor={persistedStore}> */}
+      {isLoadingComplete && (
+        <SafeAreaProvider>
+          <MapScreen />
+          <StatusBar />
+        </SafeAreaProvider>
+      )}
+      {/* </PersistGate> */}
     </Provider>
   );
 }
