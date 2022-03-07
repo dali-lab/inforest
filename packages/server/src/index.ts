@@ -1,7 +1,6 @@
 import express from "express";
 import { createServer } from "http";
 import cors from "cors";
-import dotenv from "dotenv";
 import { Sequelize } from "sequelize-typescript";
 import passport from "passport";
 import bodyParser from "body-parser";
@@ -18,8 +17,6 @@ import {
   tripRouter,
 } from "routes";
 
-dotenv.config();
-
 const app = express();
 app.use(cors());
 app.use(morgan("dev"));
@@ -33,7 +30,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(passport.initialize());
 
 const sequelize = new Sequelize(
-  process.env.DB_NAME || "forestree_dev",
+  process.env.DB_NAME || "inforest_dev",
   process.env.DB_USER || "postgres",
   process.env.DB_PASSWORD || "password",
   {

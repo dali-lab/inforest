@@ -1,6 +1,5 @@
 import { User } from "@ong-forestry/schema";
 import express from "express";
-import dotenv from "dotenv";
 import {
   createUser,
   deleteUsers,
@@ -11,8 +10,6 @@ import {
 import passport from "passport";
 import jwt from "jsonwebtoken";
 import { requireAuth } from "services/auth-service";
-
-dotenv.config();
 
 const userRouter = express.Router();
 

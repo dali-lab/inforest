@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "forestree",
-    "slug": "forestree",
+    "name": "inforest",
+    "slug": "inforest",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -18,14 +18,14 @@
     "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.forestree.app"
+      "bundleIdentifier": "com.inforest.app"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.forestree.app"
+      "package": "com.inforest.app"
     },
     "web": {
       "favicon": "./assets/images/favicon.png"

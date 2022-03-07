@@ -86,8 +86,14 @@ export interface Tree {
    */
   tripId: string;
 
+  /**
+   * Object of the user who created this entry.
+   */
   author: User;
 
+  /**
+   * ID of the user who created this entry.
+   */
   authorId: string;
 }
 

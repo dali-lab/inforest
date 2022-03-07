@@ -1,9 +1,9 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { Tree } from "@ong-forestry/schema";
-import ROOT_URL from "../../constants/Url";
+import SERVER_URL from "../../constants/Url";
 import axios from "axios";
 
-const BASE_URL = ROOT_URL + "trees";
+const BASE_URL = SERVER_URL + "trees";
 
 type GetForestTreesParams = {
   forestId: string;
@@ -23,14 +23,27 @@ export const getForestTrees = createAsyncThunk(
   }
 );
 
+type TreeNumericalIndexItem = {
+  value: number;
+  treeTag: string;
+};
+
+type TreeNumericalIndex = TreeNumericalIndexItem[];
+
+const treeNumericalIndexComparator = (
+  a: TreeNumericalIndexItem,
+  b: TreeNumericalIndexItem
+) => a.value - b.value;
+
 export interface TreeState {
   all: Record<string, Tree>;
   indices: {
-    byPlots: Record<string, string[]>;
-    bySpecies: Record<string, string[]>
+    byPlots: Record<string, Set<string>>;
+    byLatitude: TreeNumericalIndex;
+    byLongitude: TreeNumericalIndex;
   };
   newlyDraftedTrees: Tree[];
-  drafts: string[];
+  drafts: Set<string>;
   selected?: Tree;
 }
 
@@ -38,9 +51,10 @@ const initialState: TreeState = {
   all: {},
   indices: {
     byPlots: {},
-    bySpecies:{},
+    byLatitude: [],
+    byLongitude: [],
   },
-  drafts: [],
+  drafts: new Set([]),
   newlyDraftedTrees: [],
   selected: undefined,
 };
@@ -51,25 +65,51 @@ export const treeSlice = createSlice({
   reducers: {
     draftNewTree: (state, action) => {
       const newTree = action.payload;
-      if (!state.newlyDraftedTrees) {
-        state.newlyDraftedTrees = [];
+      state.all[newTree.tag] = newTree;
+      // add to drafts
+      state.drafts.add(newTree.tag);
+      // update plots index
+      state.indices.byPlots[newTree.plotNumber].add(newTree.tag);
+      // update latitude index
+      if (!!newTree.latitude) {
+        state.indices.byLatitude.push({
+          value: newTree.latitude,
+          treeTag: newTree.tag,
+        });
+        state.indices.byLatitude.sort(treeNumericalIndexComparator);
       }
-      state.newlyDraftedTrees.push(newTree);
+      // update longitude index
+      if (!!newTree.longitude) {
+        state.indices.byLongitude.push({
+          value: newTree.longitude,
+          treeTag: newTree.tag,
+        });
+        state.indices.byLongitude.sort(treeNumericalIndexComparator);
+      }
       return state;
     },
     deleteDraftedTree: (state, action) => {
       const treeTag = action.payload;
-      const index = state.newlyDraftedTrees.findIndex(
-        (tree) => tree.tag === treeTag
+      delete state.all[treeTag];
+      // remove from drafts
+      state.drafts.delete(treeTag);
+      // remove from plots index
+      state.indices.byPlots[treeTag.plotNumber].delete(treeTag);
+      // remove from latitude index
+      state.indices.byLatitude.splice(
+        state.indices.byLatitude.indexOf(treeTag)
       );
-      state.newlyDraftedTrees.splice(index, 1);
+      // remove from longitude index
+      state.indices.byLongitude.splice(
+        state.indices.byLongitude.indexOf(treeTag)
+      );
       return state;
     },
     selectTree: (state, action) => {
-      state.selected = action.payload;
+      state.selected = state.all[action.payload];
       return state;
     },
-    deselectTree: (state, _) => {
+    deselectTree: (state) => {
       state.selected = undefined;
       return state;
     },
@@ -78,15 +118,30 @@ export const treeSlice = createSlice({
     builder.addCase(getForestTrees.fulfilled, (state, action) => {
       action.payload.forEach((tree) => {
         state.all[tree.tag] = tree;
-        if (!state.indices.byPlots[tree.plotNumber]) {
-          state.indices.byPlots[tree.plotNumber] = [];
+        // initialize plot index key if needed
+        if (!(tree.plotNumber in state.indices.byPlots)) {
+          state.indices.byPlots[tree.plotNumber] = new Set();
         }
-        state.indices.byPlots[tree.plotNumber].push(tree.tag);
-        if (tree.speciesCode && !state.indices.bySpecies[tree.speciesCode]) {
-          state.indices.bySpecies[tree.speciesCode] = []
+        // add to plots index
+        state.indices.byPlots[tree.plotNumber].add(tree.tag);
+        // add to latitude index
+        if (!!tree.latitude) {
+          state.indices.byLatitude.push({
+            value: tree.latitude,
+            treeTag: tree.tag,
+          });
         }
-        if (tree.speciesCode) state.indices.bySpecies[tree.speciesCode].push(tree.tag)
+        // add to longitude index
+        if (!!tree.longitude) {
+          state.indices.byLongitude.push({
+            value: tree.longitude,
+            treeTag: tree.tag,
+          });
+        }
       });
+      // sort indices
+      state.indices.byLatitude.sort(treeNumericalIndexComparator);
+      state.indices.byLongitude.sort(treeNumericalIndexComparator);
       return state;
     });
   },

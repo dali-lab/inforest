@@ -9,19 +9,14 @@ import {
 } from "react-native";
 import MapView, {
   Marker,
-  EventUserLocation,
   Region,
   LatLng,
-  Polyline,
   Polygon,
-  MapEvent,
-  Callout,
   Circle,
 } from "react-native-maps";
 import * as Location from "expo-location";
 import { PermissionStatus } from "expo-modules-core";
 import * as geolib from "geolib";
-import * as Random from "expo-random";
 import { Ionicons } from "@expo/vector-icons";
 import * as utm from "utm";
 import { Plot, Tree } from "@ong-forestry/schema";
@@ -29,24 +24,17 @@ import { Plot, Tree } from "@ong-forestry/schema";
 import { Text } from "../components/Themed";
 import { PlotDrawer } from "../components/PlotDrawer";
 import { PlottingSheet } from "../components/PlottingSheet";
-import ColorKey from "../components/ColorKey";
 import { useRef } from "react";
-import {
-  DraftTreesAction,
-  DraftTreesState,
-  DrawerStates,
-  MapScreenModes,
-} from "../constants";
+import { DEFAULT_DBH, DrawerStates, MapScreenModes } from "../constants";
 import Colors from "../constants/Colors";
-import { TreeMarker } from "../components/TreeMarker";
 import useAppDispatch from "../hooks/useAppDispatch";
 import useAppSelector, {
-  useMoreTrees,
   usePlots,
-  useTrees,
+  usePlotsInRegion,
+  useTreesByDensity,
+  useTreesInRegion,
 } from "../hooks/useAppSelector";
 
-import { login } from "../redux/slices/userSlice";
 import { RootState } from "../redux";
 import { getForest } from "../redux/slices/forestSlice";
 import { getForestPlots } from "../redux/slices/plotSlice";
@@ -57,56 +45,18 @@ import {
   parsePlotNumber,
 } from "../constants/plots";
 import VisualizationModal from "../components/VisualizationModal";
+import ColorKey from "../components/ColorKey";
 import { VisualizationConfigType } from "../types";
+import { FOREST_ID } from "../constants/dev";
 
 const O_FARM_LAT = 43.7348569458618;
 const O_FARM_LNG = -72.2519099587406;
-const O_FARM_UMT_EAST = 721308.35;
-const O_FARM_UMT_NORTH = 4846095.2;
-const O_FARM_UMT_NUM = 18;
 const MIN_REGION_DELTA = 0.000005;
 const FOLIAGE_MAGNIFICATION = 3;
 
 export default function MapScreen() {
-  const dispatch = useAppDispatch();
-
-  // For testing purposes - change this depending on the forest id created by the backend seeder
-  const tempForestId = "499a51a6-0d4e-4c07-87d4-c35f81e7e2be"
-
-  useEffect(() => {
-    dispatch(getForest({ id: tempForestId }));
-    dispatch(
-      getForestPlots({ forestId: tempForestId })
-    );
-    dispatch(
-      getForestTrees({
-        forestId: tempForestId,
-        limit: 1000,
-      })
-    );
-  }, []);
-
+  // map setup
   const mapRef = useRef<MapView>(null);
-  const [locationPermissionStatus, setLocationPermissionStatus] =
-    useState<PermissionStatus>();
-  const [regionSnapshot, setRegionSnapshot] = useState<Region>();
-
-  const plots = usePlots({ viewingBox: regionSnapshot });
-
-  const { drafts = [], selected, indices: {bySpecies}, all } = useAppSelector(
-    (state: RootState) => state.trees
-  );
-
-  const [density, setDensity] = useState(0.1);
-
-  const trees = useTrees(
-    useAppSelector((state: RootState) => state),
-    {
-      density,
-      plotNumbers: new Set(Object.keys(plots)),
-    }
-  );
-
   useEffect(() => {
     (async () => {
       const { status } = await Location.getForegroundPermissionsAsync();
@@ -120,35 +70,64 @@ export default function MapScreen() {
       }
     })();
   }, []);
+  const [locationPermissionStatus, setLocationPermissionStatus] =
+    useState<PermissionStatus>();
+  const [regionSnapshot, setRegionSnapshot] = useState<Region>();
 
+  // redux actions and store selectors
+  const dispatch = useAppDispatch();
+  useEffect(() => {
+    dispatch(getForest({ id: FOREST_ID }));
+    dispatch(getForestPlots({ forestId: FOREST_ID }));
+    dispatch(
+      getForestTrees({
+        forestId: FOREST_ID,
+      })
+    );
+  }, []);
+  const reduxState = useAppSelector((state: RootState) => state);
+  const { all: allPlots } = reduxState.plots;
+  const { all: allTrees, drafts, selected } = reduxState.trees;
+  const plots = usePlotsInRegion(usePlots(reduxState), regionSnapshot);
+  const density = useMemo(() => {
+    if (plots.length <= Math.pow(5, 2)) {
+      return 1;
+    } else if (plots.length <= Math.pow(7, 2)) {
+      return 1 / 2;
+    } else if (plots.length <= Math.pow(9, 2)) {
+      return 1 / 3;
+    } else if (plots.length <= Math.pow(13, 2)) {
+      return 1 / 6;
+    } else if (plots.length <= Math.pow(15, 2)) {
+      return 1 / 8;
+    } else if (plots.length <= Math.pow(17, 2)) {
+      return 1 / 10;
+    } else if (plots.length <= Math.pow(19, 2)) {
+      return 1 / 12;
+    } else {
+      return 1 / Object.keys(allTrees).length;
+    }
+  }, [plots.length]);
+  const trees = useTreesInRegion(
+    useTreesByDensity(reduxState, density),
+    regionSnapshot
+  );
+
+  // component states
   const [mode, setMode] = useState<MapScreenModes>(MapScreenModes.Explore);
   const [drawerState, setDrawerState] = useState<DrawerStates>(
     DrawerStates.Minimized
   );
   const [drawerHeight, setDrawerHeight] = useState(0);
-  const [userPos, setUserPos] = useState<{
-    latitude: number;
-    longitude: number;
-    utm: {
-      easting: number;
-      northing: number;
-      zoneNum: number;
-      zoneLetter: string;
-    };
-  }>({
+  const [userPos, setUserPos] = useState<LatLng>({
     latitude: O_FARM_LAT,
     longitude: O_FARM_LNG,
-    utm: {
-      easting: O_FARM_UMT_EAST,
-      northing: O_FARM_UMT_NORTH,
-      zoneNum: O_FARM_UMT_NUM,
-      zoneLetter: "T",
-    },
   });
   const [selectedPlot, setSelectedPlot] = useState<Plot>();
   const [selectedPlotIndices, setSelectedPlotIndices] =
     useState<{ i: number; j: number }>();
 
+  // component functions
   const selectPlot = useCallback((plot: Plot) => {
     setSelectedPlot(plot);
     const i = parseInt(plot.number.substring(0, 2));
@@ -162,7 +141,7 @@ export default function MapScreen() {
     setSelectedPlot(undefined);
     setSelectedPlotIndices(undefined);
     setMode(MapScreenModes.Explore)
-    // setDrawerState(DrawerStates.Minimized);
+    setDrawerState(DrawerStates.Minimized);
   }, []);
 
   const beginPlotting = useCallback(() => {
@@ -188,7 +167,7 @@ export default function MapScreen() {
   const [speciesFrequencyMap, setSpeciesFrequencyMap] = useState<{[species:string]:number}>({})
 
   const treeNodes = useMemo(()=>{
-    return trees.map((tree) => {
+    return trees.map((tree: Tree) => {
       if (!!tree.latitude && !!tree.longitude) {
         if (visualizationConfig.colorBySpecies && !Object.keys(visualizationConfig.speciesColorMap).includes(tree.speciesCode)) {
             let uniqueHue: string;
@@ -243,7 +222,6 @@ export default function MapScreen() {
                     setUserPos({
                       latitude: coords.latitude,
                       longitude: coords.longitude,
-                      utm: utm.fromLatLon(coords.latitude, coords.longitude),
                     });
                   })
                   .catch((e) => {
@@ -260,42 +238,28 @@ export default function MapScreen() {
               }
             }
             onRegionChangeComplete={(region) => {
-              mapRef.current?.getCamera().then((camera) => {
-                const DENSITY_ONE_THIRD = 377;
-                const DENSITY_TWO_THIRDS = 517;
-                if (camera.altitude < DENSITY_ONE_THIRD) {
-                  setDensity(0.4);
-                } else if (camera.altitude < DENSITY_TWO_THIRDS) {
-                  setDensity(0.2);
-                } else {
-                  setDensity(0.1);
-                }
-              });
+              setRegionSnapshot(region);
             }}
             onPress={(e) => {
-              closeVisualizationModal();
-              if (mode === "SELECT") {
-                if (!!e.nativeEvent.coordinate && !!selectedPlot) {
-                  if (
-                    !geolib.isPointInPolygon(
-                      e.nativeEvent.coordinate,
-                      getPlotCorners(selectedPlot)
-                    )
-                  ) {
-                    deSelectPlot();
-                  }
+              closeVisualizationModal()
+              if (!!e.nativeEvent.coordinate && !!selectedPlot) {
+                if (
+                  !geolib.isPointInPolygon(
+                    e.nativeEvent.coordinate,
+                    getPlotCorners(selectedPlot)
+                  )
+                ) {
+                  deSelectPlot();
                 }
-              } 
+              }
             }}
             showsUserLocation={true}
             showsMyLocationButton={true}
-            // followsUserLocation={true}
             onUserLocationChange={({ nativeEvent: { coordinate } }) => {
-              // setUserPos({
-              //   latitude: coordinate.latitude,
-              //   longitude: coordinate.longitude,
-              //   utm: utm.fromLatLon(coordinate.latitude, coordinate.longitude),
-              // });
+              setUserPos({
+                latitude: coordinate.latitude,
+                longitude: coordinate.longitude,
+              });
             }}
           >
             {!!selectedPlot && (
@@ -308,7 +272,7 @@ export default function MapScreen() {
                         selectedPlot.longitude
                       );
                     return utm.toLatLon(
-                      easting + 10,
+                      easting + selectedPlot.width / 2,
                       northing,
                       zoneNum,
                       zoneLetter
@@ -317,12 +281,23 @@ export default function MapScreen() {
                 >
                   <View style={styles.plotCallout}>
                     <Text>Plot #{selectedPlot.number}</Text>
-                    {/* <Ionicons name='ios-add-circle-outline' size={24} /> */}
                   </View>
                 </Marker>
+                <Polygon
+                  style={styles.plot}
+                  coordinates={[
+                    ...getPlotCorners(selectedPlot),
+                    getPlotCorners(selectedPlot)[0],
+                  ]}
+                  strokeWidth={2}
+                  strokeColor="rgba(255, 255, 255, 0.6)"
+                  fillColor="rgba(255, 255, 255, 0.6)"
+                  tappable={true}
+                  onPress={deSelectPlot}
+                />
               </>
             )}
-            {Object.values(plots).map((plot) => {
+            {plots.map((plot) => {
               return (
                 <Polygon
                   key={plot.number}
@@ -333,20 +308,11 @@ export default function MapScreen() {
                   ]}
                   strokeWidth={2}
                   strokeColor="rgba(255, 255, 255, 0.6)"
-                  fillColor={
-                    selectedPlot?.number === plot.number
-                      ? "rgba(255, 255, 255, 0.6)"
-                      : "rgba(255, 255, 255, 0.3)"
-                  }
+                  fillColor="rgba(255, 255, 255, 0.3)"
                   tappable={true}
                   onPress={() => {
-                    if (!!selectedPlot && selectedPlot.number === plot.number) {
-                      deSelectPlot();
-                    } else {
-                      selectPlot(plot);
-                    }
+                    selectPlot(plot);
                   }}
-                  zIndex={1}
                 />
               );
             })}
@@ -355,8 +321,8 @@ export default function MapScreen() {
           <View
             style={{
               ...styles.mapOverlay,
-              top: 48,
-              right: 12,
+              bottom: drawerHeight + 32,
+              right: 32,
             }}
           >
             <Ionicons
@@ -386,7 +352,11 @@ export default function MapScreen() {
             <Ionicons
               name="ios-arrow-back"
               size={32}
-              onPress={endPlotting}
+              onPress={() => {
+                setMode(MapScreenModes.Explore);
+                setDrawerState(DrawerStates.Minimized);
+                endPlotting()
+              }}
             />
           </View>
           {!!plots && !!selectedPlot && !!selectedPlotIndices && (
@@ -396,31 +366,23 @@ export default function MapScreen() {
                 const { i, j } = parsePlotNumber(selectedPlot.number);
                 const stakeNames = [];
                 stakeNames.push(selectedPlot.number);
-                if (formPlotNumber(i + 1, j) in plots) {
-                  stakeNames.push(plots[formPlotNumber(i + 1, j)].number);
+                if (formPlotNumber(i + 1, j) in allPlots) {
+                  stakeNames.push(allPlots[formPlotNumber(i + 1, j)].number);
+                } else {
+                  stakeNames.push("No stake");
                 }
-                if (formPlotNumber(i + 1, j + 1) in plots) {
-                  stakeNames.push(plots[formPlotNumber(i + 1, j + 1)].number);
+                if (formPlotNumber(i + 1, j + 1) in allPlots) {
+                  stakeNames.push(
+                    allPlots[formPlotNumber(i + 1, j + 1)].number
+                  );
+                } else {
+                  stakeNames.push("No stake");
                 }
                 if (formPlotNumber(i, j + 1) in plots) {
-                  stakeNames.push(plots[formPlotNumber(i, j)].number);
+                  stakeNames.push(allPlots[formPlotNumber(i, j)].number);
+                } else {
+                  stakeNames.push("No stake");
                 }
-                // if (i < plots.length - 1) {
-                //   stakeNames.push(plots[i + 1][j].name);
-                //   if (j < plots[i].length - 1) {
-                //     stakeNames.push(plots[i + 1][j + 1].name);
-                //     stakeNames.push(plots[i][j + 1].name);
-                //   } else {
-                //     stakeNames.push("No stake");
-                //     stakeNames.push("No stake");
-                //   }
-                // } else {
-                //   stakeNames.push("No stake");
-                //   stakeNames.push("No stake");
-                //   if (j < plots[i].length - 1) {
-                //     stakeNames.push(plots[i][j + 1].name);
-                //   }
-                // }
                 return stakeNames;
               })()}
               mapWidth={Dimensions.get("window").width}
@@ -442,8 +404,14 @@ export default function MapScreen() {
               selectedPlot.latitude,
               selectedPlot.longitude
             );
+            const { width, length } = selectedPlot;
             const focusToPlotRegion = {
-              ...utm.toLatLon(easting + 10, northing - 10, zoneNum, zoneLetter),
+              ...utm.toLatLon(
+                easting + width / 2,
+                northing - length / 2,
+                zoneNum,
+                zoneLetter
+              ),
               latitudeDelta: MIN_REGION_DELTA,
               longitudeDelta: MIN_REGION_DELTA,
             };

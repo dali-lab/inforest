@@ -1,9 +1,9 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { Plot } from "@ong-forestry/schema";
-import ROOT_URL from "../../constants/Url";
+import SERVER_URL from "../../constants/Url";
 import axios from "axios";
 
-const BASE_URL = ROOT_URL + "plots";
+const BASE_URL = SERVER_URL + "plots";
 
 type GetForestPlotsParams = {
   forestId: string;
@@ -51,15 +51,18 @@ export const plotSlice = createSlice({
     builder.addCase(getForestPlots.fulfilled, (state, action) => {
       action.payload.forEach((plot) => {
         state.all[plot.number] = plot;
+        // add to latitude index
         state.indices.latitude.push({
           value: plot.latitude,
           plotNumber: plot.number,
         });
+        // add to longitude index
         state.indices.longitude.push({
           value: plot.longitude,
           plotNumber: plot.number,
         });
       });
+      // sort indices
       state.indices.latitude.sort(({ value: a }, { value: b }) => a - b);
       state.indices.longitude.sort(({ value: a }, { value: b }) => a - b);
     });

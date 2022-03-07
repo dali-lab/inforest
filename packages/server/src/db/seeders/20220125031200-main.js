@@ -10,6 +10,10 @@ const ROOT_PLOT_LONG = -72.2519099587406;
 const NUM_PLOTS_EASTWARD = 25;
 const NUM_PLOTS_NORTHWARD = 10;
 
+const DATA_SEEDER_FOREST_ID = "53dfd605-8189-44c7-ac9a-4b6ef8a203cf";
+const DATA_SEEDER_TRIP_ID = "f03c4244-55d2-4f59-b5b1-0ea595982476";
+const DATA_SEEDER_AUTHOR_ID = "24ea9f85-5352-4f69-b642-23291a27ff1e";
+
 module.exports = {
   async up(queryInterface, Sequelize) {
     const transaction = await queryInterface.sequelize.transaction();
@@ -17,11 +21,10 @@ module.exports = {
       /**
        * User Data
        */
-      const dataSeederUserId = uuid();
       const rebeccaTestUserId = uuid();
       const users = [
         {
-          id: dataSeederUserId,
+          id: DATA_SEEDER_AUTHOR_ID,
           email: "agroforestry@dali.dartmouth.edu",
           password: "foo",
           firstName: "Data",
@@ -67,7 +70,7 @@ module.exports = {
           {
             id: uuid(),
             teamId: dataSeederTeamId,
-            userId: dataSeederUserId,
+            userId: DATA_SEEDER_AUTHOR_ID,
             role: "ADMIN",
             createdAt: new Date(),
             updatedAt: new Date(),
@@ -79,12 +82,11 @@ module.exports = {
       /**
        * Forests & Trips
        */
-      const oFarmForestId = uuid();
       await queryInterface.bulkInsert(
         "forests",
         [
           {
-            id: oFarmForestId,
+            id: DATA_SEEDER_FOREST_ID,
             name: "Dartmouth O-Farm",
             description: "Dartmouth O-Farm forest.",
             teamId: dataSeederTeamId,
@@ -94,14 +96,13 @@ module.exports = {
         ],
         { transaction }
       );
-      const dataSeederTrip = uuid();
       await queryInterface.bulkInsert(
         "trips",
         [
           {
-            id: dataSeederTrip,
+            id: DATA_SEEDER_TRIP_ID,
             name: "Data Seeder Trip",
-            forestId: oFarmForestId,
+            forestId: DATA_SEEDER_FOREST_ID,
             createdAt: new Date(),
             updatedAt: new Date(),
           },
@@ -133,7 +134,7 @@ module.exports = {
             longitude,
             length: 20,
             width: 20,
-            forestId: oFarmForestId,
+            forestId: DATA_SEEDER_FOREST_ID,
             createdAt: new Date(),
             updatedAt: new Date(),
           };
@@ -180,8 +181,8 @@ module.exports = {
           tree.plotY = parseFloat(local_y);
           const plotUtm = utm.fromLatLon(plot.latitude, plot.longitude);
           const { latitude, longitude } = utm.toLatLon(
-            plotUtm.easting + tree.plotX,
-            plotUtm.northing - tree.plotY,
+            plotUtm.easting + tree.plotY,
+            plotUtm.northing - tree.plotX,
             plotUtm.zoneNum,
             plotUtm.zoneLetter
           );
@@ -190,8 +191,8 @@ module.exports = {
           tree.createdAt = new Date(date);
           tree.updatedAt = tree.createdAt;
           tree.statusName = "ALIVE";
-          tree.tripId = dataSeederTrip;
-          tree.authorId = dataSeederUserId;
+          tree.tripId = DATA_SEEDER_TRIP_ID;
+          tree.authorId = DATA_SEEDER_AUTHOR_ID;
           if (!!trees[tree.tag]) {
             console.log("Duplicate tree entry", tree.tag);
           }

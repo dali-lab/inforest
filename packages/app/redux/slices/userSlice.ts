@@ -1,9 +1,9 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { User } from "@ong-forestry/schema";
-import ROOT_URL from "../../constants/Url";
+import SERVER_URL from "../../constants/Url";
 import axios from "axios";
 
-const BASE_URL = ROOT_URL + "users/";
+const BASE_URL = SERVER_URL + "users/";
 
 interface AuthParams {
   email: string;

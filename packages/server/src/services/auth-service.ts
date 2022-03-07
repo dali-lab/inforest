@@ -54,5 +54,6 @@ passport.use(
   )
 );
 
+// export const requireAuth = passport.authenticate("jwt", { session: false });
 // @ts-ignore
 export const requireAuth = (req, res, next) => next();

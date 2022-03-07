@@ -52,7 +52,6 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
         return styles.containerExpanded;
     }
   }, [drawerState]);
-
   return (
     <View
       style={{ ...styles.container, ...setStyle() }}
