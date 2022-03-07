@@ -1,7 +1,6 @@
 import express from "express";
 import { createServer } from "http";
 import cors from "cors";
-import dotenv from "dotenv";
 import { Sequelize } from "sequelize-typescript";
 import passport from "passport";
 import bodyParser from "body-parser";
@@ -17,8 +16,6 @@ import {
   membershipRouter,
   tripRouter,
 } from "routes";
-
-dotenv.config();
 
 const app = express();
 app.use(cors());
