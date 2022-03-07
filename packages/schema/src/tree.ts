@@ -110,9 +110,9 @@ export interface TreeStatus {
 }
 
 export enum TreeSpeciesTypes {
-  Conifer = 'CONIFER',
-  Deciduous = 'DECIDUOUS'
-};
+  Conifer = "CONIFER",
+  Deciduous = "DECIDUOUS",
+}
 
 export interface TreeSpecies {
   /**
