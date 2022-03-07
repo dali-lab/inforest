@@ -18,6 +18,7 @@ import {
 } from "../redux/slices/treeSlice";
 import { getRandomBytes } from "expo-random";
 import useAppDispatch from "../hooks/useAppDispatch";
+import { AUTHOR_ID, TRIP_ID } from "../constants/dev";
 
 interface PlottingSheetProps {
   plot: Plot;
@@ -153,8 +154,8 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
                     plotY,
                     latitude,
                     longitude,
-                    tripId: "f03c4244-55d2-4f59-b5b1-0ea595982476",
-                    authorId: "24ea9f85-5352-4f69-b642-23291a27ff1e",
+                    tripId: TRIP_ID,
+                    authorId: AUTHOR_ID,
                     photos: [],
                   } as Omit<Tree, "plot" | "trip" | "author">)
                 );

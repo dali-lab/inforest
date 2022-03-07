@@ -1,12 +1,7 @@
 import React, { useCallback, useEffect } from "react";
-import { Plot, Tree } from "@ong-forestry/schema";
+import { Plot } from "@ong-forestry/schema";
 import { Button, Dimensions, StyleSheet, Text, View } from "react-native";
-import {
-  MapScreenModes,
-  DrawerStates,
-  DraftTreesState,
-  DraftTreesAction,
-} from "../constants";
+import { MapScreenModes, DrawerStates } from "../constants";
 import Colors from "../constants/Colors";
 import useAppSelector from "../hooks/useAppSelector";
 import { deleteDraftedTree } from "../redux/slices/treeSlice";
@@ -63,12 +58,6 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
           {drawerState === "MINIMIZED" && (
             <Button onPress={beginPlotting} title="Add trees"></Button>
           )}
-          {/* {mode === 'EXPANDED' && (
-						<Button onPress={() => {
-							setMode('MINIMIZED')
-							onClose()
-						}} title='Back to plots'></Button>
-					)} */}
         </View>
       )}
       {drawerState !== "CLOSED" && mode === MapScreenModes.Plot && (

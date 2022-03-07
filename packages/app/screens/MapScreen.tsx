@@ -37,12 +37,12 @@ import {
   getPlotCorners,
   parsePlotNumber,
 } from "../constants/plots";
+import { FOREST_ID } from "../constants/dev";
 
 const O_FARM_LAT = 43.7348569458618;
 const O_FARM_LNG = -72.2519099587406;
 const MIN_REGION_DELTA = 0.000005;
 const FOLIAGE_MAGNIFICATION = 3;
-const FOREST_ID = "53dfd605-8189-44c7-ac9a-4b6ef8a203cf";
 
 export default function MapScreen() {
   // map setup
