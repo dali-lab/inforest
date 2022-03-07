@@ -1,3 +1,4 @@
+import { User } from "./user";
 import { Plot } from "./plot";
 import { Trip } from "./trip";
 
@@ -84,6 +85,16 @@ export interface Tree {
    * ID of this entry's trip
    */
   tripId: string;
+
+  /**
+   * Object of the user who created this entry.
+   */
+  author: User;
+
+  /**
+   * ID of the user who created this entry.
+   */
+  authorId: string;
 }
 
 export interface TreeStatus {
