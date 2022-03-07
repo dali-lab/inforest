@@ -24,52 +24,52 @@ export interface Tree {
   /**
    * Tree absolute latitude measured in decimal degrees.
    */
-  latitude: number;
+  latitude?: number;
 
   /**
    * Tree absolute longitude measured in decimal degrees.
    */
-  longitude: number;
+  longitude?: number;
 
   /**
    * Tree relative position along plot width measured in meters.
    */
-  plotX: number;
+  plotX?: number;
 
   /**
    * Tree relative position along plot length measured in meters.
    */
-  plotY: number;
+  plotY?: number;
 
   /**
    * Tree diameter breast height in centimeters.
    */
-  dbh: number;
+  dbh?: number;
 
   /**
    * Tree height in meters.
    */
-  height: number;
+  height?: number;
 
   /**
    * Object of the tree status.
    */
-  status: TreeStatus;
+  status?: TreeStatus;
 
   /**
    * Name of the tree status.
    */
-  statusName: string;
+  statusName?: string;
 
   /**
    * Object of the tree species.
    */
-  species: TreeSpecies;
+  species?: TreeSpecies;
 
   /**
    * Identifying code of the tree species.
    */
-  speciesCode: string;
+  speciesCode?: string;
 
   /**
    * Tree photos.
