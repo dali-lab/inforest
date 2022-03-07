@@ -1,6 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { Forest } from "@ong-forestry/schema";
-import ROOT_URL from "../../constants/Url";
+import SERVER_URL from "../../constants/Url";
 
 const BASE_URL = ROOT_URL + "forests/";
 

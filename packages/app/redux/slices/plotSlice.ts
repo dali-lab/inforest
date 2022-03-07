@@ -1,8 +1,8 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { Plot } from "@ong-forestry/schema";
-import ROOT_URL from "../../constants/Url";
+import SERVER_URL from "../../constants/Url";
 
-const BASE_URL = ROOT_URL + "plots/";
+const BASE_URL = SERVER_URL + "plots";
 
 export interface PlotState {
   currentForestPlots: Plot[];
