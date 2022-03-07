@@ -13,7 +13,7 @@ export interface Tree {
   /**
    * Number of the plot where the tree is located.
    */
-  plotNumber: number;
+  plotNumber: string;
 
   /**
    * Object of the plot where the tree is located.
