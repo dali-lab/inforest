@@ -185,6 +185,8 @@ export default function MapScreen() {
     setVisualizationConfig((prev:VisualizationConfigType)=>({...prev,modalOpen:false}))
   },[setVisualizationConfig])
 
+  const [speciesFrequencyMap, setSpeciesFrequencyMap] = useState<{[species:string]:number}>({})
+
   const treeNodes = useMemo(()=>{
     return trees.map((tree) => {
       if (!!tree.latitude && !!tree.longitude) {
@@ -192,10 +194,12 @@ export default function MapScreen() {
             let uniqueHue: string;
             // this is a poor way to do this, change later
             do {
-              uniqueHue= `hsl(${Math.round(Math.random()*360)},80%,60%)`
+              uniqueHue= `hsl(${Math.round(Math.random()*360)},80%,40%)`
             } while (Object.values(visualizationConfig.speciesColorMap).includes(uniqueHue))
             setVisualizationConfig((prev)=>({...prev,speciesColorMap:{...prev.speciesColorMap, [tree.speciesCode]:uniqueHue}}))
+            // setSpeciesFrequencyMap((prev)=>({...prev, [tree.speciesCode]: 0}))        
         }
+        // else setSpeciesFrequencyMap((prev)=>({...prev, [tree.speciesCode]: prev[tree.speciesCode]+1}))
         const treePixelSize =
           (tree.dbh ?? 10) * 0.01 * 0.5 * FOLIAGE_MAGNIFICATION;
         return (
@@ -213,7 +217,7 @@ export default function MapScreen() {
         );
       }
     })
-  },[trees,visualizationConfig, setVisualizationConfig])
+  },[trees,visualizationConfig.colorBySpecies, setVisualizationConfig])
 
   return (
     <View style={styles.container}>

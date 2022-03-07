@@ -39,5 +39,5 @@ export type RootTabScreenProps<Screen extends keyof RootTabParamList> =
 export type VisualizationConfigType = {
   modalOpen:boolean;
   colorBySpecies:boolean;
-  speciesColorMap: {[color:string]: string}
+  speciesColorMap: {[species:string]: string}
 }
