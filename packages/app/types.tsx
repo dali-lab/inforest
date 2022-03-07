@@ -35,3 +35,9 @@ export type RootTabScreenProps<Screen extends keyof RootTabParamList> =
     BottomTabScreenProps<RootTabParamList, Screen>,
     NativeStackScreenProps<RootStackParamList>
   >;
+
+export type VisualizationConfigType = {
+  modalOpen:boolean;
+  colorBySpecies:boolean;
+  speciesColorMap: {[color:string]: string}
+}
