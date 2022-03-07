@@ -33,7 +33,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(passport.initialize());
 
 const sequelize = new Sequelize(
-  process.env.DB_NAME || "forestree_dev",
+  process.env.DB_NAME || "inforest_dev",
   process.env.DB_USER || "postgres",
   process.env.DB_PASSWORD || "password",
   {
