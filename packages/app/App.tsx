@@ -10,18 +10,18 @@ import { PersistGate } from "redux-persist/integration/react";
 export default function App() {
   const isLoadingComplete = useCachedResources();
 
-  const persistedStore = persistStore(store);
+  // const persistedStore = persistStore(store);
 
   return (
     <Provider store={store}>
-      <PersistGate loading={null} persistor={persistedStore}>
+      {/* <PersistGate loading={null} persistor={persistedStore}> */}
         {isLoadingComplete && (
           <SafeAreaProvider>
             <Navigation colorScheme={colorScheme} />
             <StatusBar />
           </SafeAreaProvider>
         )}
-      </PersistGate>
+      {/* </PersistGate> */}
     </Provider>
   );
 }
