@@ -27,6 +27,7 @@ export interface TreeState {
   all: Record<string, Tree>;
   indices: {
     byPlots: Record<string, string[]>;
+    bySpecies: Record<string, string[]>
   };
   newlyDraftedTrees: Tree[];
   drafts: string[];
@@ -37,6 +38,7 @@ const initialState: TreeState = {
   all: {},
   indices: {
     byPlots: {},
+    bySpecies:{},
   },
   drafts: [],
   newlyDraftedTrees: [],
@@ -80,6 +82,10 @@ export const treeSlice = createSlice({
           state.indices.byPlots[tree.plotNumber] = [];
         }
         state.indices.byPlots[tree.plotNumber].push(tree.tag);
+        if (tree.speciesCode && !state.indices.bySpecies[tree.speciesCode]) {
+          state.indices.bySpecies[tree.speciesCode] = []
+        }
+        if (tree.speciesCode) state.indices.bySpecies[tree.speciesCode].push(tree.tag)
       });
       return state;
     });

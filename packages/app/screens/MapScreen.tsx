@@ -93,7 +93,7 @@ export default function MapScreen() {
 
   const plots = usePlots({ viewingBox: regionSnapshot });
 
-  const { drafts = [], selected } = useAppSelector(
+  const { drafts = [], selected, indices: {bySpecies}, all } = useAppSelector(
     (state: RootState) => state.trees
   );
 
