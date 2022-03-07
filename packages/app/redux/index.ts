@@ -9,6 +9,9 @@ import {
 } from "./slices";
 import { persistReducer } from "redux-persist";
 import ExpoFileSystemStorage from "redux-persist-expo-filesystem";
+import { enableMapSet } from "immer";
+
+enableMapSet();
 
 // Combine reducers from slices here, so that it can be passed to Redux Persist
 const rootReducer = combineReducers({
