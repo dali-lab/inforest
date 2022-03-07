@@ -4,9 +4,14 @@ import { View } from "react-native";
 type TreeMarkerProps = {
   color: CSSProperties["color"];
   size: number;
+  selected?: boolean;
 };
 
-export const TreeMarker = ({ color, size }: TreeMarkerProps) => {
+export const TreeMarker = ({
+  color,
+  size,
+  selected = false,
+}: TreeMarkerProps) => {
   return (
     <View
       style={{
@@ -14,6 +19,9 @@ export const TreeMarker = ({ color, size }: TreeMarkerProps) => {
         width: size,
         height: size,
         borderRadius: size / 2,
+        ...(selected
+          ? { borderWidth: 2, borderColor: color, borderStyle: "dotted" }
+          : {}),
       }}
     ></View>
   );

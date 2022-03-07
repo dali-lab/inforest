@@ -74,7 +74,7 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
       {drawerState !== "CLOSED" && mode === MapScreenModes.Plot && (
         <>
           <View style={styles.header}>
-            {drawerState === "MINIMIZED" && !!selected && (
+            {drawerState === "MINIMIZED" && !selected && (
               <Text>
                 Tap anywhere to create a new tree in Plot #{plot?.number}
               </Text>
