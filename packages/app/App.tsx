@@ -6,6 +6,7 @@ import useCachedResources from "./hooks/useCachedResources";
 import store from "./redux";
 import { persistStore } from "redux-persist";
 import { PersistGate } from "redux-persist/integration/react";
+import MapScreen from "./screens/MapScreen";
 
 export default function App() {
   const isLoadingComplete = useCachedResources();
@@ -15,12 +16,12 @@ export default function App() {
   return (
     <Provider store={store}>
       {/* <PersistGate loading={null} persistor={persistedStore}> */}
-        {isLoadingComplete && (
-          <SafeAreaProvider>
-            <Navigation colorScheme={colorScheme} />
-            <StatusBar />
-          </SafeAreaProvider>
-        )}
+      {isLoadingComplete && (
+        <SafeAreaProvider>
+          <MapScreen />
+          <StatusBar />
+        </SafeAreaProvider>
+      )}
       {/* </PersistGate> */}
     </Provider>
   );
