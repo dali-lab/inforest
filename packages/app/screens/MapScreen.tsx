@@ -55,6 +55,7 @@ import {
   getPlotCorners,
   parsePlotNumber,
 } from "../constants/plots";
+import VisualizationModal from "../components/VisualizationModal";
 
 const O_FARM_LAT = 43.7348569458618;
 const O_FARM_LNG = -72.2519099587406;
@@ -67,14 +68,17 @@ const FOLIAGE_MAGNIFICATION = 3;
 export default function MapScreen() {
   const dispatch = useAppDispatch();
 
+  // For testing purposes - change this depending on the forest id created by the backend seeder
+  const tempForestId = "499a51a6-0d4e-4c07-87d4-c35f81e7e2be"
+
   useEffect(() => {
-    dispatch(getForest({ id: "499a51a6-0d4e-4c07-87d4-c35f81e7e2be" }));
+    dispatch(getForest({ id: tempForestId }));
     dispatch(
-      getForestPlots({ forestId: "499a51a6-0d4e-4c07-87d4-c35f81e7e2be" })
+      getForestPlots({ forestId: tempForestId })
     );
     dispatch(
       getForestTrees({
-        forestId: "499a51a6-0d4e-4c07-87d4-c35f81e7e2be",
+        forestId: tempForestId,
         limit: 1000,
       })
     );
@@ -117,7 +121,7 @@ export default function MapScreen() {
 
   const [mode, setMode] = useState<MapScreenModes>(MapScreenModes.Explore);
   const [drawerState, setDrawerState] = useState<DrawerStates>(
-    DrawerStates.Closed
+    DrawerStates.Minimized
   );
   const [drawerHeight, setDrawerHeight] = useState(0);
   const [userPos, setUserPos] = useState<{
@@ -148,13 +152,15 @@ export default function MapScreen() {
     const i = parseInt(plot.number.substring(0, 2));
     const j = parseInt(plot.number.substring(2, 4));
     setSelectedPlotIndices({ i, j });
+    setMode(MapScreenModes.Select)
     setDrawerState(DrawerStates.Minimized);
   }, []);
 
   const deSelectPlot = useCallback(() => {
     setSelectedPlot(undefined);
     setSelectedPlotIndices(undefined);
-    setDrawerState(DrawerStates.Closed);
+    setMode(MapScreenModes.Explore)
+    // setDrawerState(DrawerStates.Minimized);
   }, []);
 
   const beginPlotting = useCallback(() => {
@@ -162,18 +168,28 @@ export default function MapScreen() {
   }, []);
 
   const endPlotting = useCallback(() => {
-    setMode(MapScreenModes.Explore);
+    setMode(MapScreenModes.Select);
     setDrawerState(DrawerStates.Minimized);
   }, []);
 
+  const [visualizationConfig, setVisualizationConfig] = useState({open:false, colorBySpecies:false})
+
+  const openVisualizationModal = useCallback(()=>{
+    setVisualizationConfig((prev:any)=>({...prev, open:true}))
+  }, [setVisualizationConfig])
+
+  const closeVisualizationModal = useCallback(()=>{
+    setVisualizationConfig((prev:any)=>({...prev,open:false}))
+  },[setVisualizationConfig])
+
   return (
     <View style={styles.container}>
-      {mode === "EXPLORE" && (
+      {mode !== "PLOT" && (
         <>
           <MapView
             style={styles.map}
             ref={mapRef}
-            mapPadding={{ top: 24, right: 24, bottom: 0, left: 24 }}
+            mapPadding={{ top: 24, right: 24, bottom: drawerHeight-24, left: 24 }}
             // provider="google"
             // mapType='satellite'
             showsCompass={true}
@@ -220,7 +236,8 @@ export default function MapScreen() {
               });
             }}
             onPress={(e) => {
-              if (mode === "EXPLORE") {
+              closeVisualizationModal();
+              if (mode === "SELECT") {
                 if (!!e.nativeEvent.coordinate && !!selectedPlot) {
                   if (
                     !geolib.isPointInPolygon(
@@ -321,8 +338,8 @@ export default function MapScreen() {
           <View
             style={{
               ...styles.mapOverlay,
-              bottom: drawerHeight + 32,
-              right: 32,
+              top: 48,
+              right: 12,
             }}
           >
             <Ionicons
@@ -338,6 +355,9 @@ export default function MapScreen() {
               }}
             />
           </View>
+          <View style={{position:"absolute"}}>
+          {visualizationConfig.open && <VisualizationModal config={visualizationConfig} setConfig={setVisualizationConfig}/>}
+          </View>
         </>
       )}
       {mode === "PLOT" && (
@@ -347,7 +367,7 @@ export default function MapScreen() {
               name="ios-arrow-back"
               size={32}
               onPress={() => {
-                setMode(MapScreenModes.Explore);
+                setMode(MapScreenModes.Select);
                 setDrawerState(DrawerStates.Minimized);
               }}
             />
@@ -397,6 +417,7 @@ export default function MapScreen() {
         mode={mode}
         drawerState={drawerState}
         setDrawerHeight={setDrawerHeight}
+        openVisualizationModal={openVisualizationModal}
         plot={selectedPlot}
         beginPlotting={() => {
           if (selectedPlot) {
@@ -459,6 +480,7 @@ const styles = StyleSheet.create({
     padding: 8,
     borderRadius: 8,
   },
+  // TODO: use SafeAreaView for overlay
   mapOverlay: {
     position: "absolute",
     backgroundColor: "white",

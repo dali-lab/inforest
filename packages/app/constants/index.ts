@@ -3,6 +3,7 @@ import { Tree } from "@ong-forestry/schema";
 export enum MapScreenModes {
   Explore = "EXPLORE",
   Plot = "PLOT",
+  Select = "SELECT"
 }
 
 export enum DrawerStates {
