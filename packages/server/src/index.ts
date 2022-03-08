@@ -39,7 +39,10 @@ const sequelize = new Sequelize(
     logging: false,
     models: Object.values(models),
     dialectOptions: {
-      ssl: process.env.NODE_ENV === "production",
+      ssl: {
+        require: process.env.NODE_ENV === "production",
+        rejectUnauthorized: false,
+      },
     },
   }
 );
