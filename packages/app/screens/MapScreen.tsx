@@ -179,6 +179,7 @@ export default function MapScreen() {
   }>({});
 
   const treeNodes = useMemo(() => {
+    setSpeciesFrequencyMap({})
     return trees.map((tree: Tree) => {
       if (!!tree.latitude && !!tree.longitude) {
         let nodeColor = Colors.primary.dark;
@@ -191,7 +192,7 @@ export default function MapScreen() {
               let uniqueHue: string;
               // this is a poor way to do this, change later
               do {
-                uniqueHue = `hsl(${Math.round(Math.random() * 360)},30%,40%)`;
+                uniqueHue = `hsl(${Math.round(Math.random() * 72)*5},30%,40%)`;
               } while (
                 Object.values(visualizationConfig.speciesColorMap).includes(
                   uniqueHue
@@ -205,10 +206,10 @@ export default function MapScreen() {
                 },
               }));
               nodeColor = uniqueHue;
-              setSpeciesFrequencyMap((prev)=>({...prev, [tree.speciesCode]: 0}))
+              setSpeciesFrequencyMap((prev)=>({...prev, [speciesCode]: 0}))
             } else {
               nodeColor = visualizationConfig.speciesColorMap[speciesCode];
-              setSpeciesFrequencyMap((prev)=>({...prev, [tree.speciesCode]: prev[tree.speciesCode]+1}))
+              setSpeciesFrequencyMap((prev)=>({...prev, [speciesCode]: prev[speciesCode]+1}))
             }
           }
         }
@@ -383,7 +384,7 @@ export default function MapScreen() {
               />
             )}
           </View>
-          <View style={{position:"absolute", left:12, top: 48}}>
+          <View style={{position:"absolute", right:12, top: 48}}>
           {visualizationConfig.colorBySpecies && <ColorKey config={visualizationConfig} speciesFrequencyMap={speciesFrequencyMap}/>}
           </View>
         </>

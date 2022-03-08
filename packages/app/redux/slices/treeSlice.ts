@@ -2,6 +2,7 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { Tree } from "@ong-forestry/schema";
 import SERVER_URL from "../../constants/Url";
 import axios from "axios";
+import { getManyTreeSpecies } from "./treeSpeciesSlice";
 
 const BASE_URL = SERVER_URL + "trees";
 
@@ -18,6 +19,8 @@ export const getForestTrees = createAsyncThunk(
         `${BASE_URL}?forestId=${params.forestId}&limit=${params.limit}`
       )
       .then((response) => {
+        // const species = Array.from(new Set(response.data.map((tree)=>tree?.speciesCode||"")))
+        // thunkApi.dispatch(getManyTreeSpecies({codes: species}))
         return response.data;
       });
   }

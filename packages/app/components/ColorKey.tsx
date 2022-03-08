@@ -1,24 +1,28 @@
 import React, {useMemo, useEffect} from "react"
-import { View, StyleSheet, Text, Circle } from "react-native"
+import { View, StyleSheet, Text } from "react-native"
+import { VisualizationConfigType } from "../constants"
 import useAppDispatch from "../hooks/useAppDispatch"
 import useAppSelector from "../hooks/useAppSelector"
 import { RootState } from "../redux"
-import { getManyTreeSpecies } from "../redux/slices/treeSpeciesSlice"
-import { VisualizationConfigType } from "../types"
+import { getTreeSpecies } from "../redux/slices/treeSpeciesSlice"
+
 
 interface ColorKeyProps {
     config: VisualizationConfigType;
     speciesFrequencyMap: {[species:string]:number}
 }
 
-const NUM_KEY_ENTRIES = 5
+const NUM_KEY_ENTRIES = 10
 
 const ColorKey: React.FC<ColorKeyProps> = ({config, speciesFrequencyMap})=>{
     const dispatch = useAppDispatch();
-    useEffect(() => {
-        dispatch(getManyTreeSpecies({codes:Object.keys(speciesFrequencyMap)}))
-    }, [speciesFrequencyMap]);
     const reduxState = useAppSelector((state: RootState) => state);
+    useEffect(()=>{
+        // this isn't optimal, let's discuss a better way to fetch tree species without looping thru stuff so much and making so many requests
+        for (const code of Object.keys(speciesFrequencyMap)) {
+            if (!(code in Object.keys(allSpecies))) dispatch(getTreeSpecies({code:code}))
+        }
+    },[speciesFrequencyMap])
     const { all: allSpecies } = reduxState.treeSpecies;
     const frequencyMapEntries = useMemo(()=>Object.entries(speciesFrequencyMap).slice(0,NUM_KEY_ENTRIES),[speciesFrequencyMap, config])
     return (
@@ -27,7 +31,7 @@ const ColorKey: React.FC<ColorKeyProps> = ({config, speciesFrequencyMap})=>{
         <View style={styles.rowContainer}>
         {
             frequencyMapEntries.map(([speciesCode, frequency])=>
-                <KeyRow color={config.speciesColorMap[speciesCode]} species={allSpecies[speciesCode].name}/>
+                <KeyRow key = {speciesCode} color={config.speciesColorMap[speciesCode]} species={allSpecies?.[speciesCode]?.commonName}/>
         )
         }
         </View>
@@ -49,8 +53,8 @@ return (
 
 const styles = StyleSheet.create({
     keyContent:{
-        width: 128,
-        backgroundColor:"rgba(255, 255, 255, 0.4)",
+        width: 160,
+        backgroundColor:"rgba(255, 255, 255, 0.5)",
         borderRadius: 8,
         paddingVertical:6,
         paddingHorizontal:8
