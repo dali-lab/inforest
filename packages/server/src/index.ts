@@ -36,6 +36,7 @@ const sequelize = new Sequelize(
     dialect: "postgres",
     logging: false,
     models: Object.values(models),
+    ssl: true,
   }
 );
 
