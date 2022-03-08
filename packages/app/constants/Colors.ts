@@ -1,3 +1,5 @@
+import { ColorValue } from "react-native";
+
 export default {
   primary: {
     light: "#9FB5A6",
@@ -17,6 +19,7 @@ export default {
     5: "#949FAF",
     6: "#707A89",
     7: "#424B59",
+    8: "#2A2F38",
   },
   error: "#FF6B3D",
 };
