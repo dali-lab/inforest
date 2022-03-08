@@ -87,7 +87,7 @@ export default function MapScreen() {
   }, []);
   const reduxState = useAppSelector((state: RootState) => state);
   const { all: allPlots } = reduxState.plots;
-  const { all: allTrees, drafts, selected } = reduxState.trees;
+  const { all: allTrees, drafts, selected, indices: {bySpecies} } = reduxState.trees;
   const plots = usePlotsInRegion(usePlots(reduxState), regionSnapshot);
   const density = useMemo(() => {
     if (plots.length <= Math.pow(5, 2)) {
@@ -167,18 +167,21 @@ export default function MapScreen() {
   const [speciesFrequencyMap, setSpeciesFrequencyMap] = useState<{[species:string]:number}>({})
 
   const treeNodes = useMemo(()=>{
+    console.log("rerender")
     return trees.map((tree: Tree) => {
       if (!!tree.latitude && !!tree.longitude) {
-        if (visualizationConfig.colorBySpecies && !Object.keys(visualizationConfig.speciesColorMap).includes(tree.speciesCode)) {
-            let uniqueHue: string;
-            // this is a poor way to do this, change later
-            do {
-              uniqueHue= `hsl(${Math.round(Math.random()*360)},80%,40%)`
-            } while (Object.values(visualizationConfig.speciesColorMap).includes(uniqueHue))
-            setVisualizationConfig((prev)=>({...prev,speciesColorMap:{...prev.speciesColorMap, [tree.speciesCode]:uniqueHue}}))
-            // setSpeciesFrequencyMap((prev)=>({...prev, [tree.speciesCode]: 0}))        
+        if (visualizationConfig.colorBySpecies ) {
+            if (!Object.keys(visualizationConfig.speciesColorMap).includes(tree.speciesCode)) {
+              let uniqueHue: string;
+              // this is a poor way to do this, change later
+              do {
+                uniqueHue= `hsl(${Math.round(Math.random()*120)*3},80%,40%)`
+              } while (Object.values(visualizationConfig.speciesColorMap).includes(uniqueHue))
+              setVisualizationConfig((prev)=>({...prev,speciesColorMap:{...prev.speciesColorMap, [tree.speciesCode]:uniqueHue}}))
+              setSpeciesFrequencyMap((prev)=>({...prev, [tree.speciesCode]: 1}))    
+            }
+            else setSpeciesFrequencyMap((prev)=>({...prev, [tree.speciesCode]: prev[tree.speciesCode]+1}))
         }
-        // else setSpeciesFrequencyMap((prev)=>({...prev, [tree.speciesCode]: prev[tree.speciesCode]+1}))
         const treePixelSize =
           (tree.dbh ?? 10) * 0.01 * 0.5 * FOLIAGE_MAGNIFICATION;
         return (
@@ -342,7 +345,7 @@ export default function MapScreen() {
           {visualizationConfig.modalOpen && <VisualizationModal config={visualizationConfig} setConfig={setVisualizationConfig}/>}
           </View>
           <View style={{position:"absolute", left:12, top: 48}}>
-          {visualizationConfig.colorBySpecies && <ColorKey config={visualizationConfig}/>}
+          {visualizationConfig.colorBySpecies && <ColorKey config={visualizationConfig} speciesFrequencyMap={speciesFrequencyMap}/>}
           </View>
         </>
       )}
