@@ -181,31 +181,37 @@ export default function MapScreen() {
   const treeNodes = useMemo(() => {
     return trees.map((tree: Tree) => {
       if (!!tree.latitude && !!tree.longitude) {
-        if (
-          visualizationConfig.colorBySpecies &&
-          !Object.keys(visualizationConfig.speciesColorMap).includes(
-            tree.speciesCode
-          )
-        ) {
-          let uniqueHue: string;
-          // this is a poor way to do this, change later
-          do {
-            uniqueHue = `hsl(${Math.round(Math.random() * 360)},80%,40%)`;
-          } while (
-            Object.values(visualizationConfig.speciesColorMap).includes(
-              uniqueHue
-            )
-          );
-          setVisualizationConfig((prev) => ({
-            ...prev,
-            speciesColorMap: {
-              ...prev.speciesColorMap,
-              [tree.speciesCode]: uniqueHue,
-            },
-          }));
-          // setSpeciesFrequencyMap((prev)=>({...prev, [tree.speciesCode]: 0}))
+        let nodeColor = Colors.primary.dark;
+        if (visualizationConfig.colorBySpecies) {
+          const { speciesCode } = tree;
+          if (!speciesCode) {
+            // we should do: nodeColor = visualizationConfig.speciesColorMap["MISC"];
+          } else {
+            if (!(speciesCode in visualizationConfig.speciesColorMap)) {
+              let uniqueHue: string;
+              // this is a poor way to do this, change later
+              do {
+                uniqueHue = `hsl(${Math.round(Math.random() * 360)},30%,40%)`;
+              } while (
+                Object.values(visualizationConfig.speciesColorMap).includes(
+                  uniqueHue
+                )
+              );
+              setVisualizationConfig((prev) => ({
+                ...prev,
+                speciesColorMap: {
+                  ...prev.speciesColorMap,
+                  [speciesCode]: uniqueHue,
+                },
+              }));
+              nodeColor = uniqueHue;
+              // setSpeciesFrequencyMap((prev)=>({...prev, [tree.speciesCode]: 0}))
+            } else {
+              nodeColor = visualizationConfig.speciesColorMap[speciesCode];
+              // else setSpeciesFrequencyMap((prev)=>({...prev, [tree.speciesCode]: prev[tree.speciesCode]+1}))
+            }
+          }
         }
-        // else setSpeciesFrequencyMap((prev)=>({...prev, [tree.speciesCode]: prev[tree.speciesCode]+1}))
         const treePixelSize =
           (tree.dbh ?? 10) * 0.01 * 0.5 * FOLIAGE_MAGNIFICATION;
         return (
@@ -216,16 +222,8 @@ export default function MapScreen() {
               longitude: tree.longitude,
             }}
             radius={treePixelSize}
-            strokeColor={
-              visualizationConfig.colorBySpecies
-                ? visualizationConfig.speciesColorMap[tree.speciesCode]
-                : Colors.primary.dark
-            }
-            fillColor={
-              visualizationConfig.colorBySpecies
-                ? visualizationConfig.speciesColorMap[tree.speciesCode]
-                : Colors.primary.dark
-            }
+            strokeColor={nodeColor}
+            fillColor={nodeColor}
             zIndex={2}
           ></Circle>
         );
