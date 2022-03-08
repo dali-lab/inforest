@@ -82,6 +82,14 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
           y: e.nativeEvent.locationY,
         });
       }}
+      onPress={() => {
+        if (!!selected) {
+          dispatch(deselectTree());
+        }
+      }}
+      onPressIn={() => {
+        setMarkerPos(undefined);
+      }}
     >
       {/* stake labels */}
       <>
@@ -165,7 +173,7 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
                   } as Omit<Tree, "plot" | "trip" | "author">)
                 );
                 dispatch(selectTree(tag));
-                // expandDrawer();
+                expandDrawer();
                 setMarkerPos(undefined);
               }}
               title="Plot tree"
@@ -218,7 +226,7 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
                   )) *
                 FOLIAGE_MAGNIFICATION;
               return (
-                <View
+                <Pressable
                   key={tree.tag}
                   style={{
                     ...styles.tree,
@@ -228,13 +236,17 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
                       treePixelSize / 2,
                     left: plotY * (sheetSize / plot.length) - treePixelSize / 2,
                   }}
+                  onPress={() => {
+                    setMarkerPos(undefined);
+                    dispatch(selectTree(tree.tag));
+                  }}
                 >
                   <TreeMarker
                     color={isDraft ? Colors.error : Colors.primary.dark}
                     size={treePixelSize}
                     selected={selected?.tag === tree.tag}
                   />
-                </View>
+                </Pressable>
               );
             } else return null;
           })}
