@@ -1,5 +1,12 @@
 import { useCallback, useEffect, useMemo, useReducer, useState } from "react";
-import { Dimensions, StyleSheet, View } from "react-native";
+import {
+  Alert,
+  Button,
+  Dimensions,
+  Pressable,
+  StyleSheet,
+  View,
+} from "react-native";
 import MapView, {
   Marker,
   Region,
@@ -12,7 +19,7 @@ import { PermissionStatus } from "expo-modules-core";
 import * as geolib from "geolib";
 import { Ionicons } from "@expo/vector-icons";
 import * as utm from "utm";
-import { Plot } from "@ong-forestry/schema";
+import { Plot, Tree } from "@ong-forestry/schema";
 
 import { Text } from "../components/Themed";
 import { PlotDrawer } from "../components/PlotDrawer";
@@ -37,6 +44,9 @@ import {
   getPlotCorners,
   parsePlotNumber,
 } from "../constants/plots";
+import VisualizationModal from "../components/VisualizationModal";
+import ColorKey from "../components/ColorKey";
+import { VisualizationConfigType } from "../types";
 import { FOREST_ID } from "../constants/dev";
 
 const O_FARM_LAT = 43.7348569458618;
@@ -106,7 +116,7 @@ export default function MapScreen() {
   // component states
   const [mode, setMode] = useState<MapScreenModes>(MapScreenModes.Explore);
   const [drawerState, setDrawerState] = useState<DrawerStates>(
-    DrawerStates.Closed
+    DrawerStates.Minimized
   );
   const [drawerHeight, setDrawerHeight] = useState(0);
   const [userPos, setUserPos] = useState<LatLng>({
@@ -123,13 +133,15 @@ export default function MapScreen() {
     const i = parseInt(plot.number.substring(0, 2));
     const j = parseInt(plot.number.substring(2, 4));
     setSelectedPlotIndices({ i, j });
+    setMode(MapScreenModes.Select)
     setDrawerState(DrawerStates.Minimized);
   }, []);
 
   const deSelectPlot = useCallback(() => {
     setSelectedPlot(undefined);
     setSelectedPlotIndices(undefined);
-    setDrawerState(DrawerStates.Closed);
+    setMode(MapScreenModes.Explore)
+    setDrawerState(DrawerStates.Minimized);
   }, []);
 
   const beginPlotting = useCallback(() => {
@@ -137,18 +149,63 @@ export default function MapScreen() {
   }, []);
 
   const endPlotting = useCallback(() => {
-    setMode(MapScreenModes.Explore);
+    setMode(MapScreenModes.Select);
     setDrawerState(DrawerStates.Minimized);
-  }, []);
+    setRegionSnapshot(undefined)
+  }, [setMode, setDrawerState,setRegionSnapshot]);
+
+  const [visualizationConfig, setVisualizationConfig] = useState<VisualizationConfigType>({modalOpen:false, colorBySpecies:false, speciesColorMap:{}})
+
+  const openVisualizationModal = useCallback(()=>{
+    setVisualizationConfig((prev:VisualizationConfigType)=>({...prev, modalOpen:true}))
+  }, [setVisualizationConfig])
+
+  const closeVisualizationModal = useCallback(()=>{
+    setVisualizationConfig((prev:VisualizationConfigType)=>({...prev,modalOpen:false}))
+  },[setVisualizationConfig])
+
+  const [speciesFrequencyMap, setSpeciesFrequencyMap] = useState<{[species:string]:number}>({})
+
+  const treeNodes = useMemo(()=>{
+    return trees.map((tree: Tree) => {
+      if (!!tree.latitude && !!tree.longitude) {
+        if (visualizationConfig.colorBySpecies && !Object.keys(visualizationConfig.speciesColorMap).includes(tree.speciesCode)) {
+            let uniqueHue: string;
+            // this is a poor way to do this, change later
+            do {
+              uniqueHue= `hsl(${Math.round(Math.random()*360)},80%,40%)`
+            } while (Object.values(visualizationConfig.speciesColorMap).includes(uniqueHue))
+            setVisualizationConfig((prev)=>({...prev,speciesColorMap:{...prev.speciesColorMap, [tree.speciesCode]:uniqueHue}}))
+            // setSpeciesFrequencyMap((prev)=>({...prev, [tree.speciesCode]: 0}))        
+        }
+        // else setSpeciesFrequencyMap((prev)=>({...prev, [tree.speciesCode]: prev[tree.speciesCode]+1}))
+        const treePixelSize =
+          (tree.dbh ?? 10) * 0.01 * 0.5 * FOLIAGE_MAGNIFICATION;
+        return (
+          <Circle
+            key={tree.tag}
+            center={{
+              latitude: tree.latitude,
+              longitude: tree.longitude,
+            }}
+            radius={treePixelSize}
+            strokeColor={visualizationConfig.colorBySpecies ? visualizationConfig.speciesColorMap[tree.speciesCode] : Colors.primary.dark}
+            fillColor={visualizationConfig.colorBySpecies ? visualizationConfig.speciesColorMap[tree.speciesCode] : Colors.primary.dark}
+            zIndex={2}
+          ></Circle>
+        );
+      }
+    })
+  },[trees,visualizationConfig.colorBySpecies, setVisualizationConfig])
 
   return (
     <View style={styles.container}>
-      {mode === "EXPLORE" && (
+      {mode !== "PLOT" && (
         <>
           <MapView
             style={styles.map}
             ref={mapRef}
-            mapPadding={{ top: 24, right: 24, bottom: 0, left: 24 }}
+            mapPadding={{ top: 24, right: 24, bottom: drawerHeight-24, left: 24 }}
             // provider="google"
             // mapType='satellite'
             showsCompass={true}
@@ -184,6 +241,7 @@ export default function MapScreen() {
               setRegionSnapshot(region);
             }}
             onPress={(e) => {
+              closeVisualizationModal()
               if (!!e.nativeEvent.coordinate && !!selectedPlot) {
                 if (
                   !geolib.isPointInPolygon(
@@ -258,28 +316,7 @@ export default function MapScreen() {
                 />
               );
             })}
-            {trees.map((tree) => {
-              if (!!tree.latitude && !!tree.longitude) {
-                const isDraft = drafts.has(tree.tag);
-                const treePixelSize =
-                  (tree.dbh ?? DEFAULT_DBH) *
-                  0.01 *
-                  0.5 *
-                  FOLIAGE_MAGNIFICATION;
-                return (
-                  <Circle
-                    key={tree.tag}
-                    center={{
-                      latitude: tree.latitude,
-                      longitude: tree.longitude,
-                    }}
-                    radius={treePixelSize}
-                    strokeColor={isDraft ? Colors.error : Colors.primary.dark}
-                    fillColor={isDraft ? Colors.error : Colors.primary.dark}
-                  ></Circle>
-                );
-              }
-            })}
+            {treeNodes}
           </MapView>
           <View
             style={{
@@ -301,6 +338,12 @@ export default function MapScreen() {
               }}
             />
           </View>
+          <View style={{position:"absolute"}}>
+          {visualizationConfig.modalOpen && <VisualizationModal config={visualizationConfig} setConfig={setVisualizationConfig}/>}
+          </View>
+          <View style={{position:"absolute", left:12, top: 48}}>
+          {visualizationConfig.colorBySpecies && <ColorKey config={visualizationConfig}/>}
+          </View>
         </>
       )}
       {mode === "PLOT" && (
@@ -312,6 +355,7 @@ export default function MapScreen() {
               onPress={() => {
                 setMode(MapScreenModes.Explore);
                 setDrawerState(DrawerStates.Minimized);
+                endPlotting()
               }}
             />
           </View>
@@ -352,6 +396,7 @@ export default function MapScreen() {
         mode={mode}
         drawerState={drawerState}
         setDrawerHeight={setDrawerHeight}
+        openVisualizationModal={openVisualizationModal}
         plot={selectedPlot}
         beginPlotting={() => {
           if (selectedPlot) {
@@ -420,6 +465,7 @@ const styles = StyleSheet.create({
     padding: 8,
     borderRadius: 8,
   },
+  // TODO: use SafeAreaView for overlay
   mapOverlay: {
     position: "absolute",
     backgroundColor: "white",

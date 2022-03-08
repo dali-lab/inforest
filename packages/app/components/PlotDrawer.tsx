@@ -1,16 +1,24 @@
 import React, { useCallback, useEffect } from "react";
-import { Plot } from "@ong-forestry/schema";
-import { Button, Dimensions, StyleSheet, Text, View } from "react-native";
-import { MapScreenModes, DrawerStates } from "../constants";
+import { Forest, Plot, Tree } from "@ong-forestry/schema";
+import { Button, Dimensions, Pressable, StyleSheet, Text, View } from "react-native";
+import {
+  MapScreenModes,
+  DrawerStates,
+  DraftTreesState,
+  DraftTreesAction,
+} from "../constants";
 import Colors from "../constants/Colors";
 import useAppSelector from "../hooks/useAppSelector";
 import { deleteDraftedTree } from "../redux/slices/treeSlice";
+import DrawerButton from "./DrawerButton"
 
 interface PlotDrawerProps {
   mode: MapScreenModes;
   drawerState: DrawerStates;
   plot?: Plot;
+  forest?: Forest;
   setDrawerHeight: (height: number) => void;
+  openVisualizationModal: ()=>void;
   beginPlotting: () => void;
   endPlotting: () => void;
   minimizeDrawer: () => void;
@@ -21,6 +29,7 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
   drawerState,
   plot,
   setDrawerHeight,
+  openVisualizationModal,
   beginPlotting,
   endPlotting,
   minimizeDrawer,
@@ -52,18 +61,31 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
         )
       }
     >
-      {drawerState !== "CLOSED" && mode === MapScreenModes.Explore && (
+      {drawerState !== "CLOSED" && mode === MapScreenModes.Select && (
         <View style={styles.header}>
           <Text>Plot #{plot?.number}</Text>
           {drawerState === "MINIMIZED" && (
-            <Button onPress={beginPlotting} title="Add trees"></Button>
+            <DrawerButton onPress={beginPlotting} >Add Trees</DrawerButton>
           )}
+          {/* {mode === 'EXPANDED' && (
+						<Button onPress={() => {
+							setMode('MINIMIZED')
+							onClose()
+						}} title='Back to plots'></Button>
+					)} */}
         </View>
       )}
+      {
+        drawerState !== "CLOSED" && mode === MapScreenModes.Explore && (
+          <View style={[styles.header,{justifyContent:"center"}]}>
+            <DrawerButton onPress={openVisualizationModal}>Visualization Settings</DrawerButton>
+          </View>
+        )
+      }
       {drawerState !== "CLOSED" && mode === MapScreenModes.Plot && (
         <>
           <View style={styles.header}>
-            {drawerState === "MINIMIZED" && !selected && (
+            {drawerState === "MINIMIZED" && !!selected && (
               <Text>
                 Tap anywhere to create a new tree in Plot #{plot?.number}
               </Text>
@@ -111,7 +133,7 @@ const styles = StyleSheet.create({
     zIndex: 2,
     width: Dimensions.get("window").width,
     padding: 24,
-    backgroundColor: "rgba(255, 255, 255, 0.8)",
+    backgroundColor: "rgba(255, 255, 255, 0.62)",
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
   },
@@ -124,7 +146,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    height: 36,
+    height: 48,
   },
   content: {
     height: 512,

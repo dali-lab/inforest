@@ -1,12 +1,13 @@
 import { Tree } from "@ong-forestry/schema";
 
-export const DEFAULT_DBH = 10;
-export const FOLIAGE_MAGNIFICATION = 3;
-
 export enum MapScreenModes {
   Explore = "EXPLORE",
   Plot = "PLOT",
+  Select = "SELECT"
 }
+
+export const DEFAULT_DBH = 10;
+export const FOLIAGE_MAGNIFICATION = 3;
 
 export enum DrawerStates {
   Expanded = "EXPANDED",
