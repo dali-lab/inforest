@@ -151,7 +151,6 @@ export default function MapScreen() {
   const endPlotting = useCallback(() => {
     setMode(MapScreenModes.Select);
     setDrawerState(DrawerStates.Minimized);
-    setRegionSnapshot(undefined);
   }, [setMode, setDrawerState, setRegionSnapshot]);
 
   const [visualizationConfig, setVisualizationConfig] =
