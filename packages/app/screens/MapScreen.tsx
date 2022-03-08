@@ -251,7 +251,6 @@ export default function MapScreen() {
             // mapType='satellite'
             showsCompass={true}
             showsScale={true}
-            scrollEnabled={mode === "EXPLORE"}
             onMapReady={() => {
               if (locationPermissionStatus === PermissionStatus.GRANTED) {
                 console.log(
