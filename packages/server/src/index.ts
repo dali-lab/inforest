@@ -22,7 +22,7 @@ app.use(cors());
 app.use(morgan("dev"));
 app.use(express.json());
 const server = createServer(app);
-server.listen({ port: 3000 }, () => {
+server.listen({ port: process.env.PORT }, () => {
   console.log("Server listening on port 3000!");
 });
 
@@ -36,6 +36,12 @@ const sequelize = new Sequelize(
     dialect: "postgres",
     logging: false,
     models: Object.values(models),
+    dialectOptions: {
+      ssl: process.env.NODE_ENV === "production" && {
+        require: true,
+        rejectUnauthorized: false,
+      },
+    },
   }
 );
 

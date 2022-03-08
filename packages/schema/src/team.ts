@@ -1,5 +1,5 @@
-import { User } from "user";
-import { Forest } from "forest";
+import { User } from "./user";
+import { Forest } from "./forest";
 /**
  * Censusing Team
  * A group of users that census together (i.e. a research team). Allows for collaboration and review of census data.

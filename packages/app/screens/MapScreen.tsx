@@ -46,7 +46,7 @@ import {
 } from "../constants/plots";
 import VisualizationModal from "../components/VisualizationModal";
 import ColorKey from "../components/ColorKey";
-import { VisualizationConfigType } from "../types";
+import { VisualizationConfigType } from "../constants";
 import { FOREST_ID } from "../constants/dev";
 
 const O_FARM_LAT = 43.7348569458618;
@@ -133,14 +133,14 @@ export default function MapScreen() {
     const i = parseInt(plot.number.substring(0, 2));
     const j = parseInt(plot.number.substring(2, 4));
     setSelectedPlotIndices({ i, j });
-    setMode(MapScreenModes.Select)
+    setMode(MapScreenModes.Select);
     setDrawerState(DrawerStates.Minimized);
   }, []);
 
   const deSelectPlot = useCallback(() => {
     setSelectedPlot(undefined);
     setSelectedPlotIndices(undefined);
-    setMode(MapScreenModes.Explore)
+    setMode(MapScreenModes.Explore);
     setDrawerState(DrawerStates.Minimized);
   }, []);
 
@@ -151,36 +151,66 @@ export default function MapScreen() {
   const endPlotting = useCallback(() => {
     setMode(MapScreenModes.Select);
     setDrawerState(DrawerStates.Minimized);
-    setRegionSnapshot(undefined)
-  }, [setMode, setDrawerState,setRegionSnapshot]);
+  }, [setMode, setDrawerState, setRegionSnapshot]);
 
-  const [visualizationConfig, setVisualizationConfig] = useState<VisualizationConfigType>({modalOpen:false, colorBySpecies:false, speciesColorMap:{}})
+  const [visualizationConfig, setVisualizationConfig] =
+    useState<VisualizationConfigType>({
+      modalOpen: false,
+      colorBySpecies: false,
+      speciesColorMap: {},
+    });
 
-  const openVisualizationModal = useCallback(()=>{
-    setVisualizationConfig((prev:VisualizationConfigType)=>({...prev, modalOpen:true}))
-  }, [setVisualizationConfig])
+  const openVisualizationModal = useCallback(() => {
+    setVisualizationConfig((prev: VisualizationConfigType) => ({
+      ...prev,
+      modalOpen: true,
+    }));
+  }, [setVisualizationConfig]);
 
-  const closeVisualizationModal = useCallback(()=>{
-    setVisualizationConfig((prev:VisualizationConfigType)=>({...prev,modalOpen:false}))
-  },[setVisualizationConfig])
+  const closeVisualizationModal = useCallback(() => {
+    setVisualizationConfig((prev: VisualizationConfigType) => ({
+      ...prev,
+      modalOpen: false,
+    }));
+  }, [setVisualizationConfig]);
 
-  const [speciesFrequencyMap, setSpeciesFrequencyMap] = useState<{[species:string]:number}>({})
+  const [speciesFrequencyMap, setSpeciesFrequencyMap] = useState<{
+    [species: string]: number;
+  }>({});
 
-  const treeNodes = useMemo(()=>{
-    console.log("rerender")
+  const treeNodes = useMemo(() => {
     return trees.map((tree: Tree) => {
       if (!!tree.latitude && !!tree.longitude) {
-        if (visualizationConfig.colorBySpecies ) {
-            if (!Object.keys(visualizationConfig.speciesColorMap).includes(tree.speciesCode)) {
+        let nodeColor = Colors.primary.dark;
+        if (visualizationConfig.colorBySpecies) {
+          const { speciesCode } = tree;
+          if (!speciesCode) {
+            // we should do: nodeColor = visualizationConfig.speciesColorMap["MISC"];
+          } else {
+            if (!(speciesCode in visualizationConfig.speciesColorMap)) {
               let uniqueHue: string;
               // this is a poor way to do this, change later
               do {
-                uniqueHue= `hsl(${Math.round(Math.random()*120)*3},80%,40%)`
-              } while (Object.values(visualizationConfig.speciesColorMap).includes(uniqueHue))
-              setVisualizationConfig((prev)=>({...prev,speciesColorMap:{...prev.speciesColorMap, [tree.speciesCode]:uniqueHue}}))
-              setSpeciesFrequencyMap((prev)=>({...prev, [tree.speciesCode]: 1}))    
+                uniqueHue = `hsl(${Math.round(Math.random() * 360)},30%,40%)`;
+              } while (
+                Object.values(visualizationConfig.speciesColorMap).includes(
+                  uniqueHue
+                )
+              );
+              setVisualizationConfig((prev) => ({
+                ...prev,
+                speciesColorMap: {
+                  ...prev.speciesColorMap,
+                  [speciesCode]: uniqueHue,
+                },
+              }));
+              nodeColor = uniqueHue;
+              setSpeciesFrequencyMap((prev)=>({...prev, [tree.speciesCode]: 0}))
+            } else {
+              nodeColor = visualizationConfig.speciesColorMap[speciesCode];
+              setSpeciesFrequencyMap((prev)=>({...prev, [tree.speciesCode]: prev[tree.speciesCode]+1}))
             }
-            else setSpeciesFrequencyMap((prev)=>({...prev, [tree.speciesCode]: prev[tree.speciesCode]+1}))
+          }
         }
         const treePixelSize =
           (tree.dbh ?? 10) * 0.01 * 0.5 * FOLIAGE_MAGNIFICATION;
@@ -192,14 +222,14 @@ export default function MapScreen() {
               longitude: tree.longitude,
             }}
             radius={treePixelSize}
-            strokeColor={visualizationConfig.colorBySpecies ? visualizationConfig.speciesColorMap[tree.speciesCode] : Colors.primary.dark}
-            fillColor={visualizationConfig.colorBySpecies ? visualizationConfig.speciesColorMap[tree.speciesCode] : Colors.primary.dark}
+            strokeColor={nodeColor}
+            fillColor={nodeColor}
             zIndex={2}
           ></Circle>
         );
       }
-    })
-  },[trees,visualizationConfig.colorBySpecies, setVisualizationConfig])
+    });
+  }, [trees, visualizationConfig.colorBySpecies, setVisualizationConfig]);
 
   return (
     <View style={styles.container}>
@@ -208,12 +238,16 @@ export default function MapScreen() {
           <MapView
             style={styles.map}
             ref={mapRef}
-            mapPadding={{ top: 24, right: 24, bottom: drawerHeight-24, left: 24 }}
+            mapPadding={{
+              top: 24,
+              right: 24,
+              bottom: drawerHeight - 24,
+              left: 24,
+            }}
             // provider="google"
             // mapType='satellite'
             showsCompass={true}
             showsScale={true}
-            scrollEnabled={mode === "EXPLORE"}
             onMapReady={() => {
               if (locationPermissionStatus === PermissionStatus.GRANTED) {
                 console.log(
@@ -244,7 +278,7 @@ export default function MapScreen() {
               setRegionSnapshot(region);
             }}
             onPress={(e) => {
-              closeVisualizationModal()
+              closeVisualizationModal();
               if (!!e.nativeEvent.coordinate && !!selectedPlot) {
                 if (
                   !geolib.isPointInPolygon(
@@ -341,8 +375,13 @@ export default function MapScreen() {
               }}
             />
           </View>
-          <View style={{position:"absolute"}}>
-          {visualizationConfig.modalOpen && <VisualizationModal config={visualizationConfig} setConfig={setVisualizationConfig}/>}
+          <View style={{ position: "absolute" }}>
+            {visualizationConfig.modalOpen && (
+              <VisualizationModal
+                config={visualizationConfig}
+                setConfig={setVisualizationConfig}
+              />
+            )}
           </View>
           <View style={{position:"absolute", left:12, top: 48}}>
           {visualizationConfig.colorBySpecies && <ColorKey config={visualizationConfig} speciesFrequencyMap={speciesFrequencyMap}/>}
@@ -358,7 +397,7 @@ export default function MapScreen() {
               onPress={() => {
                 setMode(MapScreenModes.Explore);
                 setDrawerState(DrawerStates.Minimized);
-                endPlotting()
+                endPlotting();
               }}
             />
           </View>

@@ -4,27 +4,36 @@ dotenv.config();
 
 module.exports = {
   development: {
-    database: process.env.DB_NAME,
-    username: process.env.DB_USER,
-    password: process.env.DB_PASS,
-    host: process.env.DB_HOST,
+    url:
+      process.env.DATABASE_URL ??
+      `postgres://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`,
     dialect: "postgres",
     logging: true,
+    dialectOptions: {
+      ssl: {
+        require: true,
+        rejectUnauthorized: false,
+      },
+    },
   },
   test: {
-    database: process.env.TEST_DB_NAME,
-    username: process.env.TEST_DB_USER,
-    password: process.env.TEST_DB_PASS,
-    host: process.env.TEST_DB_HOST,
+    url:
+      process.env.DATABASE_URL ??
+      `postgres://${process.env.TEST_DB_NAME}:${process.env.TEST_DB_PASSWORD}@${process.env.TEST_DB_HOST}:${process.env.TEST_DB_PORT}/${process.env.TEST_DB_NAME}`,
     dialect: "postgres",
     logging: false,
   },
   production: {
-    database: process.env.DB_NAME,
-    username: process.env.DB_USER,
-    password: process.env.DB_PASS,
-    host: process.env.DB_HOST,
+    url:
+      process.env.DATABASE_URL ??
+      `postgres://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`,
     dialect: "postgres",
     logging: false,
+    dialectOptions: {
+      ssl: {
+        require: true,
+        rejectUnauthorized: false,
+      },
+    },
   },
 };

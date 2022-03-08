@@ -1,5 +1,5 @@
-import { User } from "user";
-import { Team } from "team";
+import { User } from "./user";
+import { Team } from "./team";
 
 /**
  * Enum of possible roles a user can have within a team

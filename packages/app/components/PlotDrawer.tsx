@@ -1,6 +1,13 @@
 import React, { useCallback, useEffect } from "react";
 import { Forest, Plot, Tree } from "@ong-forestry/schema";
-import { Button, Dimensions, Pressable, StyleSheet, Text, View } from "react-native";
+import {
+  Button,
+  Dimensions,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import {
   MapScreenModes,
   DrawerStates,
@@ -10,7 +17,7 @@ import {
 import Colors from "../constants/Colors";
 import useAppSelector from "../hooks/useAppSelector";
 import { deleteDraftedTree } from "../redux/slices/treeSlice";
-import DrawerButton from "./DrawerButton"
+import DrawerButton from "./DrawerButton";
 
 interface PlotDrawerProps {
   mode: MapScreenModes;
@@ -18,7 +25,7 @@ interface PlotDrawerProps {
   plot?: Plot;
   forest?: Forest;
   setDrawerHeight: (height: number) => void;
-  openVisualizationModal: ()=>void;
+  openVisualizationModal: () => void;
   beginPlotting: () => void;
   endPlotting: () => void;
   minimizeDrawer: () => void;
@@ -65,7 +72,7 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
         <View style={styles.header}>
           <Text>Plot #{plot?.number}</Text>
           {drawerState === "MINIMIZED" && (
-            <DrawerButton onPress={beginPlotting} >Add Trees</DrawerButton>
+            <DrawerButton onPress={beginPlotting}>Add Trees</DrawerButton>
           )}
           {/* {mode === 'EXPANDED' && (
 						<Button onPress={() => {
@@ -75,13 +82,13 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
 					)} */}
         </View>
       )}
-      {
-        drawerState !== "CLOSED" && mode === MapScreenModes.Explore && (
-          <View style={[styles.header,{justifyContent:"center"}]}>
-            <DrawerButton onPress={openVisualizationModal}>Visualization Settings</DrawerButton>
-          </View>
-        )
-      }
+      {drawerState !== "CLOSED" && mode === MapScreenModes.Explore && (
+        <View style={[styles.header, { justifyContent: "center" }]}>
+          <DrawerButton onPress={openVisualizationModal}>
+            Visualization Settings
+          </DrawerButton>
+        </View>
+      )}
       {drawerState !== "CLOSED" && mode === MapScreenModes.Plot && (
         <>
           <View style={styles.header}>
