@@ -47,7 +47,14 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
     };
   }, []);
 
-  const { selected } = useAppSelector((state) => state.trees);
+  const dispatch = useAppDispatch();
+
+  const {
+    all,
+    selected: selectedTreeTag,
+    indices: { byPlots },
+  } = useAppSelector((state) => state.trees);
+  const selected = !!selectedTreeTag ? all[selectedTreeTag] : undefined;
 
   const setStyle = useCallback(() => {
     switch (drawerState) {

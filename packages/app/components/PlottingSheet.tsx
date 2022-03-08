@@ -56,7 +56,12 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
     [sheetSize]
   );
   const dispatch = useAppDispatch();
-  const { drafts, selected } = useAppSelector((state) => state.trees);
+  const {
+    all,
+    drafts,
+    selected: selectedTreeTag,
+  } = useAppSelector((state) => state.trees);
+  const selected = !!selectedTreeTag ? all[selectedTreeTag] : undefined;
   const trees = useTreesInPlots(
     useTreesByDensity(
       useAppSelector((state) => state),

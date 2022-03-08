@@ -44,7 +44,7 @@ export interface TreeState {
   };
   newlyDraftedTrees: Tree[];
   drafts: Set<string>;
-  selected?: Tree;
+  selected?: string;
 }
 
 const initialState: TreeState = {
@@ -69,6 +69,9 @@ export const treeSlice = createSlice({
       // add to drafts
       state.drafts.add(newTree.tag);
       // update plots index
+      if (!(newTree.plotNumber in state.indices.byPlots)) {
+        state.indices.byPlots[newTree.plotNumber] = new Set();
+      }
       state.indices.byPlots[newTree.plotNumber].add(newTree.tag);
       // update latitude index
       if (!!newTree.latitude) {
@@ -94,7 +97,7 @@ export const treeSlice = createSlice({
       // remove from drafts
       state.drafts.delete(treeTag);
       // remove from plots index
-      state.indices.byPlots[treeTag.plotNumber].delete(treeTag);
+      state.indices.byPlots[treeTag.plotNumber]?.delete(treeTag);
       // remove from latitude index
       state.indices.byLatitude.splice(
         state.indices.byLatitude.indexOf(treeTag)
@@ -105,8 +108,24 @@ export const treeSlice = createSlice({
       );
       return state;
     },
+    updateTree: (state, action) => {
+      const { tag, updates } = action.payload;
+      state.all[updates.tag] = updates;
+      // tag changed
+      if (!!updates.tag && tag !== updates.tag) {
+        const oldTree = state.all[tag];
+        delete state.all[tag];
+        if (state.selected === tag) {
+          state.selected = updates.tag;
+        }
+        state.indices.byPlots[oldTree.plotNumber]?.delete(tag);
+        state.indices.byPlots[oldTree.plotNumber]?.add(updates.tag);
+      }
+      // todo: update indices
+      return state;
+    },
     selectTree: (state, action) => {
-      state.selected = state.all[action.payload];
+      state.selected = action.payload;
       return state;
     },
     deselectTree: (state) => {
@@ -147,7 +166,12 @@ export const treeSlice = createSlice({
   },
 });
 
-export const { draftNewTree, deleteDraftedTree, selectTree, deselectTree } =
-  treeSlice.actions;
+export const {
+  draftNewTree,
+  deleteDraftedTree,
+  updateTree,
+  selectTree,
+  deselectTree,
+} = treeSlice.actions;
 
 export default treeSlice.reducer;
