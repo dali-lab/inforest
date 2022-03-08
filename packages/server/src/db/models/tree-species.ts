@@ -48,8 +48,12 @@ class TreeSpecies extends Model<ITreeSpecies> implements ITreeSpecies {
   commonName: string;
 
   @AllowNull(false)
-  @Column(DataTypes.ENUM({ values: [TreeSpeciesTypes.Conifer, TreeSpeciesTypes.Deciduous] }))
-  type: TreeSpeciesTypes
+  @Column(
+    DataTypes.ENUM({
+      values: [TreeSpeciesTypes.Conifer, TreeSpeciesTypes.Deciduous],
+    })
+  )
+  type: TreeSpeciesTypes;
 }
 
 export default TreeSpecies;

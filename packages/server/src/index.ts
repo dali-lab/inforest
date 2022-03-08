@@ -1,7 +1,6 @@
 import express from "express";
 import { createServer } from "http";
 import cors from "cors";
-import dotenv from "dotenv";
 import { Sequelize } from "sequelize-typescript";
 import passport from "passport";
 import bodyParser from "body-parser";
@@ -18,8 +17,6 @@ import {
   tripRouter,
 } from "routes";
 
-dotenv.config();
-
 const app = express();
 app.use(cors());
 app.use(morgan("dev"));
@@ -33,13 +30,10 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(passport.initialize());
 
 const sequelize = new Sequelize(
-  process.env.DB_NAME || "inforest_dev",
-  process.env.DB_USER || "postgres",
-  process.env.DB_PASSWORD || "password",
+  process.env.DATABASE_URL ??
+    `postgres://${process.env.DB_USER}:${process.env.DB_PASS}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`,
   {
     dialect: "postgres",
-    host: process.env.DB_HOST,
-    port: parseInt(process.env.DB_PORT || "5432"),
     logging: false,
     models: Object.values(models),
   }
