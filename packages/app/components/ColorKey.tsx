@@ -1,11 +1,13 @@
+import React from "react";
+import { View } from "react-native";
 import { VisualizationConfigType } from "../constants";
 
 interface ColorKeyProps {
-    config: VisualizationConfigType
+  config: VisualizationConfigType;
 }
 
-const ColorKey: React.FC<ColorKeyProps> = ({})=>{
-    return (<View></View>)
-}
+const ColorKey: React.FC<ColorKeyProps> = ({}) => {
+  return <View></View>;
+};
 
-export default ColorKey
+export default ColorKey;
