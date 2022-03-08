@@ -6,6 +6,7 @@ import {
   treeReducer,
   teamReducer,
   tripReducer,
+  treeSpeciesReducer,
 } from "./slices";
 import { persistReducer } from "redux-persist";
 import ExpoFileSystemStorage from "redux-persist-expo-filesystem";
@@ -19,6 +20,7 @@ const rootReducer = combineReducers({
   forest: forestReducer,
   plots: plotReducer,
   trees: treeReducer,
+  treeSpecies: treeSpeciesReducer,
   teams: teamReducer,
   trips: tripReducer,
 });

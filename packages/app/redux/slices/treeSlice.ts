@@ -2,6 +2,7 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { Tree } from "@ong-forestry/schema";
 import SERVER_URL from "../../constants/Url";
 import axios from "axios";
+import { getManyTreeSpecies } from "./treeSpeciesSlice";
 
 const BASE_URL = SERVER_URL + "trees";
 
@@ -18,6 +19,8 @@ export const getForestTrees = createAsyncThunk(
         `${BASE_URL}?forestId=${params.forestId}&limit=${params.limit}`
       )
       .then((response) => {
+        // const species = Array.from(new Set(response.data.map((tree)=>tree?.speciesCode||"")))
+        // thunkApi.dispatch(getManyTreeSpecies({codes: species}))
         return response.data;
       });
   }
@@ -41,6 +44,7 @@ export interface TreeState {
     byPlots: Record<string, Set<string>>;
     byLatitude: TreeNumericalIndex;
     byLongitude: TreeNumericalIndex;
+    bySpecies: Record<string, Set<string>>
   };
   newlyDraftedTrees: Tree[];
   drafts: Set<string>;
@@ -53,6 +57,7 @@ const initialState: TreeState = {
     byPlots: {},
     byLatitude: [],
     byLongitude: [],
+    bySpecies: {},
   },
   drafts: new Set([]),
   newlyDraftedTrees: [],
@@ -157,6 +162,10 @@ export const treeSlice = createSlice({
             treeTag: tree.tag,
           });
         }
+        if (tree.speciesCode && !(tree.speciesCode in state.indices.bySpecies)) {
+          state.indices.bySpecies[tree.speciesCode] = new Set()
+        }
+        if (tree.speciesCode) state.indices.bySpecies[tree.speciesCode].add(tree.tag)
       });
       // sort indices
       state.indices.byLatitude.sort(treeNumericalIndexComparator);

@@ -87,7 +87,7 @@ export default function MapScreen() {
   }, []);
   const reduxState = useAppSelector((state: RootState) => state);
   const { all: allPlots } = reduxState.plots;
-  const { all: allTrees, drafts, selected } = reduxState.trees;
+  const { all: allTrees, drafts, selected, indices: {bySpecies} } = reduxState.trees;
   const plots = usePlotsInRegion(usePlots(reduxState), regionSnapshot);
   const density = useMemo(() => {
     if (plots.length <= Math.pow(5, 2)) {
@@ -179,6 +179,7 @@ export default function MapScreen() {
   }>({});
 
   const treeNodes = useMemo(() => {
+    setSpeciesFrequencyMap({})
     return trees.map((tree: Tree) => {
       if (!!tree.latitude && !!tree.longitude) {
         let nodeColor = Colors.primary.dark;
@@ -191,7 +192,7 @@ export default function MapScreen() {
               let uniqueHue: string;
               // this is a poor way to do this, change later
               do {
-                uniqueHue = `hsl(${Math.round(Math.random() * 360)},30%,40%)`;
+                uniqueHue = `hsl(${Math.round(Math.random() * 36)*10},${Math.round(Math.random()*40)+60}%,${Math.round(Math.random()*40)+20}%)`;
               } while (
                 Object.values(visualizationConfig.speciesColorMap).includes(
                   uniqueHue
@@ -205,10 +206,10 @@ export default function MapScreen() {
                 },
               }));
               nodeColor = uniqueHue;
-              // setSpeciesFrequencyMap((prev)=>({...prev, [tree.speciesCode]: 0}))
+              setSpeciesFrequencyMap((prev)=>({...prev, [speciesCode]: 0}))
             } else {
               nodeColor = visualizationConfig.speciesColorMap[speciesCode];
-              // else setSpeciesFrequencyMap((prev)=>({...prev, [tree.speciesCode]: prev[tree.speciesCode]+1}))
+              setSpeciesFrequencyMap((prev)=>({...prev, [speciesCode]: prev[speciesCode]+1}))
             }
           }
         }
@@ -360,7 +361,7 @@ export default function MapScreen() {
           <View
             style={{
               ...styles.mapOverlay,
-              bottom: drawerHeight + 32,
+              bottom: drawerHeight + 40,
               right: 32,
             }}
           >
@@ -385,10 +386,8 @@ export default function MapScreen() {
               />
             )}
           </View>
-          <View style={{ position: "absolute", left: 12, top: 48 }}>
-            {visualizationConfig.colorBySpecies && (
-              <ColorKey config={visualizationConfig} />
-            )}
+          <View style={{position:"absolute", left:12, bottom: drawerHeight+40}}>
+          {visualizationConfig.colorBySpecies && <ColorKey config={visualizationConfig} speciesFrequencyMap={speciesFrequencyMap}/>}
           </View>
         </>
       )}
