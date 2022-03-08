@@ -1,1 +1,1 @@
-web: yarn workspace @ong_forestry/server start
+web: yarn workspace @ong_forestry/server run start
