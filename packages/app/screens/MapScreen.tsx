@@ -21,7 +21,7 @@ import { Ionicons } from "@expo/vector-icons";
 import * as utm from "utm";
 import { Plot, Tree } from "@ong-forestry/schema";
 
-import { Text } from "../components/Themed";
+import { Text, TextVariants } from "../components/Themed";
 import { PlotDrawer } from "../components/PlotDrawer";
 import { PlottingSheet } from "../components/PlottingSheet";
 import { useRef } from "react";
@@ -241,7 +241,7 @@ export default function MapScreen() {
             mapPadding={{
               top: 24,
               right: 24,
-              bottom: drawerHeight - 24,
+              bottom: 24,
               left: 24,
             }}
             // provider="google"
@@ -317,7 +317,9 @@ export default function MapScreen() {
                   })()}
                 >
                   <View style={styles.plotCallout}>
-                    <Text>Plot #{selectedPlot.number}</Text>
+                    <Text variant={TextVariants.Body}>
+                      Plot #{selectedPlot.number}
+                    </Text>
                   </View>
                 </Marker>
                 <Polygon
@@ -422,8 +424,8 @@ export default function MapScreen() {
                 } else {
                   stakeNames.push("No stake");
                 }
-                if (formPlotNumber(i, j + 1) in plots) {
-                  stakeNames.push(allPlots[formPlotNumber(i, j)].number);
+                if (formPlotNumber(i, j + 1) in allPlots) {
+                  stakeNames.push(allPlots[formPlotNumber(i, j + 1)].number);
                 } else {
                   stakeNames.push("No stake");
                 }
@@ -465,6 +467,7 @@ export default function MapScreen() {
           }
         }}
         endPlotting={endPlotting}
+        expandDrawer={() => setDrawerState(DrawerStates.Expanded)}
         minimizeDrawer={() => setDrawerState(DrawerStates.Minimized)}
       ></PlotDrawer>
     </View>
@@ -491,7 +494,7 @@ const styles = StyleSheet.create({
   map: {
     width: "100%",
     height: "100%",
-    backgroundColor: Colors.secondary.normal,
+    backgroundColor: Colors.secondary.dark,
     justifyContent: "center",
     alignItems: "center",
   },
