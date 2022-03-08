@@ -192,7 +192,7 @@ export default function MapScreen() {
               let uniqueHue: string;
               // this is a poor way to do this, change later
               do {
-                uniqueHue = `hsl(${Math.round(Math.random() * 72)*5},30%,40%)`;
+                uniqueHue = `hsl(${Math.round(Math.random() * 36)*10},${Math.round(Math.random()*40)+60}%,${Math.round(Math.random()*40)+20}%)`;
               } while (
                 Object.values(visualizationConfig.speciesColorMap).includes(
                   uniqueHue
@@ -359,7 +359,7 @@ export default function MapScreen() {
           <View
             style={{
               ...styles.mapOverlay,
-              bottom: drawerHeight + 32,
+              bottom: drawerHeight + 40,
               right: 32,
             }}
           >
@@ -384,7 +384,7 @@ export default function MapScreen() {
               />
             )}
           </View>
-          <View style={{position:"absolute", right:12, top: 48}}>
+          <View style={{position:"absolute", left:12, bottom: drawerHeight+40}}>
           {visualizationConfig.colorBySpecies && <ColorKey config={visualizationConfig} speciesFrequencyMap={speciesFrequencyMap}/>}
           </View>
         </>

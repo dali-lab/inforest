@@ -12,7 +12,7 @@ interface ColorKeyProps {
     speciesFrequencyMap: {[species:string]:number}
 }
 
-const NUM_KEY_ENTRIES = 10
+const NUM_KEY_ENTRIES = 8
 
 const ColorKey: React.FC<ColorKeyProps> = ({config, speciesFrequencyMap})=>{
     const dispatch = useAppDispatch();
