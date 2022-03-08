@@ -29,6 +29,8 @@ server.listen({ port: 3000 }, () => {
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(passport.initialize());
 
+console.log(process.env.NODE_ENV);
+
 const sequelize = new Sequelize(
   process.env.DATABASE_URL ??
     `postgres://${process.env.DB_USER}:${process.env.DB_PASS}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`,
@@ -36,7 +38,9 @@ const sequelize = new Sequelize(
     dialect: "postgres",
     logging: false,
     models: Object.values(models),
-    ssl: true,
+    dialectOptions: {
+      ssl: process.env.NODE_ENV === "production",
+    },
   }
 );
 
