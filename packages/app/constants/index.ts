@@ -3,7 +3,7 @@ import { Tree } from "@ong-forestry/schema";
 export enum MapScreenModes {
   Explore = "EXPLORE",
   Plot = "PLOT",
-  Select = "SELECT"
+  Select = "SELECT",
 }
 
 export const DEFAULT_DBH = 10;
@@ -29,3 +29,9 @@ export type DraftTreesAction =
         id: string;
       };
     };
+
+export type VisualizationConfigType = {
+  modalOpen: boolean;
+  colorBySpecies: boolean;
+  speciesColorMap: { [species: string]: string };
+};

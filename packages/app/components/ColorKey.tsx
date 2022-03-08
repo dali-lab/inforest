@@ -1,6 +1,4 @@
-import React from "react"
-import { View } from "react-native"
-import { VisualizationConfigType } from "../types"
+import { VisualizationConfigType } from "../constants";
 
 interface ColorKeyProps {
     config: VisualizationConfigType

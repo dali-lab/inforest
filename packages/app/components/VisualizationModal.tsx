@@ -1,7 +1,4 @@
-import React, { useCallback } from 'react'
-import Modal from './Modal'
-import {StyleSheet, Switch, View, Text } from "react-native"
-import { VisualizationConfigType } from '../types'
+import { VisualizationConfigType } from "../constants";
 
 interface VisualizationModalProps {
     config: VisualizationConfigType;

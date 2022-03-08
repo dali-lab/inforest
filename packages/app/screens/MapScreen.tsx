@@ -46,7 +46,7 @@ import {
 } from "../constants/plots";
 import VisualizationModal from "../components/VisualizationModal";
 import ColorKey from "../components/ColorKey";
-import { VisualizationConfigType } from "../types";
+import { VisualizationConfigType } from "../constants";
 import { FOREST_ID } from "../constants/dev";
 
 const O_FARM_LAT = 43.7348569458618;
