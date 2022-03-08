@@ -5,7 +5,9 @@
   "license": "None",
   "scripts": {
     "dev": "NODE_ENV=development ts-node-dev -r tsconfig-paths/register src/index.ts",
-    "start": "NODE_ENV=production ts-node -r tsconfig-paths/register src/index.ts"
+    "start": "NODE_ENV=production ts-node -r tsconfig-paths/register src/index.ts",
+    "migrate": "sequelize db:migrate",
+    "seed": "sequelize db:seed:all"
   },
   "dependencies": {
     "@ong-forestry/schema": "1.0.0",
