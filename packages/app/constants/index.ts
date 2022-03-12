@@ -6,7 +6,7 @@ export enum MapScreenModes {
   Select = "SELECT",
 }
 
-export const DEFAULT_DBH = 10;
+export const DEFAULT_DBH = 30;
 export const FOLIAGE_MAGNIFICATION = 3;
 
 export enum DrawerStates {
