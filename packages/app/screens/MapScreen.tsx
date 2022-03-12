@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useMemo, useReducer, useState } from "react";
 import {
-  Alert,
-  Button,
   Dimensions,
+  Modal,
   Pressable,
   StyleSheet,
+  TextInput,
   View,
 } from "react-native";
 import MapView, {
@@ -38,7 +38,11 @@ import useAppSelector, {
 import { RootState } from "../redux";
 import { getForest } from "../redux/slices/forestSlice";
 import { getForestPlots } from "../redux/slices/plotSlice";
-import { getForestTrees } from "../redux/slices/treeSlice";
+import {
+  deselectTree,
+  getForestTrees,
+  selectTree,
+} from "../redux/slices/treeSlice";
 import {
   formPlotNumber,
   getPlotCorners,
@@ -51,8 +55,9 @@ import { FOREST_ID } from "../constants/dev";
 
 const O_FARM_LAT = 43.7348569458618;
 const O_FARM_LNG = -72.2519099587406;
-const MIN_REGION_DELTA = 0.000005;
+const MIN_REGION_DELTA = 0.0000005;
 const FOLIAGE_MAGNIFICATION = 3;
+const SELECTED_MAGNIFICATION = 5;
 
 export default function MapScreen() {
   // map setup
@@ -87,7 +92,11 @@ export default function MapScreen() {
   }, []);
   const reduxState = useAppSelector((state: RootState) => state);
   const { all: allPlots } = reduxState.plots;
-  const { all: allTrees, drafts, selected, indices: {bySpecies} } = reduxState.trees;
+  const {
+    all: allTrees,
+    indices: { bySpecies },
+    selected: selectedTree,
+  } = reduxState.trees;
   const plots = usePlotsInRegion(usePlots(reduxState), regionSnapshot);
   const density = useMemo(() => {
     if (plots.length <= Math.pow(5, 2)) {
@@ -126,6 +135,8 @@ export default function MapScreen() {
   const [selectedPlot, setSelectedPlot] = useState<Plot>();
   const [selectedPlotIndices, setSelectedPlotIndices] =
     useState<{ i: number; j: number }>();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchModalOpen, setSearchModalOpen] = useState(false);
 
   // component functions
   const selectPlot = useCallback((plot: Plot) => {
@@ -178,11 +189,40 @@ export default function MapScreen() {
     [species: string]: number;
   }>({});
 
+  const findTree = useCallback((treeTag: string) => {
+    const tree = allTrees[treeTag];
+    if (tree) {
+      dispatch(selectTree(tree.tag));
+      const plot = tree.plotNumber;
+      if (plot) {
+        selectPlot(allPlots[plot]);
+        const { easting, northing, zoneNum, zoneLetter } = utm.fromLatLon(
+          allPlots[plot].latitude,
+          allPlots[plot].longitude
+        );
+        const { width, length } = allPlots[plot];
+        const focusToPlotRegion = {
+          ...utm.toLatLon(
+            easting + width / 2,
+            northing - length / 2,
+            zoneNum,
+            zoneLetter
+          ),
+          latitudeDelta: MIN_REGION_DELTA,
+          longitudeDelta: MIN_REGION_DELTA,
+        };
+        mapRef.current?.animateToRegion(focusToPlotRegion, 500);
+        setRegionSnapshot(focusToPlotRegion);
+      }
+    }
+  }, []);
+
   const treeNodes = useMemo(() => {
-    setSpeciesFrequencyMap({})
+    setSpeciesFrequencyMap({});
     return trees.map((tree: Tree) => {
       if (!!tree.latitude && !!tree.longitude) {
-        let nodeColor = Colors.primary.dark;
+        const selected = selectedTree === tree.tag;
+        let nodeColor = selected ? Colors.error : Colors.primary.normal;
         if (visualizationConfig.colorBySpecies) {
           const { speciesCode } = tree;
           if (!speciesCode) {
@@ -192,7 +232,9 @@ export default function MapScreen() {
               let uniqueHue: string;
               // this is a poor way to do this, change later
               do {
-                uniqueHue = `hsl(${Math.round(Math.random() * 36)*10},${Math.round(Math.random()*40)+60}%,${Math.round(Math.random()*40)+20}%)`;
+                uniqueHue = `hsl(${Math.round(Math.random() * 36) * 10},${
+                  Math.round(Math.random() * 40) + 60
+                }%,${Math.round(Math.random() * 40) + 20}%)`;
               } while (
                 Object.values(visualizationConfig.speciesColorMap).includes(
                   uniqueHue
@@ -206,15 +248,21 @@ export default function MapScreen() {
                 },
               }));
               nodeColor = uniqueHue;
-              setSpeciesFrequencyMap((prev)=>({...prev, [speciesCode]: 0}))
+              setSpeciesFrequencyMap((prev) => ({ ...prev, [speciesCode]: 0 }));
             } else {
               nodeColor = visualizationConfig.speciesColorMap[speciesCode];
-              setSpeciesFrequencyMap((prev)=>({...prev, [speciesCode]: prev[speciesCode]+1}))
+              setSpeciesFrequencyMap((prev) => ({
+                ...prev,
+                [speciesCode]: prev[speciesCode] + 1,
+              }));
             }
           }
         }
-        const treePixelSize =
-          (tree.dbh ?? 10) * 0.01 * 0.5 * FOLIAGE_MAGNIFICATION;
+        let treePixelSize =
+          (tree.dbh ?? DEFAULT_DBH) * 0.01 * 0.5 * FOLIAGE_MAGNIFICATION;
+        if (selected) {
+          treePixelSize *= SELECTED_MAGNIFICATION;
+        }
         return (
           <Circle
             key={tree.tag}
@@ -280,6 +328,7 @@ export default function MapScreen() {
             }}
             onPress={(e) => {
               closeVisualizationModal();
+              dispatch(deselectTree());
               if (!!e.nativeEvent.coordinate && !!selectedPlot) {
                 if (
                   !geolib.isPointInPolygon(
@@ -361,7 +410,7 @@ export default function MapScreen() {
           <View
             style={{
               ...styles.mapOverlay,
-              bottom: drawerHeight + 40,
+              bottom: drawerHeight + 32,
               right: 32,
             }}
           >
@@ -378,6 +427,34 @@ export default function MapScreen() {
               }}
             />
           </View>
+          <View
+            style={{
+              ...styles.mapOverlay,
+              bottom: drawerHeight + 128,
+              left: 32,
+            }}
+          >
+            <Ionicons
+              name="ios-search"
+              size={32}
+              onPress={() => {
+                setSearchModalOpen(true);
+              }}
+            />
+          </View>
+          <View
+            style={{
+              ...styles.mapOverlay,
+              bottom: drawerHeight + 32,
+              left: 32,
+            }}
+          >
+            <Ionicons
+              name="ios-settings"
+              size={32}
+              onPress={openVisualizationModal}
+            />
+          </View>
           <View style={{ position: "absolute" }}>
             {visualizationConfig.modalOpen && (
               <VisualizationModal
@@ -386,8 +463,19 @@ export default function MapScreen() {
               />
             )}
           </View>
-          <View style={{position:"absolute", left:12, bottom: drawerHeight+40}}>
-          {visualizationConfig.colorBySpecies && <ColorKey config={visualizationConfig} speciesFrequencyMap={speciesFrequencyMap}/>}
+          <View
+            style={{
+              position: "absolute",
+              left: 12,
+              top: 32,
+            }}
+          >
+            {visualizationConfig.colorBySpecies && (
+              <ColorKey
+                config={visualizationConfig}
+                speciesFrequencyMap={speciesFrequencyMap}
+              />
+            )}
           </View>
         </>
       )}
@@ -469,6 +557,28 @@ export default function MapScreen() {
         expandDrawer={() => setDrawerState(DrawerStates.Expanded)}
         minimizeDrawer={() => setDrawerState(DrawerStates.Minimized)}
       ></PlotDrawer>
+      <Modal visible={searchModalOpen} transparent={true} animationType="fade">
+        <Pressable
+          style={styles.centeredView}
+          onPress={() => setSearchModalOpen(false)}
+        >
+          <View style={[styles.modal, styles.modalContainer]}>
+            <TextInput
+              value={searchQuery}
+              onChangeText={(text) => setSearchQuery(text)}
+              onSubmitEditing={() => {
+                setSearchModalOpen(false);
+                findTree(searchQuery);
+                setSearchQuery("");
+              }}
+              placeholder="Search for a tree by tag #"
+              returnKeyType="search"
+              style={{ width: 256 }}
+              autoFocus={true}
+            ></TextInput>
+          </View>
+        </Pressable>
+      </Modal>
     </View>
   );
 }
@@ -520,5 +630,27 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     justifyContent: "center",
     alignItems: "center",
+  },
+  modalContainer: {
+    backgroundColor: "white",
+    padding: 12,
+    borderRadius: 12,
+  },
+  centeredView: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.5)",
+  },
+  modal: {
+    alignSelf: "center",
+    shadowColor: "black",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
   },
 });
