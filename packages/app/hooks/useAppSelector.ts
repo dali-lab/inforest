@@ -20,15 +20,22 @@ export const useTreesByDensity = createSelector(
     (_: RootState, density?: number) => density,
   ],
   (trees: RootState["trees"], density: number = 1.0) => {
-    const { all, drafts } = trees;
+    const { all, drafts, selected } = trees;
     const treeKeys = Object.keys(all);
     let selectedKeys = [];
     const draftsToAdd = new Set(drafts);
+    let missingSelected = !!selected;
     for (let i = 0; i < treeKeys.length; i += Math.floor(1 / density)) {
       selectedKeys.push(treeKeys[i]);
+      if (selected === treeKeys[i]) {
+        missingSelected = false;
+      }
       draftsToAdd.delete(treeKeys[i]);
     }
     draftsToAdd.forEach((draftTree) => selectedKeys.push(draftTree));
+    if (!!selected && missingSelected) {
+      selectedKeys.push(selected);
+    }
     return selectedKeys.map((key) => all[key]);
   }
 );

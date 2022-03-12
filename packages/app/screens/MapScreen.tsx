@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useMemo, useReducer, useState } from "react";
 import {
-  Alert,
-  Button,
   Dimensions,
+  Modal,
   Pressable,
   StyleSheet,
+  TextInput,
   View,
 } from "react-native";
 import MapView, {
@@ -21,7 +21,7 @@ import { Ionicons } from "@expo/vector-icons";
 import * as utm from "utm";
 import { Plot, Tree } from "@ong-forestry/schema";
 
-import { Text } from "../components/Themed";
+import { Text, TextVariants } from "../components/Themed";
 import { PlotDrawer } from "../components/PlotDrawer";
 import { PlottingSheet } from "../components/PlottingSheet";
 import { useRef } from "react";
@@ -38,7 +38,11 @@ import useAppSelector, {
 import { RootState } from "../redux";
 import { getForest } from "../redux/slices/forestSlice";
 import { getForestPlots } from "../redux/slices/plotSlice";
-import { getForestTrees } from "../redux/slices/treeSlice";
+import {
+  deselectTree,
+  getForestTrees,
+  selectTree,
+} from "../redux/slices/treeSlice";
 import {
   formPlotNumber,
   getPlotCorners,
@@ -48,11 +52,14 @@ import VisualizationModal from "../components/VisualizationModal";
 import ColorKey from "../components/ColorKey";
 import { VisualizationConfigType } from "../constants";
 import { FOREST_ID } from "../constants/dev";
+import { getAllTreeSpecies } from "../redux/slices/treeSpeciesSlice";
 
 const O_FARM_LAT = 43.7348569458618;
 const O_FARM_LNG = -72.2519099587406;
-const MIN_REGION_DELTA = 0.000005;
+const MIN_REGION_DELTA = 0.0000005;
 const FOLIAGE_MAGNIFICATION = 3;
+const SELECTED_MAGNIFICATION = 5;
+const NUM_OF_SPECIES = 8;
 
 export default function MapScreen() {
   // map setup
@@ -84,10 +91,16 @@ export default function MapScreen() {
         forestId: FOREST_ID,
       })
     );
+    dispatch(getAllTreeSpecies());
   }, []);
   const reduxState = useAppSelector((state: RootState) => state);
   const { all: allPlots } = reduxState.plots;
-  const { all: allTrees, drafts, selected } = reduxState.trees;
+  const {
+    all: allTrees,
+    indices: { bySpecies },
+    selected: selectedTree,
+  } = reduxState.trees;
+  const { colorMap, frequencyMap } = reduxState.treeSpecies;
   const plots = usePlotsInRegion(usePlots(reduxState), regionSnapshot);
   const density = useMemo(() => {
     if (plots.length <= Math.pow(5, 2)) {
@@ -126,6 +139,8 @@ export default function MapScreen() {
   const [selectedPlot, setSelectedPlot] = useState<Plot>();
   const [selectedPlotIndices, setSelectedPlotIndices] =
     useState<{ i: number; j: number }>();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchModalOpen, setSearchModalOpen] = useState(false);
 
   // component functions
   const selectPlot = useCallback((plot: Plot) => {
@@ -145,10 +160,12 @@ export default function MapScreen() {
   }, []);
 
   const beginPlotting = useCallback(() => {
+    dispatch(deselectTree());
     setMode(MapScreenModes.Plot);
   }, []);
 
   const endPlotting = useCallback(() => {
+    dispatch(deselectTree());
     setMode(MapScreenModes.Select);
     setDrawerState(DrawerStates.Minimized);
   }, [setMode, setDrawerState, setRegionSnapshot]);
@@ -157,7 +174,8 @@ export default function MapScreen() {
     useState<VisualizationConfigType>({
       modalOpen: false,
       colorBySpecies: false,
-      speciesColorMap: {},
+      numOfSpecies: NUM_OF_SPECIES,
+      satellite: false,
     });
 
   const openVisualizationModal = useCallback(() => {
@@ -178,42 +196,51 @@ export default function MapScreen() {
     [species: string]: number;
   }>({});
 
+  const findTree = useCallback((treeTag: string) => {
+    const tree = allTrees[treeTag];
+    if (tree) {
+      dispatch(selectTree(tree.tag));
+      const plot = tree.plotNumber;
+      if (plot) {
+        selectPlot(allPlots[plot]);
+        const { easting, northing, zoneNum, zoneLetter } = utm.fromLatLon(
+          allPlots[plot].latitude,
+          allPlots[plot].longitude
+        );
+        const { width, length } = allPlots[plot];
+        const focusToPlotRegion = {
+          ...utm.toLatLon(
+            easting + width / 2,
+            northing - length / 2,
+            zoneNum,
+            zoneLetter
+          ),
+          latitudeDelta: MIN_REGION_DELTA,
+          longitudeDelta: MIN_REGION_DELTA,
+        };
+        mapRef.current?.animateToRegion(focusToPlotRegion, 500);
+        setRegionSnapshot(focusToPlotRegion);
+      }
+    }
+  }, []);
+
   const treeNodes = useMemo(() => {
+    setSpeciesFrequencyMap({});
     return trees.map((tree: Tree) => {
       if (!!tree.latitude && !!tree.longitude) {
-        let nodeColor = Colors.primary.dark;
+        const selected = selectedTree === tree.tag;
+        let nodeColor = selected ? Colors.error : Colors.primary.normal;
         if (visualizationConfig.colorBySpecies) {
           const { speciesCode } = tree;
-          if (!speciesCode) {
-            // we should do: nodeColor = visualizationConfig.speciesColorMap["MISC"];
-          } else {
-            if (!(speciesCode in visualizationConfig.speciesColorMap)) {
-              let uniqueHue: string;
-              // this is a poor way to do this, change later
-              do {
-                uniqueHue = `hsl(${Math.round(Math.random() * 360)},30%,40%)`;
-              } while (
-                Object.values(visualizationConfig.speciesColorMap).includes(
-                  uniqueHue
-                )
-              );
-              setVisualizationConfig((prev) => ({
-                ...prev,
-                speciesColorMap: {
-                  ...prev.speciesColorMap,
-                  [speciesCode]: uniqueHue,
-                },
-              }));
-              nodeColor = uniqueHue;
-              // setSpeciesFrequencyMap((prev)=>({...prev, [tree.speciesCode]: 0}))
-            } else {
-              nodeColor = visualizationConfig.speciesColorMap[speciesCode];
-              // else setSpeciesFrequencyMap((prev)=>({...prev, [tree.speciesCode]: prev[tree.speciesCode]+1}))
-            }
+          if (!!speciesCode) {
+            nodeColor = colorMap[speciesCode];
           }
         }
-        const treePixelSize =
-          (tree.dbh ?? 10) * 0.01 * 0.5 * FOLIAGE_MAGNIFICATION;
+        let treePixelSize =
+          (tree.dbh ?? DEFAULT_DBH) * 0.01 * 0.5 * FOLIAGE_MAGNIFICATION;
+        if (selected) {
+          treePixelSize *= SELECTED_MAGNIFICATION;
+        }
         return (
           <Circle
             key={tree.tag}
@@ -229,7 +256,7 @@ export default function MapScreen() {
         );
       }
     });
-  }, [trees, visualizationConfig.colorBySpecies, setVisualizationConfig]);
+  }, [trees, visualizationConfig.colorBySpecies]);
 
   return (
     <View style={styles.container}>
@@ -241,11 +268,11 @@ export default function MapScreen() {
             mapPadding={{
               top: 24,
               right: 24,
-              bottom: drawerHeight - 24,
+              bottom: 24,
               left: 24,
             }}
             // provider="google"
-            // mapType='satellite'
+            mapType={visualizationConfig.satellite ? "satellite" : "standard"}
             showsCompass={true}
             showsScale={true}
             onMapReady={() => {
@@ -279,6 +306,7 @@ export default function MapScreen() {
             }}
             onPress={(e) => {
               closeVisualizationModal();
+              dispatch(deselectTree());
               if (!!e.nativeEvent.coordinate && !!selectedPlot) {
                 if (
                   !geolib.isPointInPolygon(
@@ -317,7 +345,9 @@ export default function MapScreen() {
                   })()}
                 >
                   <View style={styles.plotCallout}>
-                    <Text>Plot #{selectedPlot.number}</Text>
+                    <Text variant={TextVariants.Body}>
+                      Plot #{selectedPlot.number}
+                    </Text>
                   </View>
                 </Marker>
                 <Polygon
@@ -375,6 +405,34 @@ export default function MapScreen() {
               }}
             />
           </View>
+          <View
+            style={{
+              ...styles.mapOverlay,
+              bottom: drawerHeight + 128,
+              left: 32,
+            }}
+          >
+            <Ionicons
+              name="ios-search"
+              size={32}
+              onPress={() => {
+                setSearchModalOpen(true);
+              }}
+            />
+          </View>
+          <View
+            style={{
+              ...styles.mapOverlay,
+              bottom: drawerHeight + 32,
+              left: 32,
+            }}
+          >
+            <Ionicons
+              name="ios-settings"
+              size={32}
+              onPress={openVisualizationModal}
+            />
+          </View>
           <View style={{ position: "absolute" }}>
             {visualizationConfig.modalOpen && (
               <VisualizationModal
@@ -383,7 +441,13 @@ export default function MapScreen() {
               />
             )}
           </View>
-          <View style={{ position: "absolute", left: 12, top: 48 }}>
+          <View
+            style={{
+              position: "absolute",
+              left: 32,
+              top: 32,
+            }}
+          >
             {visualizationConfig.colorBySpecies && (
               <ColorKey config={visualizationConfig} />
             )}
@@ -422,8 +486,8 @@ export default function MapScreen() {
                 } else {
                   stakeNames.push("No stake");
                 }
-                if (formPlotNumber(i, j + 1) in plots) {
-                  stakeNames.push(allPlots[formPlotNumber(i, j)].number);
+                if (formPlotNumber(i, j + 1) in allPlots) {
+                  stakeNames.push(allPlots[formPlotNumber(i, j + 1)].number);
                 } else {
                   stakeNames.push("No stake");
                 }
@@ -465,8 +529,31 @@ export default function MapScreen() {
           }
         }}
         endPlotting={endPlotting}
+        expandDrawer={() => setDrawerState(DrawerStates.Expanded)}
         minimizeDrawer={() => setDrawerState(DrawerStates.Minimized)}
       ></PlotDrawer>
+      <Modal visible={searchModalOpen} transparent={true} animationType="fade">
+        <Pressable
+          style={styles.centeredView}
+          onPress={() => setSearchModalOpen(false)}
+        >
+          <View style={[styles.modal, styles.modalContainer]}>
+            <TextInput
+              value={searchQuery}
+              onChangeText={(text) => setSearchQuery(text)}
+              onSubmitEditing={() => {
+                setSearchModalOpen(false);
+                findTree(searchQuery);
+                setSearchQuery("");
+              }}
+              placeholder="Search for a tree by tag #"
+              returnKeyType="search"
+              style={{ width: 256 }}
+              autoFocus={true}
+            ></TextInput>
+          </View>
+        </Pressable>
+      </Modal>
     </View>
   );
 }
@@ -491,7 +578,7 @@ const styles = StyleSheet.create({
   map: {
     width: "100%",
     height: "100%",
-    backgroundColor: Colors.secondary.normal,
+    backgroundColor: Colors.secondary.dark,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -518,5 +605,27 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     justifyContent: "center",
     alignItems: "center",
+  },
+  modalContainer: {
+    backgroundColor: "white",
+    padding: 12,
+    borderRadius: 12,
+  },
+  centeredView: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.5)",
+  },
+  modal: {
+    alignSelf: "center",
+    shadowColor: "black",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
   },
 });

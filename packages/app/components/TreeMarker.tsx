@@ -1,8 +1,9 @@
-import React, { CSSProperties } from "react";
+import React from "react";
 import { View } from "react-native";
+import Color from "color";
 
 type TreeMarkerProps = {
-  color: CSSProperties["color"];
+  color: string;
   size: number;
   selected?: boolean;
 };
@@ -15,12 +16,23 @@ export const TreeMarker = ({
   return (
     <View
       style={{
-        backgroundColor: color,
+        backgroundColor: selected
+          ? new Color().hex(color).lighten(0.1).toString()
+          : color,
         width: size,
         height: size,
         borderRadius: size / 2,
         ...(selected
-          ? { borderWidth: 2, borderColor: color, borderStyle: "dotted" }
+          ? {
+              shadowColor: "black",
+              shadowOffset: {
+                width: 0,
+                height: 4,
+              },
+              shadowOpacity: 0.5,
+              shadowRadius: 16,
+              elevation: 6,
+            }
           : {}),
       }}
     ></View>

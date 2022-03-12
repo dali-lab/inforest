@@ -3,7 +3,7 @@ import { Button, Pressable, StyleSheet, View } from "react-native";
 import * as utm from "utm";
 import DashedLine from "react-native-dashed-line";
 import Colors from "../constants/Colors";
-import { Text } from "./Themed";
+import { Text, TextVariants } from "./Themed";
 import { Plot, Tree } from "@ong-forestry/schema";
 import { DEFAULT_DBH, FOLIAGE_MAGNIFICATION } from "../constants";
 import { TreeMarker } from "./TreeMarker";
@@ -13,12 +13,15 @@ import useAppSelector, {
 } from "../hooks/useAppSelector";
 import {
   deselectTree,
-  draftNewTree,
+  createTree,
   selectTree,
 } from "../redux/slices/treeSlice";
 import { getRandomBytes } from "expo-random";
 import useAppDispatch from "../hooks/useAppDispatch";
 import { AUTHOR_ID, TRIP_ID } from "../constants/dev";
+import DrawerButton from "./DrawerButton";
+
+const SMALL_OFFSET = 8;
 
 interface PlottingSheetProps {
   plot: Plot;
@@ -28,8 +31,8 @@ interface PlottingSheetProps {
   minimizeDrawer: () => void;
 }
 
-const STAKE_LABEL_HEIGHT = 18;
-const STAKE_LABEL_WIDTH = 36;
+const STAKE_LABEL_HEIGHT = 18 + 8;
+const STAKE_LABEL_WIDTH = 36 + 16;
 
 export const PlottingSheet: React.FC<PlottingSheetProps> = ({
   plot,
@@ -38,7 +41,7 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
   expandDrawer,
   minimizeDrawer,
 }) => {
-  const sheetSize = mapWidth - 64 * 2;
+  const sheetSize = mapWidth - (STAKE_LABEL_WIDTH + 2 * SMALL_OFFSET) * 2;
   const [markerPos, setMarkerPos] = useState<{
     x: number;
     y: number;
@@ -56,7 +59,12 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
     [sheetSize]
   );
   const dispatch = useAppDispatch();
-  const { drafts, selected } = useAppSelector((state) => state.trees);
+  const {
+    all,
+    drafts,
+    selected: selectedTreeTag,
+  } = useAppSelector((state) => state.trees);
+  const selected = !!selectedTreeTag ? all[selectedTreeTag] : undefined;
   const trees = useTreesInPlots(
     useTreesByDensity(
       useAppSelector((state) => state),
@@ -77,45 +85,55 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
           y: e.nativeEvent.locationY,
         });
       }}
+      onPress={() => {
+        if (!!selected) {
+          dispatch(deselectTree());
+        }
+      }}
+      onPressIn={() => {
+        setMarkerPos(undefined);
+      }}
     >
       {/* stake labels */}
       <>
         <View
           style={{
             ...styles.stakeLabel,
-            top: -STAKE_LABEL_HEIGHT,
-            left: -STAKE_LABEL_WIDTH,
+            top: -(STAKE_LABEL_HEIGHT + SMALL_OFFSET),
+            left: -(STAKE_LABEL_WIDTH + SMALL_OFFSET),
           }}
         >
-          <Text>{stakeNames[1]}</Text>
+          <Text variant={TextVariants.Numerical}>{stakeNames[1]}</Text>
         </View>
         <View
           style={{
             ...styles.stakeLabel,
-            top: -STAKE_LABEL_HEIGHT,
-            right: -STAKE_LABEL_WIDTH,
+            top: -(STAKE_LABEL_HEIGHT + SMALL_OFFSET),
+            right: -(STAKE_LABEL_WIDTH + SMALL_OFFSET),
           }}
         >
-          <Text>{stakeNames[2]}</Text>
+          <Text variant={TextVariants.Numerical}>{stakeNames[2]}</Text>
         </View>
         <View
           style={{
             ...styles.stakeLabel,
-            bottom: -STAKE_LABEL_HEIGHT,
-            right: -STAKE_LABEL_WIDTH,
+            bottom: -(STAKE_LABEL_HEIGHT + SMALL_OFFSET),
+            right: -(STAKE_LABEL_WIDTH + SMALL_OFFSET),
           }}
         >
-          <Text>{stakeNames[3]}</Text>
+          <Text variant={TextVariants.Numerical}>{stakeNames[3]}</Text>
         </View>
         <View
           style={{
             ...styles.stakeLabel,
             ...styles.rootStakeLabel,
-            bottom: -STAKE_LABEL_HEIGHT,
-            left: -STAKE_LABEL_WIDTH,
+            bottom: -(STAKE_LABEL_HEIGHT + SMALL_OFFSET),
+            left: -(STAKE_LABEL_WIDTH + SMALL_OFFSET),
           }}
         >
-          <Text>{stakeNames[0]}</Text>
+          <Text variant={TextVariants.Numerical} color={Colors.neutral[1]}>
+            {stakeNames[0]}
+          </Text>
         </View>
       </>
 
@@ -125,11 +143,11 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
           <View
             style={{
               ...styles.plotTree,
-              left: markerPos.x + 12,
-              top: markerPos.y + 12,
+              left: markerPos.x + SMALL_OFFSET,
+              top: markerPos.y + SMALL_OFFSET,
             }}
           >
-            <Button
+            <DrawerButton
               onPress={() => {
                 const { easting, northing, zoneNum, zoneLetter } =
                   utm.fromLatLon(plot.latitude, plot.longitude);
@@ -145,26 +163,28 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
                   zoneNum,
                   zoneLetter
                 );
-                const tag = getRandomBytes(8).join();
-                dispatch(
-                  draftNewTree({
-                    tag,
-                    plotNumber: plot.number,
-                    plotX,
-                    plotY,
-                    latitude,
-                    longitude,
-                    tripId: TRIP_ID,
-                    authorId: AUTHOR_ID,
-                    photos: [],
-                  } as Omit<Tree, "plot" | "trip" | "author">)
-                );
-                dispatch(selectTree(tag));
-                // expandDrawer();
+                const tag = getRandomBytes(2).join("").substring(0, 5);
+                const newTree = {
+                  tag,
+                  plotNumber: plot.number,
+                  plotX,
+                  plotY,
+                  latitude,
+                  longitude,
+                  tripId: TRIP_ID,
+                  authorId: AUTHOR_ID,
+                  photos: [],
+                  createdAt: new Date(),
+                  updatedAt: new Date(),
+                };
+                dispatch(createTree(newTree));
                 setMarkerPos(undefined);
+                dispatch(selectTree(tag));
+                expandDrawer();
               }}
-              title="Plot tree"
-            ></Button>
+            >
+              Plot tree
+            </DrawerButton>
           </View>
           <View
             style={{
@@ -187,11 +207,25 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
               top: 0,
             }}
           ></View>
-          <View style={{ ...styles.horizontalLabel, top: markerPos?.y }}>
-            <Text>{markerLocToMeters(markerPos.x, "HORIZONTAL")} m</Text>
+          <View
+            style={{
+              ...styles.horizontalLabel,
+              top: markerPos?.y + SMALL_OFFSET,
+            }}
+          >
+            <Text variant={TextVariants.Numerical}>
+              {markerLocToMeters(markerPos.x, "HORIZONTAL")} m
+            </Text>
           </View>
-          <View style={{ ...styles.verticalLabel, left: markerPos?.x }}>
-            <Text>{markerLocToMeters(markerPos.y, "VERTICAL")} m</Text>
+          <View
+            style={{
+              ...styles.verticalLabel,
+              left: markerPos?.x + SMALL_OFFSET,
+            }}
+          >
+            <Text variant={TextVariants.Numerical}>
+              {markerLocToMeters(markerPos.y, "VERTICAL")} m
+            </Text>
           </View>
         </>
       )}
@@ -213,7 +247,7 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
                   )) *
                 FOLIAGE_MAGNIFICATION;
               return (
-                <View
+                <Pressable
                   key={tree.tag}
                   style={{
                     ...styles.tree,
@@ -223,13 +257,20 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
                       treePixelSize / 2,
                     left: plotY * (sheetSize / plot.length) - treePixelSize / 2,
                   }}
+                  onPress={() => {
+                    setMarkerPos(undefined);
+                    minimizeDrawer();
+                    dispatch(selectTree(tree.tag));
+                  }}
                 >
                   <TreeMarker
-                    color={isDraft ? Colors.error : Colors.primary.dark}
+                    color={
+                      isDraft ? Colors.primary.normal : Colors.primary.light
+                    }
                     size={treePixelSize}
                     selected={selected?.tag === tree.tag}
                   />
-                </View>
+                </Pressable>
               );
             } else return null;
           })}
@@ -245,7 +286,7 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
             left: 0,
           }}
           dashLength={8}
-          dashThickness={4}
+          dashThickness={2}
           dashGap={16}
           dashColor="white"
         />
@@ -258,7 +299,7 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
           }}
           axis="vertical"
           dashLength={8}
-          dashThickness={4}
+          dashThickness={2}
           dashGap={16}
           dashColor="white"
         />
@@ -271,7 +312,7 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
             left: 0,
           }}
           dashLength={8}
-          dashThickness={4}
+          dashThickness={2}
           dashGap={16}
           dashColor="white"
         />
@@ -284,7 +325,7 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
           }}
           axis="vertical"
           dashLength={8}
-          dashThickness={4}
+          dashThickness={2}
           dashGap={16}
           dashColor="white"
         />
@@ -296,7 +337,7 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
             left: 0,
           }}
           dashLength={8}
-          dashThickness={4}
+          dashThickness={2}
           dashGap={16}
           dashColor="white"
         />
@@ -309,7 +350,7 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
           }}
           axis="vertical"
           dashLength={8}
-          dashThickness={4}
+          dashThickness={2}
           dashGap={16}
           dashColor="white"
         />
@@ -376,8 +417,11 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: Colors.secondary.light,
+    backgroundColor: Colors.secondary.normal,
     position: "relative",
+    borderColor: "white",
+    borderWidth: 2,
+    overflow: "hidden",
   },
   stakeLabel: {
     position: "absolute",
@@ -386,17 +430,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
     width: STAKE_LABEL_WIDTH,
     height: STAKE_LABEL_HEIGHT,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 8,
   },
   rootStakeLabel: {
     backgroundColor: Colors.neutral[7],
-    color: Colors.neutral[1],
   },
   plotTree: {
     zIndex: 4,
     position: "absolute",
-    backgroundColor: "white",
-    padding: 4,
-    borderRadius: 4,
   },
   marker: {
     zIndex: 4,
@@ -422,16 +465,20 @@ const styles = StyleSheet.create({
   horizontalLabel: {
     zIndex: 4,
     position: "absolute",
-    left: 0,
+    left: SMALL_OFFSET,
     backgroundColor: "white",
-    padding: 4,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 8,
   },
   verticalLabel: {
     zIndex: 4,
     position: "absolute",
-    top: 0,
+    top: SMALL_OFFSET,
     backgroundColor: "white",
-    padding: 4,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 8,
   },
   tree: {
     zIndex: 3,
@@ -444,7 +491,7 @@ const styles = StyleSheet.create({
   x: {
     zIndex: 2,
     position: "absolute",
-    height: 4,
+    height: 2,
     backgroundColor: "white",
   },
 });

@@ -6,7 +6,7 @@ export enum MapScreenModes {
   Select = "SELECT",
 }
 
-export const DEFAULT_DBH = 10;
+export const DEFAULT_DBH = 30;
 export const FOLIAGE_MAGNIFICATION = 3;
 
 export enum DrawerStates {
@@ -33,5 +33,6 @@ export type DraftTreesAction =
 export type VisualizationConfigType = {
   modalOpen: boolean;
   colorBySpecies: boolean;
-  speciesColorMap: { [species: string]: string };
+  numOfSpecies: number;
+  satellite: boolean;
 };

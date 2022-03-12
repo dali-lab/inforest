@@ -1,5 +1,7 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, StyleSheet } from "react-native";
+import { Stack } from "react-native-spacing-system";
+import { Text, TextVariants } from "./Themed";
 interface ModalProps {
   children?: React.ReactNode;
   title: string;
@@ -7,7 +9,8 @@ interface ModalProps {
 const Modal: React.FC<ModalProps> = ({ children, title }) => {
   return (
     <View style={styles.modal}>
-      <Text style={styles.title}>{title}</Text>
+      <Text variant={TextVariants.H3}>{title}</Text>
+      <Stack size={12}></Stack>
       <View>{children}</View>
     </View>
   );
@@ -17,16 +20,9 @@ const styles = StyleSheet.create({
   modal: {
     backgroundColor: "rgba(255, 255, 255, 0.9)",
     borderRadius: 12,
-    width: 256,
+    width: 384,
     zIndex: 3,
-    top: 16,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-  },
-  title: {
-    fontSize: 16,
-    textAlign: "center",
-    fontWeight: "bold",
+    padding: 24,
   },
 });
 
