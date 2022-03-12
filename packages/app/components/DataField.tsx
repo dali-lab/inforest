@@ -113,6 +113,7 @@ const Content: React.FC<ContentProps> = ({
                   onSubmitEditing(e.nativeEvent.text);
                 }}
                 multiline={type === "LONG_TEXT"}
+                returnKeyType="done"
               >
                 {value}
               </TextInput>
