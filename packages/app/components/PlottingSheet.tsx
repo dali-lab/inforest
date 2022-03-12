@@ -13,7 +13,7 @@ import useAppSelector, {
 } from "../hooks/useAppSelector";
 import {
   deselectTree,
-  draftNewTree,
+  createTree,
   selectTree,
 } from "../redux/slices/treeSlice";
 import { getRandomBytes } from "expo-random";
@@ -164,22 +164,23 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
                   zoneLetter
                 );
                 const tag = getRandomBytes(2).join("").substring(0, 5);
-                dispatch(
-                  draftNewTree({
-                    tag,
-                    plotNumber: plot.number,
-                    plotX,
-                    plotY,
-                    latitude,
-                    longitude,
-                    tripId: TRIP_ID,
-                    authorId: AUTHOR_ID,
-                    photos: [],
-                  } as Omit<Tree, "plot" | "trip" | "author">)
-                );
+                const newTree = {
+                  tag,
+                  plotNumber: plot.number,
+                  plotX,
+                  plotY,
+                  latitude,
+                  longitude,
+                  tripId: TRIP_ID,
+                  authorId: AUTHOR_ID,
+                  photos: [],
+                  createdAt: new Date(),
+                  updatedAt: new Date(),
+                };
+                dispatch(createTree(newTree));
+                setMarkerPos(undefined);
                 dispatch(selectTree(tag));
                 expandDrawer();
-                setMarkerPos(undefined);
               }}
             >
               Plot tree
@@ -258,11 +259,14 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
                   }}
                   onPress={() => {
                     setMarkerPos(undefined);
+                    minimizeDrawer();
                     dispatch(selectTree(tree.tag));
                   }}
                 >
                   <TreeMarker
-                    color={isDraft ? Colors.error : Colors.primary.dark}
+                    color={
+                      isDraft ? Colors.primary.normal : Colors.primary.light
+                    }
                     size={treePixelSize}
                     selected={selected?.tag === tree.tag}
                   />
@@ -282,7 +286,7 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
             left: 0,
           }}
           dashLength={8}
-          dashThickness={4}
+          dashThickness={2}
           dashGap={16}
           dashColor="white"
         />
@@ -295,7 +299,7 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
           }}
           axis="vertical"
           dashLength={8}
-          dashThickness={4}
+          dashThickness={2}
           dashGap={16}
           dashColor="white"
         />
@@ -308,7 +312,7 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
             left: 0,
           }}
           dashLength={8}
-          dashThickness={4}
+          dashThickness={2}
           dashGap={16}
           dashColor="white"
         />
@@ -321,7 +325,7 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
           }}
           axis="vertical"
           dashLength={8}
-          dashThickness={4}
+          dashThickness={2}
           dashGap={16}
           dashColor="white"
         />
@@ -333,7 +337,7 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
             left: 0,
           }}
           dashLength={8}
-          dashThickness={4}
+          dashThickness={2}
           dashGap={16}
           dashColor="white"
         />
@@ -346,7 +350,7 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
           }}
           axis="vertical"
           dashLength={8}
-          dashThickness={4}
+          dashThickness={2}
           dashGap={16}
           dashColor="white"
         />
@@ -415,6 +419,9 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: Colors.secondary.normal,
     position: "relative",
+    borderColor: "white",
+    borderWidth: 2,
+    overflow: "hidden",
   },
   stakeLabel: {
     position: "absolute",
@@ -484,7 +491,7 @@ const styles = StyleSheet.create({
   x: {
     zIndex: 2,
     position: "absolute",
-    height: 4,
+    height: 2,
     backgroundColor: "white",
   },
 });

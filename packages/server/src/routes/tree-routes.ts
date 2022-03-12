@@ -79,6 +79,6 @@ treeRouter.delete<{}, any, Tree>("/", requireAuth, async (req, res) => {
 });
 
 treeRouter.use("/photos", treePhotoRouter);
-treeRouter.use("/species", treeSpeciesRouter)
+treeRouter.use("/species", treeSpeciesRouter);
 
 export { treeRouter };

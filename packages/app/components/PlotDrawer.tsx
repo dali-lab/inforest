@@ -17,9 +17,10 @@ import {
 import Colors from "../constants/Colors";
 import useAppSelector from "../hooks/useAppSelector";
 import {
-  deleteDraftedTree,
+  locallyDeleteTree,
   deselectTree,
   updateTree,
+  locallyUpdateTree,
 } from "../redux/slices/treeSlice";
 import DrawerButton from "./DrawerButton";
 import { Text, TextVariants } from "./Themed";
@@ -70,7 +71,7 @@ const DataEntryForm: React.FC<DataEntryFormProps & View["props"]> = ({
               style={{ flex: 1 }}
               onUpdate={(newValue) => {
                 dispatch(
-                  updateTree({
+                  locallyUpdateTree({
                     tag: selected.tag,
                     updates: { ...selected, tag: newValue },
                   })
@@ -94,12 +95,12 @@ const DataEntryForm: React.FC<DataEntryFormProps & View["props"]> = ({
               type={"DECIMAL"}
               label="DBH"
               value={selected.dbh}
-              placeholder={0.0}
+              placeholder={30.0}
               moreInfo="Tree trunk diameter in centimeters at breast height."
               style={{ flex: 1 }}
               onUpdate={(newValue) => {
                 dispatch(
-                  updateTree({
+                  locallyUpdateTree({
                     tag: selected.tag,
                     updates: { ...selected, dbh: newValue },
                   })
@@ -116,12 +117,13 @@ const DataEntryForm: React.FC<DataEntryFormProps & View["props"]> = ({
               style={{ flex: 1 }}
               onUpdate={(newValue) => {
                 dispatch(
-                  updateTree({
+                  locallyUpdateTree({
                     tag: selected.tag,
                     updates: { ...selected, speciesCode: newValue },
                   })
                 );
               }}
+              editable={false}
             ></DataField>
             <Queue size={12}></Queue>
             <DataField
@@ -133,12 +135,13 @@ const DataEntryForm: React.FC<DataEntryFormProps & View["props"]> = ({
               style={{ flex: 3 }}
               onUpdate={(newValue) => {
                 dispatch(
-                  updateTree({
+                  locallyUpdateTree({
                     tag: selected.tag,
                     updates: { ...selected },
                   })
                 );
               }}
+              editable={false}
             ></DataField>
           </View>
           <Stack size={24}></Stack>
@@ -152,12 +155,13 @@ const DataEntryForm: React.FC<DataEntryFormProps & View["props"]> = ({
               style={{ flex: 5 }}
               onUpdate={(newValue) => {
                 dispatch(
-                  updateTree({
+                  locallyUpdateTree({
                     tag: selected.tag,
                     updates: { ...selected },
                   })
                 );
               }}
+              editable={false}
             ></DataField>
           </View>
           <Stack size={24}></Stack>
@@ -173,7 +177,14 @@ const DataEntryForm: React.FC<DataEntryFormProps & View["props"]> = ({
               title="Delete"
               color={Colors.error}
             ></Button>
-            <DrawerButton onPress={finish}>Save</DrawerButton>
+            <DrawerButton
+              onPress={() => {
+                dispatch(updateTree(selected));
+                finish();
+              }}
+            >
+              Save
+            </DrawerButton>
           </View>
         </View>
       );
@@ -246,6 +257,21 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
     }
   }, [drawerState]);
 
+  const computePlotLastUpdatedDate = useCallback(
+    (plotNumber: string) => {
+      const plotTrees = byPlots[plotNumber];
+      let latestCensus: Date | undefined;
+      for (let treeTag of plotTrees) {
+        const { updatedAt } = all[treeTag];
+        if (!latestCensus || updatedAt > latestCensus) {
+          latestCensus = updatedAt;
+        }
+      }
+      return latestCensus;
+    },
+    [byPlots]
+  );
+
   if (drawerState === DrawerStates.Closed) {
     return null;
   }
@@ -258,19 +284,39 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
       }}
     >
       <BlurView style={styles.blurContainer} intensity={40}>
-        {mode === MapScreenModes.Select && (
+        {mode === MapScreenModes.Select && !!plot && (
           <View style={styles.header}>
-            <Text variant={TextVariants.H2}>Plot #{plot?.number}</Text>
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <Text variant={TextVariants.H2}>Plot #{plot.number}</Text>
+              <Queue size={36}></Queue>
+              <>
+                {(() => {
+                  const lastUpdated = computePlotLastUpdatedDate(plot.number);
+                  return (
+                    <Text variant={TextVariants.Body}>
+                      {lastUpdated
+                        ? `Last censused on ${dateformat(
+                            lastUpdated,
+                            "mmm dS, yyyy"
+                          )}`
+                        : "Never censused"}
+                    </Text>
+                  );
+                })()}
+              </>
+            </View>
             {drawerState === "MINIMIZED" && (
               <DrawerButton onPress={beginPlotting}>Add Trees</DrawerButton>
             )}
           </View>
         )}
         {mode === MapScreenModes.Explore && (
-          <View style={[styles.header, { justifyContent: "center" }]}>
-            <DrawerButton onPress={openVisualizationModal}>
-              Visualization Settings
-            </DrawerButton>
+          <View style={[styles.header]}>
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <Text variant={TextVariants.H2}>O-Farm</Text>
+              <Queue size={36}></Queue>
+              <Text variant={TextVariants.Body}>Select any plot to begin</Text>
+            </View>
           </View>
         )}
         {mode === MapScreenModes.Plot && !!plot && (
@@ -278,7 +324,7 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
             <View style={styles.header}>
               {drawerState === "MINIMIZED" && !selected && (
                 <View style={{ flexDirection: "row", alignItems: "center" }}>
-                  <Text variant={TextVariants.H1}>Plot #{plot.number}</Text>
+                  <Text variant={TextVariants.H2}>Plot #{plot.number}</Text>
                   <Queue size={36}></Queue>
                   <Text variant={TextVariants.Body}>
                     Tap anywhere to plot a new tree
@@ -288,11 +334,14 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
               {drawerState === "MINIMIZED" && !!selected && (
                 <>
                   <View style={{ flexDirection: "row", alignItems: "center" }}>
-                    <Text variant={TextVariants.H1}>Tree #{selected.tag}</Text>
+                    <Text variant={TextVariants.H2}>Tree #{selected.tag}</Text>
                     <Queue size={36}></Queue>
                     <Text variant={TextVariants.Body}>
                       Last census on{" "}
-                      {dateformat(new Date(), 'mmm dS, yyyy "at" h:MM TT')}
+                      {dateformat(
+                        selected.updatedAt,
+                        'mmm dS, yyyy "at" h:MM TT'
+                      )}
                     </Text>
                   </View>
                   <DrawerButton onPress={expandDrawer}>Edit</DrawerButton>
@@ -300,7 +349,7 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
               )}
               {drawerState === "EXPANDED" && !!selected && (
                 <>
-                  <Text variant={TextVariants.H1}>New tree</Text>
+                  <Text variant={TextVariants.H2}>New tree</Text>
                   <Text variant={TextVariants.Body}>
                     This is the {byPlots[plot.number].size + 1}th tree in the
                     plot.
@@ -315,7 +364,7 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
                 <View style={styles.content}>
                   <DataEntryForm
                     cancel={() => {
-                      dispatch(deleteDraftedTree(selected.tag));
+                      dispatch(locallyDeleteTree(selected.tag));
                       dispatch(deselectTree());
                       minimizeDrawer();
                     }}

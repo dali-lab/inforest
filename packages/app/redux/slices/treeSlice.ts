@@ -26,6 +26,26 @@ export const getForestTrees = createAsyncThunk(
   }
 );
 
+export const createTree = createAsyncThunk(
+  "tree/createTree",
+  async (newTree: Omit<Tree, "plot" | "trip" | "author">, thunkApi) => {
+    thunkApi.dispatch(locallyDraftNewTree(newTree));
+    // todo handle failure
+    return await axios.post(`${BASE_URL}`, newTree);
+  }
+);
+
+export const updateTree = createAsyncThunk(
+  "tree/updateTree",
+  async (treeUpdates: Tree, thunkApi) => {
+    thunkApi.dispatch(locallyUpdateTree(treeUpdates));
+    return await axios.patch(
+      `${BASE_URL}?tags=${treeUpdates.tag}`,
+      treeUpdates
+    );
+  }
+);
+
 type TreeNumericalIndexItem = {
   value: number;
   treeTag: string;
@@ -44,9 +64,8 @@ export interface TreeState {
     byPlots: Record<string, Set<string>>;
     byLatitude: TreeNumericalIndex;
     byLongitude: TreeNumericalIndex;
-    bySpecies: Record<string, Set<string>>
+    bySpecies: Record<string, Set<string>>;
   };
-  newlyDraftedTrees: Tree[];
   drafts: Set<string>;
   selected?: string;
 }
@@ -60,7 +79,6 @@ const initialState: TreeState = {
     bySpecies: {},
   },
   drafts: new Set([]),
-  newlyDraftedTrees: [],
   selected: undefined,
 };
 
@@ -68,7 +86,7 @@ export const treeSlice = createSlice({
   name: "tree",
   initialState,
   reducers: {
-    draftNewTree: (state, action) => {
+    locallyDraftNewTree: (state, action) => {
       const newTree = action.payload;
       state.all[newTree.tag] = newTree;
       // add to drafts
@@ -96,7 +114,7 @@ export const treeSlice = createSlice({
       }
       return state;
     },
-    deleteDraftedTree: (state, action) => {
+    locallyDeleteTree: (state, action) => {
       const treeTag = action.payload;
       delete state.all[treeTag];
       // remove from drafts
@@ -113,7 +131,7 @@ export const treeSlice = createSlice({
       );
       return state;
     },
-    updateTree: (state, action) => {
+    locallyUpdateTree: (state, action) => {
       const { tag, updates } = action.payload;
       state.all[updates.tag] = updates;
       // tag changed
@@ -122,6 +140,10 @@ export const treeSlice = createSlice({
         delete state.all[tag];
         if (state.selected === tag) {
           state.selected = updates.tag;
+        }
+        if (state.drafts.has(tag)) {
+          state.drafts.delete(tag);
+          state.drafts.add(updates.tag);
         }
         state.indices.byPlots[oldTree.plotNumber]?.delete(tag);
         state.indices.byPlots[oldTree.plotNumber]?.add(updates.tag);
@@ -162,10 +184,14 @@ export const treeSlice = createSlice({
             treeTag: tree.tag,
           });
         }
-        if (tree.speciesCode && !(tree.speciesCode in state.indices.bySpecies)) {
-          state.indices.bySpecies[tree.speciesCode] = new Set()
+        if (
+          tree.speciesCode &&
+          !(tree.speciesCode in state.indices.bySpecies)
+        ) {
+          state.indices.bySpecies[tree.speciesCode] = new Set();
         }
-        if (tree.speciesCode) state.indices.bySpecies[tree.speciesCode].add(tree.tag)
+        if (tree.speciesCode)
+          state.indices.bySpecies[tree.speciesCode].add(tree.tag);
       });
       // sort indices
       state.indices.byLatitude.sort(treeNumericalIndexComparator);
@@ -176,9 +202,9 @@ export const treeSlice = createSlice({
 });
 
 export const {
-  draftNewTree,
-  deleteDraftedTree,
-  updateTree,
+  locallyDraftNewTree,
+  locallyDeleteTree,
+  locallyUpdateTree,
   selectTree,
   deselectTree,
 } = treeSlice.actions;

@@ -95,6 +95,16 @@ export interface Tree {
    * ID of the user who created this entry.
    */
   authorId: string;
+
+  /**
+   * Date and time when this entry was created.
+   */
+  createdAt: Date;
+
+  /**
+   * Date and time when this entry was last updated.
+   */
+  updatedAt: Date;
 }
 
 export interface TreeStatus {
