@@ -52,12 +52,14 @@ import VisualizationModal from "../components/VisualizationModal";
 import ColorKey from "../components/ColorKey";
 import { VisualizationConfigType } from "../constants";
 import { FOREST_ID } from "../constants/dev";
+import { getAllTreeSpecies } from "../redux/slices/treeSpeciesSlice";
 
 const O_FARM_LAT = 43.7348569458618;
 const O_FARM_LNG = -72.2519099587406;
 const MIN_REGION_DELTA = 0.0000005;
 const FOLIAGE_MAGNIFICATION = 3;
 const SELECTED_MAGNIFICATION = 5;
+const NUM_OF_SPECIES = 8;
 
 export default function MapScreen() {
   // map setup
@@ -89,6 +91,7 @@ export default function MapScreen() {
         forestId: FOREST_ID,
       })
     );
+    dispatch(getAllTreeSpecies());
   }, []);
   const reduxState = useAppSelector((state: RootState) => state);
   const { all: allPlots } = reduxState.plots;
@@ -97,6 +100,7 @@ export default function MapScreen() {
     indices: { bySpecies },
     selected: selectedTree,
   } = reduxState.trees;
+  const { colorMap, frequencyMap } = reduxState.treeSpecies;
   const plots = usePlotsInRegion(usePlots(reduxState), regionSnapshot);
   const density = useMemo(() => {
     if (plots.length <= Math.pow(5, 2)) {
@@ -156,10 +160,12 @@ export default function MapScreen() {
   }, []);
 
   const beginPlotting = useCallback(() => {
+    dispatch(deselectTree());
     setMode(MapScreenModes.Plot);
   }, []);
 
   const endPlotting = useCallback(() => {
+    dispatch(deselectTree());
     setMode(MapScreenModes.Select);
     setDrawerState(DrawerStates.Minimized);
   }, [setMode, setDrawerState, setRegionSnapshot]);
@@ -168,7 +174,8 @@ export default function MapScreen() {
     useState<VisualizationConfigType>({
       modalOpen: false,
       colorBySpecies: false,
-      speciesColorMap: {},
+      numOfSpecies: NUM_OF_SPECIES,
+      satellite: false,
     });
 
   const openVisualizationModal = useCallback(() => {
@@ -225,37 +232,8 @@ export default function MapScreen() {
         let nodeColor = selected ? Colors.error : Colors.primary.normal;
         if (visualizationConfig.colorBySpecies) {
           const { speciesCode } = tree;
-          if (!speciesCode) {
-            // we should do: nodeColor = visualizationConfig.speciesColorMap["MISC"];
-          } else {
-            if (!(speciesCode in visualizationConfig.speciesColorMap)) {
-              let uniqueHue: string;
-              // this is a poor way to do this, change later
-              do {
-                uniqueHue = `hsl(${Math.round(Math.random() * 36) * 10},${
-                  Math.round(Math.random() * 40) + 60
-                }%,${Math.round(Math.random() * 40) + 20}%)`;
-              } while (
-                Object.values(visualizationConfig.speciesColorMap).includes(
-                  uniqueHue
-                )
-              );
-              setVisualizationConfig((prev) => ({
-                ...prev,
-                speciesColorMap: {
-                  ...prev.speciesColorMap,
-                  [speciesCode]: uniqueHue,
-                },
-              }));
-              nodeColor = uniqueHue;
-              setSpeciesFrequencyMap((prev) => ({ ...prev, [speciesCode]: 0 }));
-            } else {
-              nodeColor = visualizationConfig.speciesColorMap[speciesCode];
-              setSpeciesFrequencyMap((prev) => ({
-                ...prev,
-                [speciesCode]: prev[speciesCode] + 1,
-              }));
-            }
+          if (!!speciesCode) {
+            nodeColor = colorMap[speciesCode];
           }
         }
         let treePixelSize =
@@ -278,7 +256,7 @@ export default function MapScreen() {
         );
       }
     });
-  }, [trees, visualizationConfig.colorBySpecies, setVisualizationConfig]);
+  }, [trees, visualizationConfig.colorBySpecies]);
 
   return (
     <View style={styles.container}>
@@ -294,7 +272,7 @@ export default function MapScreen() {
               left: 24,
             }}
             // provider="google"
-            // mapType='satellite'
+            mapType={visualizationConfig.satellite ? "satellite" : "standard"}
             showsCompass={true}
             showsScale={true}
             onMapReady={() => {
@@ -466,15 +444,12 @@ export default function MapScreen() {
           <View
             style={{
               position: "absolute",
-              left: 12,
+              left: 32,
               top: 32,
             }}
           >
             {visualizationConfig.colorBySpecies && (
-              <ColorKey
-                config={visualizationConfig}
-                speciesFrequencyMap={speciesFrequencyMap}
-              />
+              <ColorKey config={visualizationConfig} />
             )}
           </View>
         </>

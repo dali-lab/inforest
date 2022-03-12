@@ -33,5 +33,6 @@ export type DraftTreesAction =
 export type VisualizationConfigType = {
   modalOpen: boolean;
   colorBySpecies: boolean;
-  speciesColorMap: { [species: string]: string };
+  numOfSpecies: number;
+  satellite: boolean;
 };

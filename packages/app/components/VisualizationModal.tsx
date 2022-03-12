@@ -1,7 +1,9 @@
 import React, { useCallback } from "react";
 import Modal from "./Modal";
-import { StyleSheet, Switch, View, Text } from "react-native";
+import { StyleSheet, Switch, TextInput, View } from "react-native";
 import { VisualizationConfigType } from "../constants";
+import { Text, TextVariants } from "./Themed";
+import { Stack } from "react-native-spacing-system";
 
 interface VisualizationModalProps {
   config: VisualizationConfigType;
@@ -12,40 +14,67 @@ const VisualizationModal: React.FC<VisualizationModalProps> = ({
   config,
   setConfig,
 }) => {
-  const toggleColorBySpecies = useCallback(
-    (value) => {
-      setConfig((prev: VisualizationConfigType) => ({
-        ...prev,
-        colorBySpecies: value,
-      }));
-    },
-    [setConfig, config]
-  );
   return (
     <Modal title="Visualization Settings">
       <View style={styles.modalContent}>
         <View style={styles.toggleRow}>
-          <Text>Color By Species</Text>
+          <Text variant={TextVariants.Body}>Satellite</Text>
+          <Switch
+            value={config.satellite}
+            onValueChange={(value) => {
+              setConfig((prev: VisualizationConfigType) => ({
+                ...prev,
+                satellite: value,
+              }));
+            }}
+          ></Switch>
+        </View>
+        <Stack size={12}></Stack>
+        <View style={styles.toggleRow}>
+          <Text variant={TextVariants.Body}>Species colorization</Text>
           <Switch
             value={config.colorBySpecies}
-            onValueChange={toggleColorBySpecies}
+            onValueChange={(value) => {
+              setConfig((prev: VisualizationConfigType) => ({
+                ...prev,
+                colorBySpecies: value,
+              }));
+            }}
           />
         </View>
+        {config.colorBySpecies && (
+          <>
+            <Stack size={12}></Stack>
+            <View style={styles.toggleRow}>
+              <Text variant={TextVariants.Body}>Number of species shown</Text>
+              <TextInput
+                defaultValue={config.numOfSpecies.toString()}
+                keyboardType="numeric"
+                onSubmitEditing={(e) => {
+                  const numOfSpecies = parseInt(e.nativeEvent.text);
+                  if (numOfSpecies == NaN) {
+                    return;
+                  }
+                  setConfig((prev) => ({
+                    ...prev,
+                    numOfSpecies,
+                  }));
+                }}
+                returnKeyType="done"
+              />
+            </View>
+          </>
+        )}
       </View>
     </Modal>
   );
 };
 
 const styles = StyleSheet.create({
-  modalContent: {
-    height: 250,
-  },
+  modalContent: {},
   toggleRow: {
-    marginVertical: 12,
-    fontSize: 16,
-    alignItems: "center",
-    display: "flex",
     flexDirection: "row",
+    alignItems: "center",
     justifyContent: "space-between",
   },
 });
