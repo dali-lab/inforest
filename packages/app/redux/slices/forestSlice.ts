@@ -9,18 +9,15 @@ type GetForestParams = {
   id: string;
 };
 
-export const getForests = createAsyncThunk(
-  "forest/getForests",
-  async (thunkApi) => {
-    return await axios.get<Forest[]>(BASE_URL).then((response) => {
-      return response.data;
-    });
-  }
-);
+export const getForests = createAsyncThunk("forest/getForests", async () => {
+  return await axios.get<Forest[]>(BASE_URL).then((response) => {
+    return response.data;
+  });
+});
 
 export const getForest = createAsyncThunk(
   "forest/getForest",
-  async (params: GetForestParams, thunkApi) => {
+  async (params: GetForestParams) => {
     return await axios
       .get<Forest>(`${BASE_URL}?id=${params.id}`)
       .then((response) => {

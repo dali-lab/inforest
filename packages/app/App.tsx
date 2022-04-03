@@ -1,6 +1,4 @@
 import { StatusBar } from "expo-status-bar";
-import { useState } from "react";
-import { Region } from "react-native-maps";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Provider } from "react-redux";
 
