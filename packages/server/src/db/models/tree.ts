@@ -39,7 +39,10 @@ import {
     },
   ],
 })
-class Tree extends Model<ITree> implements ITree {
+class Tree
+  extends Model<ITree>
+  implements Omit<ITree, "createdAt" | "updatedAt">
+{
   @PrimaryKey
   @Column(DataTypes.STRING)
   tag: string;
