@@ -10,8 +10,7 @@
     "web": "expo start --web",
     "eject": "expo eject",
     "test": "jest --watchAll",
-    "lint": "eslint **/**/*.{ts,tsx}"
-
+    "lint": "npx eslint --ext .ts --ext .tsx ."
   },
   "jest": {
     "preset": "jest-expo"

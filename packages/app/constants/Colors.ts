@@ -1,5 +1,3 @@
-import { ColorValue } from "react-native";
-
 export default {
   primary: {
     light: "#789783",

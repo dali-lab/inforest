@@ -30,7 +30,7 @@ const persistConfig = {
   storage: ExpoFileSystemStorage,
 };
 
-const persistedReducer = persistReducer(persistConfig, rootReducer);
+// const persistedReducer = persistReducer(persistConfig, rootReducer);
 
 const store = configureStore({
   reducer: rootReducer,
