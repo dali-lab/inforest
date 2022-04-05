@@ -1,7 +1,6 @@
 import { Plot, Tree } from "@ong-forestry/schema";
 import { Region } from "react-native-maps";
 import { TypedUseSelectorHook, useSelector } from "react-redux";
-import { sortedIndex, pick, intersection, create } from "lodash";
 import type { RootState } from "../redux";
 import { createDraftSafeSelector as createSelector } from "@reduxjs/toolkit";
 import { getPlotCorners } from "../constants/plots";
@@ -19,10 +18,10 @@ export const useTreesByDensity = createSelector(
     (state: RootState) => state.trees,
     (_: RootState, density?: number) => density,
   ],
-  (trees: RootState["trees"], density: number = 1.0) => {
+  (trees: RootState["trees"], density = 1.0) => {
     const { all, drafts, selected } = trees;
     const treeKeys = Object.keys(all);
-    let selectedKeys = [];
+    const selectedKeys = [];
     const draftsToAdd = new Set(drafts);
     let missingSelected = !!selected;
     for (let i = 0; i < treeKeys.length; i += Math.floor(1 / density)) {

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useReducer, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, useRef } from "react";
 import {
   Dimensions,
   Modal,
@@ -24,8 +24,12 @@ import { Plot, Tree } from "@ong-forestry/schema";
 import { Text, TextVariants } from "../components/Themed";
 import { PlotDrawer } from "../components/PlotDrawer";
 import { PlottingSheet } from "../components/PlottingSheet";
-import { useRef } from "react";
-import { DEFAULT_DBH, DrawerStates, MapScreenModes } from "../constants";
+import {
+  DEFAULT_DBH,
+  DrawerStates,
+  MapScreenModes,
+  VisualizationConfigType,
+} from "../constants";
 import Colors from "../constants/Colors";
 import useAppDispatch from "../hooks/useAppDispatch";
 import useAppSelector, {
@@ -50,7 +54,6 @@ import {
 } from "../constants/plots";
 import VisualizationModal from "../components/VisualizationModal";
 import ColorKey from "../components/ColorKey";
-import { VisualizationConfigType } from "../constants";
 import { FOREST_ID } from "../constants/dev";
 import { getAllTreeSpecies } from "../redux/slices/treeSpeciesSlice";
 
@@ -95,12 +98,8 @@ export default function MapScreen() {
   }, []);
   const reduxState = useAppSelector((state: RootState) => state);
   const { all: allPlots } = reduxState.plots;
-  const {
-    all: allTrees,
-    indices: { bySpecies },
-    selected: selectedTree,
-  } = reduxState.trees;
-  const { colorMap, frequencyMap } = reduxState.treeSpecies;
+  const { all: allTrees, selected: selectedTree } = reduxState.trees;
+  const { colorMap } = reduxState.treeSpecies;
   const plots = usePlotsInRegion(usePlots(reduxState), regionSnapshot);
   const density = useMemo(() => {
     if (plots.length <= Math.pow(5, 2)) {
@@ -192,7 +191,7 @@ export default function MapScreen() {
     }));
   }, [setVisualizationConfig]);
 
-  const [speciesFrequencyMap, setSpeciesFrequencyMap] = useState<{
+  const [_speciesFrequencyMap, setSpeciesFrequencyMap] = useState<{
     [species: string]: number;
   }>({});
 
@@ -232,7 +231,7 @@ export default function MapScreen() {
         let nodeColor = selected ? Colors.error : Colors.primary.normal;
         if (visualizationConfig.colorBySpecies) {
           const { speciesCode } = tree;
-          if (!!speciesCode) {
+          if (speciesCode) {
             nodeColor = colorMap[speciesCode];
           }
         }
@@ -321,10 +320,11 @@ export default function MapScreen() {
             showsUserLocation={true}
             showsMyLocationButton={true}
             onUserLocationChange={({ nativeEvent: { coordinate } }) => {
-              setUserPos({
-                latitude: coordinate.latitude,
-                longitude: coordinate.longitude,
-              });
+              if (coordinate)
+                setUserPos({
+                  latitude: coordinate.latitude,
+                  longitude: coordinate.longitude,
+                });
             }}
           >
             {!!selectedPlot && (
