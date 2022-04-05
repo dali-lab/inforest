@@ -320,10 +320,11 @@ export default function MapScreen() {
             showsUserLocation={true}
             showsMyLocationButton={true}
             onUserLocationChange={({ nativeEvent: { coordinate } }) => {
-              setUserPos({
-                latitude: coordinate.latitude,
-                longitude: coordinate.longitude,
-              });
+              if (coordinate)
+                setUserPos({
+                  latitude: coordinate.latitude,
+                  longitude: coordinate.longitude,
+                });
             }}
           >
             {!!selectedPlot && (
