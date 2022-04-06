@@ -22,8 +22,9 @@ app.use(cors());
 app.use(morgan("dev"));
 app.use(express.json());
 const server = createServer(app);
-server.listen({ port: process.env.PORT }, () => {
-  console.log("Server listening on port 3000!");
+const port = process.env.PORT;
+server.listen({ port }, () => {
+  console.log(`Server listening on port ${port}!`);
 });
 
 app.use(bodyParser.urlencoded({ extended: true }));
