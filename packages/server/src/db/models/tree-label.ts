@@ -11,7 +11,7 @@ import {
 } from "sequelize-typescript";
 import { DataTypes } from "sequelize";
 
-@Table({ tableName: "tree-labels" })
+@Table({ tableName: "tree_labels" })
 class TreeLabel extends Model<ITreeLabel> implements ITreeLabel {
   @PrimaryKey
   @Column(DataTypes.STRING)

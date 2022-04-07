@@ -17,7 +17,7 @@ import Tree from "db/models/tree";
 import TreeLabel from "db/models/tree-label";
 
 @Table({
-  tableName: "tree-tree-label",
+  tableName: "tree_tree_label",
 })
 class TreeTreeLabel extends Model<ITreeTreeLabel> implements ITreeTreeLabel {
   @PrimaryKey

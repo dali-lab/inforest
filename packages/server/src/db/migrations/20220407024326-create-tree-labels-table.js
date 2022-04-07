@@ -6,7 +6,7 @@ module.exports = {
     try {
       // Create tree-labels table.
       await queryInterface.createTable(
-        "tree-labels",
+        "tree_labels",
         {
           code: {
             type: Sequelize.STRING,
@@ -29,7 +29,7 @@ module.exports = {
 
       // Create through table.
       await queryInterface.createTable(
-        "tree-tree-label",
+        "tree_tree_label",
         {
           id: {
             type: Sequelize.UUID,
@@ -46,7 +46,7 @@ module.exports = {
           treeLabelCode: {
             type: Sequelize.STRING,
             references: {
-              model: "tree-labels",
+              model: "tree_labels",
               key: "code",
             },
           },
@@ -70,7 +70,7 @@ module.exports = {
   },
 
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable("tree-tree-label");
-    await queryInterface.dropTable("tree-labels");
+    await queryInterface.dropTable("tree_tree_label");
+    await queryInterface.dropTable("tree_labels");
   },
 };
