@@ -8,11 +8,13 @@ import {
   BelongsTo,
   HasMany,
   AllowNull,
+  BelongsToMany,
 } from "sequelize-typescript";
 import Plot from "db/models/plot";
 import TreeStatus from "db/models/tree-status";
 import TreeSpecies from "db/models/tree-species";
 import TreePhoto from "db/models/tree-photo";
+import TreeLabel from "db/models/tree-label";
 import Trip from "db/models/trip";
 import User from "db/models/user";
 
@@ -21,6 +23,7 @@ import {
   TreePhoto as ITreePhoto,
   TreeSpecies as ITreeSpecies,
   TreeStatus as ITreeStatus,
+  TreeLabel as ITreeLabel,
   Trip as ITrip,
   Plot as IPlot,
   User as IUser,
@@ -86,6 +89,10 @@ class Tree
 
   @BelongsTo(() => TreeStatus)
   status: ITreeStatus;
+
+  // https://sequelize.org/docs/v6/advanced-association-concepts/advanced-many-to-many/
+  @BelongsToMany(() => TreeLabel, { through: "tree-tree-label" })
+  labels: ITreeLabel[];
 
   @HasMany(() => TreePhoto)
   photos: ITreePhoto[];
