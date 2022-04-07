@@ -18,6 +18,7 @@ const constructQuery = (params: TreeLabelParams) => {
   const query: any = {
     where: {},
   };
+
   if (code) {
     query.where.code = {
       [Op.eq]: code,

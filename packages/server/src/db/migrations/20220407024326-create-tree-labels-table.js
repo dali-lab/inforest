@@ -15,6 +15,14 @@ module.exports = {
           description: {
             type: Sequelize.STRING,
           },
+          createdAt: {
+            type: Sequelize.DATE,
+            allowNull: false,
+          },
+          updatedAt: {
+            type: Sequelize.DATE,
+            allowNull: false,
+          },
         },
         { transaction }
       );
@@ -35,12 +43,20 @@ module.exports = {
               key: "tag",
             },
           },
-          labelCode: {
+          treeLabelCode: {
             type: Sequelize.STRING,
             references: {
               model: "tree-labels",
               key: "code",
             },
+          },
+          createdAt: {
+            type: Sequelize.DATE,
+            allowNull: false,
+          },
+          updatedAt: {
+            type: Sequelize.DATE,
+            allowNull: false,
           },
         },
         { transaction }

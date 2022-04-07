@@ -183,6 +183,36 @@ export interface TreeLabel {
   trees: Tree[];
 }
 
+/**
+ * Through-table to connect Trees to TreeLabels.
+ */
+export interface TreeTreeLabel {
+  /**
+   * The PK of the through table entity
+   */
+  id: string;
+
+  /**
+   * The tag of the labeled Tree
+   */
+  treeTag: string;
+
+  /**
+   * The Tree labeled
+   */
+  tree: Tree;
+
+  /**
+   * The code of the tree's TreeLabel
+   */
+  treeLabelCode: string;
+
+  /**
+   * The tree's TreeLabel
+   */
+  treeLabel: TreeLabel;
+}
+
 export interface TreePhoto {
   /**
    * Tree photo ID

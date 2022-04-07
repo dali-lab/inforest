@@ -15,6 +15,7 @@ import TreeStatus from "db/models/tree-status";
 import TreeSpecies from "db/models/tree-species";
 import TreePhoto from "db/models/tree-photo";
 import TreeLabel from "db/models/tree-label";
+import TreeTreeLabel from "db/models/tree-tree-label";
 import Trip from "db/models/trip";
 import User from "db/models/user";
 
@@ -90,8 +91,7 @@ class Tree
   @BelongsTo(() => TreeStatus)
   status: ITreeStatus;
 
-  // https://sequelize.org/docs/v6/advanced-association-concepts/advanced-many-to-many/
-  @BelongsToMany(() => TreeLabel, { through: "tree-tree-label" })
+  @BelongsToMany(() => TreeLabel, () => TreeTreeLabel)
   labels: ITreeLabel[];
 
   @HasMany(() => TreePhoto)

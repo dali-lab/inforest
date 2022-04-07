@@ -1,5 +1,7 @@
 import { Tree as ITree, TreeLabel as ITreeLabel } from "@ong-forestry/schema";
 import Tree from "db/models/tree";
+import TreeTreeLabel from "db/models/tree-tree-label";
+
 import {
   BelongsToMany,
   Column,
@@ -18,8 +20,7 @@ class TreeLabel extends Model<ITreeLabel> implements ITreeLabel {
   @Column(DataTypes.STRING)
   description: string;
 
-  // https://sequelize.org/docs/v6/advanced-association-concepts/advanced-many-to-many/
-  @BelongsToMany(() => Tree, { through: "tree-tree-label" })
+  @BelongsToMany(() => Tree, () => TreeTreeLabel)
   trees: ITree[];
 }
 
