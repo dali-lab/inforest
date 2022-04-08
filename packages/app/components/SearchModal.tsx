@@ -18,7 +18,7 @@ const SearchModal: React.FC<SearchModalProps> = (props) => {
             value={searchValue}
             onChangeText={(text) => setSearchValue(text)}
             onSubmitEditing={() => {
-              onSubmit("searchValue");
+              onSubmit(searchValue);
               setSearchValue("");
             }}
             placeholder="Search for a tree by tag #"

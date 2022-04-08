@@ -233,7 +233,7 @@ module.exports = {
       );
       await transaction.commit();
     } catch (err) {
-      console.log(err);
+      console.error(err);
       await transaction.rollback();
       throw err;
     }

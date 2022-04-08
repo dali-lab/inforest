@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
 import { Dimensions, StyleSheet, View } from "react-native";
 import { Plot } from "@ong-forestry/schema";
-import { MapScreenModes } from "../constants";
-import useAppDispatch from "../hooks/useAppDispatch";
-import { getForest } from "../redux/slices/forestSlice";
-import { getForestPlots } from "../redux/slices/plotSlice";
-import { deselectTree, getForestTrees } from "../redux/slices/treeSlice";
-import { FOREST_ID } from "../constants/dev";
-import { getAllTreeSpecies } from "../redux/slices/treeSpeciesSlice";
+import { MapScreenModes } from "../../constants";
+import useAppDispatch from "../../hooks/useAppDispatch";
+import { getForest } from "../../redux/slices/forestSlice";
+import { getForestPlots } from "../../redux/slices/plotSlice";
+import { deselectTree, getForestTrees } from "../../redux/slices/treeSlice";
+import { FOREST_ID } from "../../constants/dev";
+import { getAllTreeSpecies } from "../../redux/slices/treeSpeciesSlice";
 import PlotView from "./PlotView";
 import ExploreView from "./ExploreView";
 
@@ -24,7 +24,6 @@ export default function MapScreen() {
     dispatch(getAllTreeSpecies());
   }, [dispatch]);
 
-  // component states
   const [mode, setMode] = useState<MapScreenModes>(MapScreenModes.Explore);
 
   const [selectedPlot, setSelectedPlot] = useState<Plot>();

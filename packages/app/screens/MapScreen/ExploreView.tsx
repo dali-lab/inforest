@@ -14,36 +14,35 @@ import { Ionicons } from "@expo/vector-icons";
 import * as utm from "utm";
 import { Plot, Tree } from "@ong-forestry/schema";
 
-import { Text, TextVariants } from "../components/Themed";
-import Colors from "../constants/Colors";
-import useAppDispatch from "../hooks/useAppDispatch";
-import { PlotDrawer } from "../components/PlotDrawer";
+import { Text, TextVariants } from "../../components/Themed";
+import Colors from "../../constants/Colors";
+import useAppDispatch from "../../hooks/useAppDispatch";
+import { PlotDrawer } from "../../components/PlotDrawer";
 
-import { deselectTree, selectTree } from "../redux/slices/treeSlice";
-import { getPlotCorners } from "../constants/plots";
-import VisualizationModal from "../components/VisualizationModal";
-import SearchModal from "../components/SearchModal";
-import ColorKey from "../components/ColorKey";
+import { deselectTree, selectTree } from "../../redux/slices/treeSlice";
+import { getPlotCorners } from "../../constants/plots";
+import VisualizationModal from "../../components/VisualizationModal";
+import SearchModal from "../../components/SearchModal";
+import ColorKey from "../../components/ColorKey";
 import useAppSelector, {
   usePlots,
   usePlotsInRegion,
   useTreesByDensity,
   useTreesInRegion,
-} from "../hooks/useAppSelector";
-import { RootState } from "../redux";
+} from "../../hooks/useAppSelector";
+import { RootState } from "../../redux";
 
 import {
   DEFAULT_DBH,
   DrawerStates,
   MapScreenModes,
   VisualizationConfigType,
-} from "../constants";
+} from "../../constants";
 
 const O_FARM_LAT = 43.7348569458618;
 const O_FARM_LNG = -72.2519099587406;
 const MIN_REGION_DELTA = 0.0000005;
 const FOLIAGE_MAGNIFICATION = 3;
-const SELECTED_MAGNIFICATION = 5;
 const NUM_OF_SPECIES = 8;
 
 interface ExploreViewProps {
@@ -166,18 +165,17 @@ const ExploreView: React.FC<ExploreViewProps> = (props) => {
     return trees.map((tree: Tree) => {
       if (!!tree.latitude && !!tree.longitude) {
         const selected = selectedTree === tree.tag;
-        let nodeColor = selected ? Colors.error : Colors.primary.normal;
+        let nodeColor = visualizationConfig.satellite
+          ? Colors.neutral[1]
+          : Colors.primary.normal;
         if (visualizationConfig.colorBySpecies) {
           const { speciesCode } = tree;
           if (speciesCode) {
             nodeColor = colorMap[speciesCode];
           }
         }
-        let treePixelSize =
+        const treePixelSize =
           (tree.dbh ?? DEFAULT_DBH) * 0.01 * 0.5 * FOLIAGE_MAGNIFICATION;
-        if (selected) {
-          treePixelSize *= SELECTED_MAGNIFICATION;
-        }
         return (
           <Circle
             key={tree.tag}
@@ -186,14 +184,21 @@ const ExploreView: React.FC<ExploreViewProps> = (props) => {
               longitude: tree.longitude,
             }}
             radius={treePixelSize}
-            strokeColor={nodeColor}
+            strokeColor={selected ? Colors.highlight : nodeColor}
+            strokeWidth={4}
             fillColor={nodeColor}
-            zIndex={2}
+            zIndex={selected ? 50 : 2}
           ></Circle>
         );
       }
     });
-  }, [trees, visualizationConfig.colorBySpecies, colorMap, selectedTree]);
+  }, [
+    trees,
+    visualizationConfig.colorBySpecies,
+    visualizationConfig.satellite,
+    colorMap,
+    selectedTree,
+  ]);
 
   useEffect(() => {
     (async () => {
@@ -225,10 +230,6 @@ const ExploreView: React.FC<ExploreViewProps> = (props) => {
         showsScale={true}
         onMapReady={() => {
           if (locationPermissionStatus === PermissionStatus.GRANTED) {
-            console.log(
-              "locationPermissionStatus",
-              locationPermissionStatus === PermissionStatus.GRANTED
-            );
             Location.getCurrentPositionAsync()
               .then(({ coords }) => {
                 setUserPos({

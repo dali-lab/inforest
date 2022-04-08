@@ -1,13 +1,13 @@
 import { Dimensions, View, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Plot } from "@ong-forestry/schema";
-import { PlottingSheet } from "../components/PlottingSheet";
-import { PlotDrawer } from "../components/PlotDrawer";
-import { DrawerStates, MapScreenModes } from "../constants";
-import { formPlotNumber, parsePlotNumber } from "../constants/plots";
-import useAppSelector from "../hooks/useAppSelector";
-import { RootState } from "../redux";
-import Colors from "../constants/Colors";
+import { PlottingSheet } from "../../components/PlottingSheet";
+import { PlotDrawer } from "../../components/PlotDrawer";
+import { DrawerStates, MapScreenModes } from "../../constants";
+import { formPlotNumber, parsePlotNumber } from "../../constants/plots";
+import useAppSelector from "../../hooks/useAppSelector";
+import { RootState } from "../../redux";
+import Colors from "../../constants/Colors";
 import { useState } from "react";
 
 interface PlotViewProps {
