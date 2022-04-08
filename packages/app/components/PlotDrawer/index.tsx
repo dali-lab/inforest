@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useEffect } from "react";
 import { Animated, Dimensions, StyleSheet, View } from "react-native";
 import { Queue, Stack } from "react-native-spacing-system";
 import { BlurView } from "expo-blur";
@@ -29,7 +29,7 @@ type PlotDrawerProps = {
       mode: MapScreenModes.Plot;
       beginPlotting?: undefined;
       endPlotting: () => void;
-      setDrawerHeight?: undefined;
+      setDrawerHeight?: (height: number) => void;
     }
 );
 
@@ -42,6 +42,11 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
   expandDrawer,
   minimizeDrawer,
 }) => {
+  useEffect(() => {
+    return function cleanup() {
+      setDrawerHeight && setDrawerHeight(0);
+    };
+  }, []);
   const dispatch = useAppDispatch();
 
   const {

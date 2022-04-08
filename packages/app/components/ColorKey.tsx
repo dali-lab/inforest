@@ -32,7 +32,7 @@ const ColorKey: React.FC<ColorKeyProps> = ({ config }) => {
         {speciesToRender.map(([speciesCode, _num]) => (
           <Fragment key={speciesCode}>
             <KeyRow
-              key={`${speciesCode}`}
+              key={speciesCode}
               color={colorMap[speciesCode]}
               species={allSpecies?.[speciesCode]?.commonName}
             />
