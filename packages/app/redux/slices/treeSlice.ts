@@ -2,7 +2,6 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { Tree } from "@ong-forestry/schema";
 import SERVER_URL from "../../constants/Url";
 import axios from "axios";
-import { getManyTreeSpecies } from "./treeSpeciesSlice";
 
 const BASE_URL = SERVER_URL + "trees";
 
@@ -13,7 +12,7 @@ type GetForestTreesParams = {
 
 export const getForestTrees = createAsyncThunk(
   "tree/getForestTrees",
-  async (params: GetForestTreesParams, thunkApi) => {
+  async (params: GetForestTreesParams) => {
     return await axios
       .get<Tree[]>(
         `${BASE_URL}?forestId=${params.forestId}&limit=${params.limit}`
@@ -97,7 +96,7 @@ export const treeSlice = createSlice({
       }
       state.indices.byPlots[newTree.plotNumber].add(newTree.tag);
       // update latitude index
-      if (!!newTree.latitude) {
+      if (newTree.latitude) {
         state.indices.byLatitude.push({
           value: newTree.latitude,
           treeTag: newTree.tag,
@@ -105,7 +104,7 @@ export const treeSlice = createSlice({
         state.indices.byLatitude.sort(treeNumericalIndexComparator);
       }
       // update longitude index
-      if (!!newTree.longitude) {
+      if (newTree.longitude) {
         state.indices.byLongitude.push({
           value: newTree.longitude,
           treeTag: newTree.tag,
@@ -171,14 +170,14 @@ export const treeSlice = createSlice({
         // add to plots index
         state.indices.byPlots[tree.plotNumber].add(tree.tag);
         // add to latitude index
-        if (!!tree.latitude) {
+        if (tree.latitude) {
           state.indices.byLatitude.push({
             value: tree.latitude,
             treeTag: tree.tag,
           });
         }
         // add to longitude index
-        if (!!tree.longitude) {
+        if (tree.longitude) {
           state.indices.byLongitude.push({
             value: tree.longitude,
             treeTag: tree.tag,

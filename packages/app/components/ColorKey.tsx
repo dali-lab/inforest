@@ -1,14 +1,12 @@
-import { BlurView } from "expo-blur";
-import React, { useMemo, useEffect } from "react";
+import React, { useMemo } from "react";
 import { View, StyleSheet } from "react-native";
+import { BlurView } from "expo-blur";
 import { Queue, Stack } from "react-native-spacing-system";
 import { VisualizationConfigType } from "../constants";
 import Colors from "../constants/Colors";
-import useAppDispatch from "../hooks/useAppDispatch";
 import useAppSelector from "../hooks/useAppSelector";
 import { RootState } from "../redux";
-import { getTreeSpecies } from "../redux/slices/treeSpeciesSlice";
-import { Text, TextVariants } from "./Themed";
+import { Text } from "./Themed";
 
 interface ColorKeyProps {
   config: VisualizationConfigType;
@@ -20,17 +18,18 @@ const ColorKey: React.FC<ColorKeyProps> = ({ config }) => {
     colorMap,
     frequencyMap,
   } = useAppSelector((state: RootState) => state.treeSpecies);
+  const frequencyMapArray = useMemo(
+    () => Object.entries(frequencyMap).sort((a, b) => a[1] - b[1]),
+    [frequencyMap]
+  );
   const speciesToRender = useMemo(
-    () =>
-      Object.entries(frequencyMap)
-        .sort((a, b) => a[1] - b[1])
-        .slice(0, config.numOfSpecies),
-    [config]
+    () => frequencyMapArray.slice(0, config.numOfSpecies),
+    [config, frequencyMapArray]
   );
   return (
     <BlurView intensity={40}>
       <View style={styles.container}>
-        {speciesToRender.map(([speciesCode, _]) => (
+        {speciesToRender.map(([speciesCode, _num]) => (
           <>
             <KeyRow
               key={speciesCode}

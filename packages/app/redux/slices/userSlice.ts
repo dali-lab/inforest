@@ -14,7 +14,7 @@ type LoginResponse = { token: string; user: User };
 
 export const login = createAsyncThunk(
   "user/login",
-  async (credentials: AuthParams, thunkApi) => {
+  async (credentials: AuthParams) => {
     // const { dispatch } = thunkApi;
     return await axios
       .post<LoginResponse>(`${BASE_URL}login`, credentials)
@@ -33,7 +33,7 @@ export const signUp = createAsyncThunk(
   async (credentials: AuthParams) => {
     return await axios
       .post(`${BASE_URL}signup`, credentials)
-      .then((response) => {
+      .then(() => {
         return true;
       })
       .catch((error) => {

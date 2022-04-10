@@ -1,10 +1,11 @@
 import React, { useCallback, useState } from "react";
-import { Button, Pressable, StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import * as utm from "utm";
 import DashedLine from "react-native-dashed-line";
+import { getRandomBytes } from "expo-random";
+import { Plot } from "@ong-forestry/schema";
 import Colors from "../constants/Colors";
 import { Text, TextVariants } from "./Themed";
-import { Plot, Tree } from "@ong-forestry/schema";
 import { DEFAULT_DBH, FOLIAGE_MAGNIFICATION } from "../constants";
 import { TreeMarker } from "./TreeMarker";
 import useAppSelector, {
@@ -16,7 +17,6 @@ import {
   createTree,
   selectTree,
 } from "../redux/slices/treeSlice";
-import { getRandomBytes } from "expo-random";
 import useAppDispatch from "../hooks/useAppDispatch";
 import { AUTHOR_ID, TRIP_ID } from "../constants/dev";
 import DrawerButton from "./DrawerButton";
@@ -64,7 +64,7 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
     drafts,
     selected: selectedTreeTag,
   } = useAppSelector((state) => state.trees);
-  const selected = !!selectedTreeTag ? all[selectedTreeTag] : undefined;
+  const selected = selectedTreeTag ? all[selectedTreeTag] : undefined;
   const trees = useTreesInPlots(
     useTreesByDensity(
       useAppSelector((state) => state),
@@ -77,7 +77,7 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
     <Pressable
       style={{ ...styles.container, width: sheetSize, height: sheetSize }}
       onTouchMove={(e) => {
-        if (!!selected) {
+        if (selected) {
           dispatch(deselectTree());
         }
         setMarkerPos({
@@ -86,7 +86,7 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
         });
       }}
       onPress={() => {
-        if (!!selected) {
+        if (selected) {
           dispatch(deselectTree());
         }
       }}

@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import React, { useCallback, useEffect, useRef } from "react";
 import {
   Keyboard,
@@ -7,10 +6,10 @@ import {
   Pressable,
   StyleSheet,
   TextInput,
-  TextInputBase,
   View,
 } from "react-native";
-import { Inset, Queue, Stack } from "react-native-spacing-system";
+import { Ionicons } from "@expo/vector-icons";
+import { Inset, Queue } from "react-native-spacing-system";
 import Colors from "../constants/Colors";
 import { Text, TextVariants } from "./Themed";
 
@@ -58,21 +57,22 @@ const Content: React.FC<ContentProps> = ({
 
   const onSubmitEditing = useCallback(
     (value: string) => {
-      if (!!onUpdate) {
+      if (onUpdate) {
         switch (type) {
           case "SHORT_TEXT":
           case "LONG_TEXT":
             onUpdate(value);
+            break;
           case "INTEGER": {
             const parsed = parseInt(value);
-            if (parsed != NaN) {
+            if (!isNaN(parsed)) {
               onUpdate(parsed);
             }
             break;
           }
           case "DECIMAL": {
             const parsed = parseFloat(value);
-            if (parsed != NaN) {
+            if (!isNaN(parsed)) {
               onUpdate(parsed);
             }
             break;

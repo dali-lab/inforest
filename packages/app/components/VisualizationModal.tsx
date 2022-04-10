@@ -1,9 +1,9 @@
-import React, { useCallback } from "react";
-import Modal from "./Modal";
+import React from "react";
 import { StyleSheet, Switch, TextInput, View } from "react-native";
+import { Stack } from "react-native-spacing-system";
+import Modal from "./Modal";
 import { VisualizationConfigType } from "../constants";
 import { Text, TextVariants } from "./Themed";
-import { Stack } from "react-native-spacing-system";
 
 interface VisualizationModalProps {
   config: VisualizationConfigType;
@@ -52,7 +52,7 @@ const VisualizationModal: React.FC<VisualizationModalProps> = ({
                 keyboardType="numeric"
                 onSubmitEditing={(e) => {
                   const numOfSpecies = parseInt(e.nativeEvent.text);
-                  if (numOfSpecies == NaN) {
+                  if (isNaN(numOfSpecies)) {
                     return;
                   }
                   setConfig((prev) => ({

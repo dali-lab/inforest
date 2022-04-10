@@ -4,7 +4,6 @@ import {
   Pressable,
   StyleProp,
   StyleSheet,
-  View,
   ViewStyle,
 } from "react-native";
 import Colors from "../constants/Colors";
