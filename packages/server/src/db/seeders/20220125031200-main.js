@@ -303,6 +303,9 @@ module.exports = {
       await queryInterface.bulkDelete("tree_photo_purposes", null, {
         transaction,
       });
+      await queryInterface.bulkDelete("tree_tree_label", null, {
+        transaction,
+      });
       await queryInterface.bulkDelete("trees", null, { transaction });
       await queryInterface.bulkDelete("tree_species", null, { transaction });
       await queryInterface.bulkDelete("tree_statuses", null, { transaction });
