@@ -55,7 +55,7 @@ const DataEntryForm: React.FC<DataEntryFormProps & View["props"]> = ({
                   })
                 );
               }}
-              editable={false}
+              editable={true}
             ></DataField>
             <Queue size={12}></Queue>
             <DataField
