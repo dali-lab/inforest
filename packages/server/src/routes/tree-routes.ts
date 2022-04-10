@@ -10,6 +10,7 @@ import {
 import { requireAuth } from "services/auth-service";
 import { treePhotoRouter } from "./tree-photo-routes";
 import { treeSpeciesRouter } from "./tree-species-routes";
+import { treeLabelRouter } from "./tree-label-routes";
 
 const treeRouter = express.Router();
 
@@ -80,5 +81,6 @@ treeRouter.delete<{}, any, Tree>("/", requireAuth, async (req, res) => {
 
 treeRouter.use("/photos", treePhotoRouter);
 treeRouter.use("/species", treeSpeciesRouter);
+treeRouter.use("/labels", treeLabelRouter);
 
 export { treeRouter };

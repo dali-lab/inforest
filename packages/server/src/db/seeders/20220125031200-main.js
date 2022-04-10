@@ -244,6 +244,43 @@ module.exports = {
         { transaction }
       );
 
+      const treeLabels = [
+        {
+          code: "B",
+          description: "large buttress, requiring ladder to measure",
+        },
+        { code: "M", description: "multiple stems" },
+        {
+          code: "A",
+          description: "POM at alternative height, not breast height",
+        },
+        { code: "I", description: "stem irregular where measured" },
+        { code: "P", description: "any problem requiring further attention" },
+        { code: "L", description: "stem leaning" },
+        { code: "Q", description: "stem broken above breast height" },
+        { code: "X", description: "stem broken below breast height" },
+        { code: "C", description: "POM has changed since prior census" },
+        { code: "Y", description: "prostrate stem" },
+        {
+          code: "R",
+          description:
+            "resprout (main stem broken but resprouted since last census)",
+        },
+        { code: "DS", description: "dead, stem standing" },
+        { code: "DC", description: "dead, stem fallen" },
+        { code: "DT", description: "dead, only tag found" },
+        { code: "DN", description: "presumed dead, no tag nor stem" },
+      ];
+      await queryInterface.bulkInsert(
+        "tree_labels",
+        treeLabels.map((object) => ({
+          ...object,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        })),
+        { transaction }
+      );
+
       /**
        * Tree data.
        */
@@ -266,9 +303,13 @@ module.exports = {
       await queryInterface.bulkDelete("tree_photo_purposes", null, {
         transaction,
       });
+      await queryInterface.bulkDelete("tree_tree_label", null, {
+        transaction,
+      });
       await queryInterface.bulkDelete("trees", null, { transaction });
       await queryInterface.bulkDelete("tree_species", null, { transaction });
       await queryInterface.bulkDelete("tree_statuses", null, { transaction });
+      await queryInterface.bulkDelete("tree_labels", null, { transaction });
       await queryInterface.bulkDelete("users", null, { transaction });
       await queryInterface.bulkDelete("plots", null, { transaction });
       await queryInterface.bulkDelete("trips", null, { transaction });

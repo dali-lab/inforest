@@ -8,6 +8,8 @@ import {
   TreePhotoPurpose,
   TreeSpecies,
   TreeStatus,
+  TreeLabel,
+  TreeTreeLabel,
 } from "./tree";
 import { Forest } from "./forest";
 import { Trip, TripStatuses } from "./trip";
@@ -19,6 +21,8 @@ export {
   TreePhotoPurpose,
   TreeSpecies,
   TreeStatus,
+  TreeLabel,
+  TreeTreeLabel,
   User,
   Team,
   Membership,

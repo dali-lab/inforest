@@ -72,6 +72,11 @@ export interface Tree {
   speciesCode?: string;
 
   /**
+   * Labels.
+   */
+  labels?: TreeLabel[];
+
+  /**
    * Tree photos.
    */
   photos: TreePhoto[];
@@ -159,6 +164,53 @@ export interface TreeSpecies {
    * Entries for trees of this species
    */
   trees: Tree[];
+}
+
+export interface TreeLabel {
+  /**
+   * This label's code
+   */
+  code: string;
+
+  /**
+   * The meaning of this label and when it should be used
+   */
+  description: string;
+
+  /**
+   * The trees that have this label
+   */
+  trees: Tree[];
+}
+
+/**
+ * Through-table to connect Trees to TreeLabels.
+ */
+export interface TreeTreeLabel {
+  /**
+   * The PK of the through table entity
+   */
+  id: string;
+
+  /**
+   * The tag of the labeled Tree
+   */
+  treeTag: string;
+
+  /**
+   * The Tree labeled
+   */
+  tree: Tree;
+
+  /**
+   * The code of the tree's TreeLabel
+   */
+  treeLabelCode: string;
+
+  /**
+   * The tree's TreeLabel
+   */
+  treeLabel: TreeLabel;
 }
 
 export interface TreePhoto {
