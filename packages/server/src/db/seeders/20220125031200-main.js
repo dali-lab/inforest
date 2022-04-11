@@ -146,6 +146,23 @@ module.exports = {
 
       const trees = {};
       const species = {};
+      const labels = {
+        B: "large buttress, requiring ladder to measure",
+        M: "multiple stems",
+        A: "POM at alternative height, not breast height",
+        I: "stem irregular where measured",
+        P: "any problem requiring further attention",
+        L: "stem leaning",
+        Q: "stem broken above breast height",
+        X: "stem broken below breast height",
+        C: "POM has changed since prior census",
+        Y: "prostrate stem",
+        R: "resprout (main stem broken but resprouted since last census)",
+        DS: "dead, stem standing",
+        DC: "dead, stem fallen",
+        DT: "dead, only tag found",
+        DN: "presumed dead, no tag nor stem",
+      };
       rows.forEach((row) => {
         const tree = {};
         const {
@@ -156,6 +173,7 @@ module.exports = {
           DBH,
           local_x,
           local_y,
+          Code,
           ["Scientific Name"]: scientificName,
           ["Common Name"]: commonName,
           Family,
@@ -191,6 +209,7 @@ module.exports = {
           tree.createdAt = new Date(date);
           tree.updatedAt = tree.createdAt;
           tree.statusName = "ALIVE";
+          tree.labelCodes = Code in labels ? [Code] : ["P"];
           tree.tripId = DATA_SEEDER_TRIP_ID;
           tree.authorId = DATA_SEEDER_AUTHOR_ID;
           if (!!trees[tree.tag]) {
@@ -244,37 +263,11 @@ module.exports = {
         { transaction }
       );
 
-      const treeLabels = [
-        {
-          code: "B",
-          description: "large buttress, requiring ladder to measure",
-        },
-        { code: "M", description: "multiple stems" },
-        {
-          code: "A",
-          description: "POM at alternative height, not breast height",
-        },
-        { code: "I", description: "stem irregular where measured" },
-        { code: "P", description: "any problem requiring further attention" },
-        { code: "L", description: "stem leaning" },
-        { code: "Q", description: "stem broken above breast height" },
-        { code: "X", description: "stem broken below breast height" },
-        { code: "C", description: "POM has changed since prior census" },
-        { code: "Y", description: "prostrate stem" },
-        {
-          code: "R",
-          description:
-            "resprout (main stem broken but resprouted since last census)",
-        },
-        { code: "DS", description: "dead, stem standing" },
-        { code: "DC", description: "dead, stem fallen" },
-        { code: "DT", description: "dead, only tag found" },
-        { code: "DN", description: "presumed dead, no tag nor stem" },
-      ];
       await queryInterface.bulkInsert(
         "tree_labels",
-        treeLabels.map((object) => ({
-          ...object,
+        Object.entries(labels).map(([code, description]) => ({
+          code,
+          description,
           createdAt: new Date(),
           updatedAt: new Date(),
         })),
@@ -284,9 +277,28 @@ module.exports = {
       /**
        * Tree data.
        */
-      await queryInterface.bulkInsert("trees", Object.values(trees), {
-        transaction,
-      });
+      await queryInterface.bulkInsert(
+        "trees",
+        Object.values(trees).map(({ labelCodes, ...rest }) => rest),
+        {
+          transaction,
+        }
+      );
+      /**
+       * Seed tree to tree label through table rows.
+       */
+      await queryInterface.bulkInsert(
+        "tree_tree_label",
+        Object.values(trees).map((tree) => ({
+          id: uuid(),
+          treeTag: tree.tag,
+          treeLabelCode: tree.labelCodes[0],
+          createdAt: tree.createdAt,
+          updatedAt: tree.updatedAt,
+        })),
+        { transaction }
+      );
+
       await transaction.commit();
     } catch (err) {
       console.log(err);
