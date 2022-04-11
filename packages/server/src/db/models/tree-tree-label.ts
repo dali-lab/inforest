@@ -9,11 +9,11 @@ import {
 } from "sequelize-typescript";
 import { DataTypes } from "sequelize";
 import {
-  Tree as ITree,
+  CensusEntry as ICensusEntry,
   TreeLabel as ITreeLabel,
   TreeTreeLabel as ITreeTreeLabel,
 } from "@ong-forestry/schema";
-import Tree from "db/models/tree";
+import CensusEntry from "db/models/census-entry";
 import TreeLabel from "db/models/tree-label";
 
 @Table({
@@ -25,12 +25,12 @@ class TreeTreeLabel extends Model<ITreeTreeLabel> implements ITreeTreeLabel {
   @Column(DataTypes.UUID)
   id: string;
 
-  @Column(DataTypes.STRING)
-  @ForeignKey(() => Tree)
-  treeTag: string;
+  @Column(DataTypes.UUID)
+  @ForeignKey(() => CensusEntry)
+  censusEntryId: string;
 
-  @BelongsTo(() => Tree)
-  tree: ITree;
+  @BelongsTo(() => CensusEntry)
+  censusEntry: ICensusEntry;
 
   @Column(DataTypes.STRING)
   @ForeignKey(() => TreeLabel)

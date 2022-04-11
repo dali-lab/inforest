@@ -137,9 +137,9 @@ export interface TreeLabel {
   description: string;
 
   /**
-   * The trees that have this label
+   * The census entries that have this label
    */
-  trees: Tree[];
+  censusEntries: CensusEntry[];
 }
 
 /**
@@ -152,14 +152,14 @@ export interface TreeTreeLabel {
   id: string;
 
   /**
-   * The tag of the labeled Tree
+   * The ID of the census entry
    */
-  treeTag: string;
+  censusEntryId: string;
 
   /**
-   * The Tree labeled
+   * The object of the census entry
    */
-  tree: Tree;
+  censusEntry: CensusEntry;
 
   /**
    * The code of the tree's TreeLabel

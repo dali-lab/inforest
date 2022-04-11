@@ -1,6 +1,9 @@
-import { Tree as ITree, TreeLabel as ITreeLabel } from "@ong-forestry/schema";
-import Tree from "db/models/tree";
+import {
+  CensusEntry as ICensusEntry,
+  TreeLabel as ITreeLabel,
+} from "@ong-forestry/schema";
 import TreeTreeLabel from "db/models/tree-tree-label";
+import CensusEntry from "db/models/census-entry";
 
 import {
   BelongsToMany,
@@ -20,8 +23,8 @@ class TreeLabel extends Model<ITreeLabel> implements ITreeLabel {
   @Column(DataTypes.STRING)
   description: string;
 
-  @BelongsToMany(() => Tree, () => TreeTreeLabel)
-  trees: ITree[];
+  @BelongsToMany(() => CensusEntry, () => TreeTreeLabel)
+  censusEntries: ICensusEntry[];
 }
 
 export default TreeLabel;
