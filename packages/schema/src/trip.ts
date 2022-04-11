@@ -1,5 +1,5 @@
+import { CensusEntry } from "./census-entry";
 import { Forest } from "./forest";
-import { Tree } from "./tree";
 
 /**
  * Possible trip statuses, indicating the state of a trip's data collection and review
@@ -44,7 +44,7 @@ export interface Trip {
   forestId: string;
 
   /**
-   * Tree entries which are a part of this trip
+   * Census entries made on this trip
    */
-  entries: Tree[];
+  censusEntries: CensusEntry[];
 }
