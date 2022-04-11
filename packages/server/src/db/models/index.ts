@@ -2,6 +2,7 @@ import Plot from "db/models/plot";
 import Team from "db/models/team";
 import User from "db/models/user";
 import Membership from "db/models/membership";
+import CensusEntry from "db/models/census-entry";
 import Tree from "db/models/tree";
 import TreePhoto from "db/models/tree-photo";
 import TreePhotoPurpose from "db/models/tree-photo-purpose";
@@ -17,6 +18,7 @@ export {
   Team,
   User,
   Membership,
+  CensusEntry,
   Tree,
   TreePhoto,
   TreePhotoPurpose,
