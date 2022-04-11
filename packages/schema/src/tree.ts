@@ -1,9 +1,8 @@
-import { User } from "./user";
 import { Plot } from "./plot";
-import { Trip } from "./trip";
+import { CensusEntry } from "./census-entry";
 
 /**
- * Recorded tree in the forest.
+ * Tree in the forest.
  */
 export interface Tree {
   /**
@@ -42,16 +41,6 @@ export interface Tree {
   plotY?: number;
 
   /**
-   * Tree diameter breast height in centimeters.
-   */
-  dbh?: number;
-
-  /**
-   * Tree height in meters.
-   */
-  height?: number;
-
-  /**
    * Object of the tree status.
    */
   status?: TreeStatus;
@@ -70,36 +59,6 @@ export interface Tree {
    * Identifying code of the tree species.
    */
   speciesCode?: string;
-
-  /**
-   * Labels.
-   */
-  labels?: TreeLabel[];
-
-  /**
-   * Tree photos.
-   */
-  photos: TreePhoto[];
-
-  /**
-   * Trip this entry was collected during
-   */
-  trip: Trip;
-
-  /**
-   * ID of this entry's trip
-   */
-  tripId: string;
-
-  /**
-   * Object of the user who created this entry.
-   */
-  author: User;
-
-  /**
-   * ID of the user who created this entry.
-   */
-  authorId: string;
 
   /**
    * Date and time when this entry was created.
