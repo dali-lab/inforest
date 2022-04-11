@@ -9,11 +9,17 @@ import {
   AllowNull,
   Unique,
   BeforeCreate,
+  HasMany,
 } from "sequelize-typescript";
 import bcrypt from "bcrypt";
-import { User as IUser, Team as ITeam } from "@ong-forestry/schema";
+import {
+  CensusEntry as ICensusEntry,
+  User as IUser,
+  Team as ITeam,
+} from "@ong-forestry/schema";
 import Team from "db/models/team";
 import Membership from "db/models/membership";
+import CensusEntry from "db/models/census-entry";
 
 @Table({
   tableName: "users",
@@ -46,6 +52,9 @@ class User extends Model<IUser> implements IUser {
 
   @BelongsToMany(() => Team, () => Membership)
   teams: ITeam[];
+
+  @HasMany(() => CensusEntry)
+  censusEntries: ICensusEntry[];
 
   @BeforeCreate
   static encryptPassword = async (instance: IUser) => {

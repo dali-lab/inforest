@@ -1,3 +1,4 @@
+import { CensusEntry } from "./census-entry";
 import { Team } from "./team";
 /**
  * App user
@@ -37,4 +38,9 @@ export interface User {
    * Teams user is a member/admin of
    */
   teams?: Team[];
+
+  /**
+   * Census entries made on this trip
+   */
+  censusEntries: CensusEntry[];
 }
