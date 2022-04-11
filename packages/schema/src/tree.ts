@@ -184,14 +184,14 @@ export interface TreePhoto {
   url: string;
 
   /**
-   * Tag of tree being photographed
+   * ID of census entry this photograph belongs to
    */
-  treeTag: string;
+  censusEntryId: string;
 
   /**
-   * Tree entry this photo belongs to
+   * Object of the census entry this photograph belongs to
    */
-  tree: Tree;
+  censusEntry: CensusEntry;
 
   /**
    * Name/foreign key of photo's associated purpose
