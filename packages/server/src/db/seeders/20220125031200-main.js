@@ -145,6 +145,23 @@ module.exports = {
 
       const trees = {};
       const species = {};
+      const labels = {
+        B: "large buttress, requiring ladder to measure",
+        M: "multiple stems",
+        A: "POM at alternative height, not breast height",
+        I: "stem irregular where measured",
+        P: "any problem requiring further attention",
+        L: "stem leaning",
+        Q: "stem broken above breast height",
+        X: "stem broken below breast height",
+        C: "POM has changed since prior census",
+        Y: "prostrate stem",
+        R: "resprout (main stem broken but resprouted since last census)",
+        DS: "dead, stem standing",
+        DC: "dead, stem fallen",
+        DT: "dead, only tag found",
+        DN: "presumed dead, no tag nor stem",
+      };
       rows.forEach((row) => {
         const tree = {};
         const {
@@ -155,6 +172,7 @@ module.exports = {
           DBH,
           local_x,
           local_y,
+          Code,
           ["Scientific Name"]: scientificName,
           ["Common Name"]: commonName,
           Family,
@@ -190,6 +208,7 @@ module.exports = {
           tree.createdAt = new Date(date);
           tree.updatedAt = tree.createdAt;
           tree.statusName = "ALIVE";
+          tree.labelCodes = Code in labels ? [Code] : ["P"];
           tree.tripId = DATA_SEEDER_TRIP_ID;
           tree.authorId = DATA_SEEDER_AUTHOR_ID;
           if (!!trees[tree.tag]) {
@@ -243,12 +262,42 @@ module.exports = {
         { transaction }
       );
 
+      await queryInterface.bulkInsert(
+        "tree_labels",
+        Object.entries(labels).map(([code, description]) => ({
+          code,
+          description,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        })),
+        { transaction }
+      );
+
       /**
        * Tree data.
        */
-      await queryInterface.bulkInsert("trees", Object.values(trees), {
-        transaction,
-      });
+      await queryInterface.bulkInsert(
+        "trees",
+        Object.values(trees).map(({ labelCodes, ...rest }) => rest),
+        {
+          transaction,
+        }
+      );
+      /**
+       * Seed tree to tree label through table rows.
+       */
+      await queryInterface.bulkInsert(
+        "tree_tree_label",
+        Object.values(trees).map((tree) => ({
+          id: uuid(),
+          treeTag: tree.tag,
+          treeLabelCode: tree.labelCodes[0],
+          createdAt: tree.createdAt,
+          updatedAt: tree.updatedAt,
+        })),
+        { transaction }
+      );
+
       await transaction.commit();
     } catch (err) {
       console.error(err);
@@ -265,9 +314,13 @@ module.exports = {
       await queryInterface.bulkDelete("tree_photo_purposes", null, {
         transaction,
       });
+      await queryInterface.bulkDelete("tree_tree_label", null, {
+        transaction,
+      });
       await queryInterface.bulkDelete("trees", null, { transaction });
       await queryInterface.bulkDelete("tree_species", null, { transaction });
       await queryInterface.bulkDelete("tree_statuses", null, { transaction });
+      await queryInterface.bulkDelete("tree_labels", null, { transaction });
       await queryInterface.bulkDelete("users", null, { transaction });
       await queryInterface.bulkDelete("plots", null, { transaction });
       await queryInterface.bulkDelete("trips", null, { transaction });
