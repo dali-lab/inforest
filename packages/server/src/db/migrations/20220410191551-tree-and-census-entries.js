@@ -67,23 +67,25 @@ module.exports = {
 
       const treeTagToTreeCensusId = {};
 
-      await queryInterface.bulkInsert(
-        "tree_census",
-        existingTrees.map((existingTree) => {
-          treeTagToTreeCensusId[existingTree.tag] = uuid();
-          return {
-            id: treeTagToTreeCensusId[existingTree.tag],
-            treeTag: existingTree.tag,
-            dbh: existingTree.dbh,
-            height: existingTree.height,
-            tripId: existingTree.tripId,
-            authorId: existingTree.authorId,
-            createdAt: existingTree.createdAt,
-            updatedAt: existingTree.updatedAt,
-          };
-        }),
-        { transaction }
-      );
+      if (existingTrees.length) {
+        await queryInterface.bulkInsert(
+          "tree_census",
+          existingTrees.map((existingTree) => {
+            treeTagToTreeCensusId[existingTree.tag] = uuid();
+            return {
+              id: treeTagToTreeCensusId[existingTree.tag],
+              treeTag: existingTree.tag,
+              dbh: existingTree.dbh,
+              height: existingTree.height,
+              tripId: existingTree.tripId,
+              authorId: existingTree.authorId,
+              createdAt: existingTree.createdAt,
+              updatedAt: existingTree.updatedAt,
+            };
+          }),
+          { transaction }
+        );
+      }
 
       /**
        *
@@ -123,22 +125,24 @@ module.exports = {
         { transaction, type: Sequelize.QueryTypes.SELECT }
       );
 
-      await Promise.all(
-        existingTreePhotos.map((existingTreePhoto) => {
-          const { treeTag } = existingTreePhoto;
-          const treeCensusId = treeTagToTreeCensusId[treeTag];
-          return queryInterface.bulkUpdate(
-            "tree_photos",
-            {
-              treeCensusId,
-            },
-            {
-              id: existingTreePhoto.id,
-            },
-            { transaction }
-          );
-        })
-      );
+      if (existingTreePhotos.length) {
+        await Promise.all(
+          existingTreePhotos.map((existingTreePhoto) => {
+            const { treeTag } = existingTreePhoto;
+            const treeCensusId = treeTagToTreeCensusId[treeTag];
+            return queryInterface.bulkUpdate(
+              "tree_photos",
+              {
+                treeCensusId,
+              },
+              {
+                id: existingTreePhoto.id,
+              },
+              { transaction }
+            );
+          })
+        );
+      }
 
       // Make tree_photos.treeCensusId mandatory.
       await queryInterface.changeColumn(
@@ -182,22 +186,24 @@ module.exports = {
         { transaction, type: Sequelize.QueryTypes.SELECT }
       );
 
-      await Promise.all(
-        existingTreeCensusLabelRows.map((existingTreeCensusLabelRow) => {
-          const { treeTag, id } = existingTreeCensusLabelRow;
-          const treeCensusId = treeTagToTreeCensusId[treeTag];
-          return queryInterface.bulkUpdate(
-            "tree_census_labels",
-            {
-              treeCensusId,
-            },
-            {
-              id,
-            },
-            { transaction }
-          );
-        })
-      );
+      if (existingTreeCensusLabelRows.length) {
+        await Promise.all(
+          existingTreeCensusLabelRows.map((existingTreeCensusLabelRow) => {
+            const { treeTag, id } = existingTreeCensusLabelRow;
+            const treeCensusId = treeTagToTreeCensusId[treeTag];
+            return queryInterface.bulkUpdate(
+              "tree_census_labels",
+              {
+                treeCensusId,
+              },
+              {
+                id,
+              },
+              { transaction }
+            );
+          })
+        );
+      }
 
       // Make tree_census_labels.treeCensusId mandatory.
       await queryInterface.changeColumn(
