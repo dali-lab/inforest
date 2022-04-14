@@ -1,9 +1,8 @@
-import { User } from "./user";
 import { Plot } from "./plot";
-import { Trip } from "./trip";
+import { TreeCensus } from "./tree-census";
 
 /**
- * Recorded tree in the forest.
+ * Tree in the forest.
  */
 export interface Tree {
   /**
@@ -42,16 +41,6 @@ export interface Tree {
   plotY?: number;
 
   /**
-   * Tree diameter breast height in centimeters.
-   */
-  dbh?: number;
-
-  /**
-   * Tree height in meters.
-   */
-  height?: number;
-
-  /**
    * Object of the tree status.
    */
   status?: TreeStatus;
@@ -70,36 +59,6 @@ export interface Tree {
    * Identifying code of the tree species.
    */
   speciesCode?: string;
-
-  /**
-   * Labels.
-   */
-  labels?: TreeLabel[];
-
-  /**
-   * Tree photos.
-   */
-  photos: TreePhoto[];
-
-  /**
-   * Trip this entry was collected during
-   */
-  trip: Trip;
-
-  /**
-   * ID of this entry's trip
-   */
-  tripId: string;
-
-  /**
-   * Object of the user who created this entry.
-   */
-  author: User;
-
-  /**
-   * ID of the user who created this entry.
-   */
-  authorId: string;
 
   /**
    * Date and time when this entry was created.
@@ -178,29 +137,29 @@ export interface TreeLabel {
   description: string;
 
   /**
-   * The trees that have this label
+   * The census entries that have this label
    */
-  trees: Tree[];
+  censusEntries: TreeCensus[];
 }
 
 /**
  * Through-table to connect Trees to TreeLabels.
  */
-export interface TreeTreeLabel {
+export interface TreeCensusLabel {
   /**
    * The PK of the through table entity
    */
   id: string;
 
   /**
-   * The tag of the labeled Tree
+   * The ID of the census entry
    */
-  treeTag: string;
+  treeCensusId: string;
 
   /**
-   * The Tree labeled
+   * The object of the census entry
    */
-  tree: Tree;
+  treeCensus: TreeCensus;
 
   /**
    * The code of the tree's TreeLabel
@@ -225,14 +184,14 @@ export interface TreePhoto {
   url: string;
 
   /**
-   * Tag of tree being photographed
+   * ID of census entry this photograph belongs to
    */
-  treeTag: string;
+  treeCensusId: string;
 
   /**
-   * Tree entry this photo belongs to
+   * Object of the census entry this photograph belongs to
    */
-  tree: Tree;
+  treeCensus: TreeCensus;
 
   /**
    * Name/foreign key of photo's associated purpose

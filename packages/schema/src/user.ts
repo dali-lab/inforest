@@ -1,3 +1,4 @@
+import { TreeCensus } from "./tree-census";
 import { Team } from "./team";
 /**
  * App user
@@ -37,4 +38,9 @@ export interface User {
    * Teams user is a member/admin of
    */
   teams?: Team[];
+
+  /**
+   * Census entries authored by the user
+   */
+  censusEntries: TreeCensus[];
 }
