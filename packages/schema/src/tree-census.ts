@@ -5,7 +5,7 @@ import { User } from "user";
 /**
  * Census entry of a tree in the forest.
  */
-export interface CensusEntry {
+export interface TreeCensus {
   /**
    *
    */

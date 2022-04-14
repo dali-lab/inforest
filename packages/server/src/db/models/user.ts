@@ -13,13 +13,13 @@ import {
 } from "sequelize-typescript";
 import bcrypt from "bcrypt";
 import {
-  CensusEntry as ICensusEntry,
+  TreeCensus as ITreeCensus,
   User as IUser,
   Team as ITeam,
 } from "@ong-forestry/schema";
 import Team from "db/models/team";
 import Membership from "db/models/membership";
-import CensusEntry from "db/models/census-entry";
+import TreeCensus from "db/models/tree-census";
 
 @Table({
   tableName: "users",
@@ -53,8 +53,8 @@ class User extends Model<IUser> implements IUser {
   @BelongsToMany(() => Team, () => Membership)
   teams: ITeam[];
 
-  @HasMany(() => CensusEntry)
-  censusEntries: ICensusEntry[];
+  @HasMany(() => TreeCensus)
+  censusEntries: ITreeCensus[];
 
   @BeforeCreate
   static encryptPassword = async (instance: IUser) => {

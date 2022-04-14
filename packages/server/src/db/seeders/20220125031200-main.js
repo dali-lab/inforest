@@ -296,17 +296,17 @@ module.exports = {
         }
       );
 
-      const treeTagToCensusEntryId = {};
+      const treeTagToTreeCensusId = {};
 
       /**
        * Seed census entries.
        */
       await queryInterface.bulkInsert(
-        "census_entries",
+        "tree_census",
         Object.values(trees).map((tree) => {
-          treeTagToCensusEntryId[tree.tag] = uuid();
+          treeTagToTreeCensusId[tree.tag] = uuid();
           return {
-            id: treeTagToCensusEntryId[tree.tag],
+            id: treeTagToTreeCensusId[tree.tag],
             treeTag: tree.tag,
             dbh: tree.dbh,
             tripId: DATA_SEEDER_TRIP_ID,
@@ -327,7 +327,7 @@ module.exports = {
         "tree_tree_label",
         Object.values(trees).map((tree) => ({
           id: uuid(),
-          censusEntryId: treeTagToCensusEntryId[tree.tag],
+          treeCensusId: treeTagToTreeCensusId[tree.tag],
           treeLabelCode: tree.labelCodes[0],
           createdAt: tree.createdAt,
           updatedAt: tree.updatedAt,
@@ -354,7 +354,7 @@ module.exports = {
       await queryInterface.bulkDelete("tree_tree_label", null, {
         transaction,
       });
-      await queryInterface.bulkDelete("census_entries", null, { transaction });
+      await queryInterface.bulkDelete("tree_census", null, { transaction });
       await queryInterface.bulkDelete("trees", null, { transaction });
       await queryInterface.bulkDelete("tree_species", null, { transaction });
       await queryInterface.bulkDelete("tree_statuses", null, { transaction });

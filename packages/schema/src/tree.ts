@@ -1,5 +1,5 @@
 import { Plot } from "./plot";
-import { CensusEntry } from "./census-entry";
+import { TreeCensus } from "./tree-census";
 
 /**
  * Tree in the forest.
@@ -139,7 +139,7 @@ export interface TreeLabel {
   /**
    * The census entries that have this label
    */
-  censusEntries: CensusEntry[];
+  censusEntries: TreeCensus[];
 }
 
 /**
@@ -154,12 +154,12 @@ export interface TreeTreeLabel {
   /**
    * The ID of the census entry
    */
-  censusEntryId: string;
+  treeCensusId: string;
 
   /**
    * The object of the census entry
    */
-  censusEntry: CensusEntry;
+  treeCensus: TreeCensus;
 
   /**
    * The code of the tree's TreeLabel
@@ -186,12 +186,12 @@ export interface TreePhoto {
   /**
    * ID of census entry this photograph belongs to
    */
-  censusEntryId: string;
+  treeCensusId: string;
 
   /**
    * Object of the census entry this photograph belongs to
    */
-  censusEntry: CensusEntry;
+  treeCensus: TreeCensus;
 
   /**
    * Name/foreign key of photo's associated purpose

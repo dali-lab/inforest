@@ -11,9 +11,9 @@ module.exports = {
        *
        */
 
-      // Create census_entries table.
+      // Create tree_census table.
       await queryInterface.createTable(
-        "census_entries",
+        "tree_census",
         {
           id: {
             type: Sequelize.UUID,
@@ -65,14 +65,14 @@ module.exports = {
         { transaction, type: Sequelize.QueryTypes.SELECT }
       );
 
-      const treeTagToCensusEntryId = {};
+      const treeTagToTreeCensusId = {};
 
       await queryInterface.bulkInsert(
-        "census_entries",
+        "tree_census",
         existingTrees.map((existingTree) => {
-          treeTagToCensusEntryId[existingTree.tag] = uuid();
+          treeTagToTreeCensusId[existingTree.tag] = uuid();
           return {
-            id: treeTagToCensusEntryId[existingTree.tag],
+            id: treeTagToTreeCensusId[existingTree.tag],
             treeTag: existingTree.tag,
             dbh: existingTree.dbh,
             height: existingTree.height,
@@ -103,14 +103,14 @@ module.exports = {
        *
        */
 
-      // Update tree_photos to point to census_entries.
+      // Update tree_photos to point to tree_census.
       await queryInterface.addColumn(
         "tree_photos",
-        "censusEntryId",
+        "treeCensusId",
         {
           type: Sequelize.UUID,
           references: {
-            model: "census_entries",
+            model: "tree_census",
             key: "id",
           },
         },
@@ -126,11 +126,11 @@ module.exports = {
       await Promise.all(
         existingTreePhotos.map((existingTreePhoto) => {
           const { treeTag } = existingTreePhoto;
-          const censusEntryId = treeTagToCensusEntryId[treeTag];
+          const treeCensusId = treeTagToTreeCensusId[treeTag];
           return queryInterface.bulkUpdate(
             "tree_photos",
             {
-              censusEntryId,
+              treeCensusId,
             },
             {
               id: existingTreePhoto.id,
@@ -140,10 +140,10 @@ module.exports = {
         })
       );
 
-      // Make tree_photos.censusEntryId mandatory.
+      // Make tree_photos.treeCensusId mandatory.
       await queryInterface.changeColumn(
         "tree_photos",
-        "censusEntryId",
+        "treeCensusId",
         {
           type: Sequelize.UUID,
           allowNull: false,
@@ -162,14 +162,14 @@ module.exports = {
        *
        */
 
-      // Update tree_tree_label to point to census_entries.
+      // Update tree_census_labels to point to tree_census.
       await queryInterface.addColumn(
         "tree_tree_label",
-        "censusEntryId",
+        "treeCensusId",
         {
           type: Sequelize.UUID,
           references: {
-            model: "census_entries",
+            model: "tree_census",
             key: "id",
           },
         },
@@ -185,11 +185,11 @@ module.exports = {
       await Promise.all(
         existingTreeTreeLabelRows.map((existingTreeTreeLabelRow) => {
           const { treeTag, id } = existingTreeTreeLabelRow;
-          const censusEntryId = treeTagToCensusEntryId[treeTag];
+          const treeCensusId = treeTagToTreeCensusId[treeTag];
           return queryInterface.bulkUpdate(
             "tree_tree_label",
             {
-              censusEntryId,
+              treeCensusId,
             },
             {
               id,
@@ -199,10 +199,10 @@ module.exports = {
         })
       );
 
-      // Make tree_tree_label.censusEntryId mandatory.
+      // Make tree_tree_label.treeCensusId mandatory.
       await queryInterface.changeColumn(
         "tree_tree_label",
-        "censusEntryId",
+        "treeCensusId",
         {
           type: Sequelize.UUID,
           allowNull: false,
@@ -226,21 +226,21 @@ module.exports = {
   async down(queryInterface, Sequelize) {
     const transaction = await queryInterface.sequelize.transaction();
     try {
-      const censusEntryIdToTreeTag = {};
-      const mostRecentCensusEntryForTree = {};
+      const treeCensusIdToTreeTag = {};
+      const mostRecentTreeCensusForTree = {};
 
       const existingCensusEntries = await queryInterface.sequelize.query(
-        "SELECT * FROM census_entries;",
+        "SELECT * FROM tree_census;",
         { transaction, type: Sequelize.QueryTypes.SELECT }
       );
 
       existingCensusEntries
         .sort((a, b) => b.updatedAt - a.updatedAt)
-        .forEach((existingCensusEntry) => {
-          censusEntryIdToTreeTag[existingCensusEntry.id] =
-            existingCensusEntry.treeTag;
-          mostRecentCensusEntryForTree[existingCensusEntry.treeTag] =
-            existingCensusEntry;
+        .forEach((existingTreeCensus) => {
+          treeCensusIdToTreeTag[existingTreeCensus.id] =
+            existingTreeCensus.treeTag;
+          mostRecentTreeCensusForTree[existingTreeCensus.treeTag] =
+            existingTreeCensus;
         });
 
       /**
@@ -291,10 +291,10 @@ module.exports = {
         { transaction }
       );
 
-      Object.entries(mostRecentCensusEntryForTree).map(
-        ([tag, mostRecentCensusEntry]) => {
+      Object.entries(mostRecentTreeCensusForTree).map(
+        ([tag, mostRecentTreeCensus]) => {
           const { dbh, height, tripId, authorId, updatedAt } =
-            mostRecentCensusEntry;
+            mostRecentTreeCensus;
           return queryInterface.bulkUpdate(
             "trees",
             {
@@ -358,14 +358,14 @@ module.exports = {
         { transaction, type: Sequelize.QueryTypes.SELECT }
       );
 
-      // Copy tree_tree_label.censusEntryId to tree_tree_label.treeTag.
+      // Copy tree_tree_label.treeCensusId to tree_tree_label.treeTag.
       await Promise.all(
         existingTreeTreeLabelRows.map(async (existingTreeTreeLabelRow) => {
-          const { id, censusEntryId } = existingTreeTreeLabelRow;
+          const { id, treeCensusId } = existingTreeTreeLabelRow;
           await queryInterface.bulkUpdate(
             "tree_tree_label",
             {
-              treeTag: censusEntryIdToTreeTag[censusEntryId],
+              treeTag: treeCensusIdToTreeTag[treeCensusId],
             },
             {
               id,
@@ -386,8 +386,8 @@ module.exports = {
         { transaction }
       );
 
-      // Remove tree_tree_label.censusEntryId.
-      await queryInterface.removeColumn("tree_tree_label", "censusEntryId", {
+      // Remove tree_tree_label.treeCensusId.
+      await queryInterface.removeColumn("tree_tree_label", "treeCensusId", {
         transaction,
       });
 
@@ -417,14 +417,14 @@ module.exports = {
         { transaction, type: Sequelize.QueryTypes.SELECT }
       );
 
-      // Copy tree_photos.censusEntryId to tree_photos.treeTag.
+      // Copy tree_photos.treeCensusId to tree_photos.treeTag.
       await Promise.all(
         existingTreePhotos.map(async (existingTreePhoto) => {
-          const { id, censusEntryId } = existingTreePhoto;
+          const { id, treeCensusId } = existingTreePhoto;
           await queryInterface.bulkUpdate(
             "tree_photos",
             {
-              treeTag: censusEntryIdToTreeTag[censusEntryId],
+              treeTag: treeCensusIdToTreeTag[treeCensusId],
             },
             {
               id,
@@ -445,8 +445,8 @@ module.exports = {
         { transaction }
       );
 
-      // Remove tree_photos.censusEntryId.
-      await queryInterface.removeColumn("tree_photos", "censusEntryId", {
+      // Remove tree_photos.treeCensusId.
+      await queryInterface.removeColumn("tree_photos", "treeCensusId", {
         transaction,
       });
 
@@ -456,7 +456,7 @@ module.exports = {
        *
        */
 
-      await queryInterface.dropTable("census_entries", { transaction });
+      await queryInterface.dropTable("tree_census", { transaction });
 
       await transaction.commit();
     } catch (e) {

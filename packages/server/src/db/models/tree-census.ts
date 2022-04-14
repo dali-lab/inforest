@@ -21,7 +21,7 @@ import User from "db/models/user";
 
 import {
   Tree as ITree,
-  CensusEntry as ICensusEntry,
+  TreeCensus as ITreeCensus,
   TreePhoto as ITreePhoto,
   TreeStatus as ITreeStatus,
   TreeLabel as ITreeLabel,
@@ -30,7 +30,7 @@ import {
 } from "@ong-forestry/schema";
 
 @Table({
-  tableName: "census_entries",
+  tableName: "tree_census",
   indexes: [
     {
       name: "dbh",
@@ -42,9 +42,9 @@ import {
     },
   ],
 })
-class CensusEntry
-  extends Model<ICensusEntry>
-  implements Omit<ICensusEntry, "createdAt" | "updatedAt">
+class TreeCensus
+  extends Model<ITreeCensus>
+  implements Omit<ITreeCensus, "createdAt" | "updatedAt">
 {
   @PrimaryKey
   @Default(DataTypes.UUIDV4)
@@ -88,4 +88,4 @@ class CensusEntry
   author: IUser;
 }
 
-export default CensusEntry;
+export default TreeCensus;

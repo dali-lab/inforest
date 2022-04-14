@@ -11,7 +11,7 @@ import {
   TreeLabel,
   TreeTreeLabel,
 } from "./tree";
-import { CensusEntry } from "./census-entry";
+import { TreeCensus } from "./tree-census";
 import { Forest } from "./forest";
 import { Trip, TripStatuses } from "./trip";
 
@@ -24,7 +24,7 @@ export {
   TreeStatus,
   TreeLabel,
   TreeTreeLabel,
-  CensusEntry,
+  TreeCensus,
   User,
   Team,
   Membership,

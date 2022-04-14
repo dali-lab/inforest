@@ -10,9 +10,9 @@ import {
   AllowNull,
 } from "sequelize-typescript";
 import TreePhotoPurpose from "db/models/tree-photo-purpose";
-import CensusEntry from "db/models/census-entry";
+import TreeCensus from "db/models/tree-census";
 import {
-  CensusEntry as ICensusEntry,
+  TreeCensus as ITreeCensus,
   TreePhoto as ITreePhoto,
   TreePhotoPurpose as ITreePhotoPurpose,
 } from "@ong-forestry/schema";
@@ -32,13 +32,13 @@ class TreePhoto extends Model<ITreePhoto> implements ITreePhoto {
   @Column(DataTypes.UUID)
   id: string;
 
-  @ForeignKey(() => CensusEntry)
+  @ForeignKey(() => TreeCensus)
   @AllowNull(false)
   @Column(DataTypes.UUID)
-  censusEntryId: string;
+  treeCensusId: string;
 
-  @BelongsTo(() => CensusEntry)
-  censusEntry: ICensusEntry;
+  @BelongsTo(() => TreeCensus)
+  treeCensus: ITreeCensus;
 
   @AllowNull(false)
   @Column(DataTypes.STRING)

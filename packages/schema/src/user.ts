@@ -1,4 +1,4 @@
-import { CensusEntry } from "./census-entry";
+import { TreeCensus } from "./tree-census";
 import { Team } from "./team";
 /**
  * App user
@@ -42,5 +42,5 @@ export interface User {
   /**
    * Census entries authored by the user
    */
-  censusEntries: CensusEntry[];
+  censusEntries: TreeCensus[];
 }

@@ -11,9 +11,9 @@ import {
   AllowNull,
 } from "sequelize-typescript";
 import Forest from "db/models/forest";
-import CensusEntry from "db/models/census-entry";
+import TreeCensus from "db/models/tree-census";
 import {
-  CensusEntry as ICensusEntry,
+  TreeCensus as ITreeCensus,
   Trip as ITrip,
   Forest as IForest,
 } from "@ong-forestry/schema";
@@ -39,8 +39,8 @@ class Trip extends Model<ITrip> implements ITrip {
   @Column(DataTypes.STRING)
   forestId: string;
 
-  @HasMany(() => CensusEntry)
-  censusEntries: ICensusEntry[];
+  @HasMany(() => TreeCensus)
+  censusEntries: ITreeCensus[];
 }
 
 export default Trip;

@@ -1,4 +1,4 @@
-import { CensusEntry } from "./census-entry";
+import { TreeCensus } from "./tree-census";
 import { Forest } from "./forest";
 
 /**
@@ -46,5 +46,5 @@ export interface Trip {
   /**
    * Census entries made on this trip
    */
-  censusEntries: CensusEntry[];
+  censusEntries: TreeCensus[];
 }
