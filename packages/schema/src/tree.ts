@@ -41,16 +41,6 @@ export interface Tree {
   plotY?: number;
 
   /**
-   * Object of the tree status.
-   */
-  status?: TreeStatus;
-
-  /**
-   * Name of the tree status.
-   */
-  statusName?: string;
-
-  /**
    * Object of the tree species.
    */
   species?: TreeSpecies;
@@ -69,18 +59,6 @@ export interface Tree {
    * Date and time when this entry was last updated.
    */
   updatedAt: Date;
-}
-
-export interface TreeStatus {
-  /**
-   * Status's name
-   */
-  name: string;
-
-  /**
-   * Tree entries possessing this status
-   */
-  trees: Tree[];
 }
 
 export enum TreeSpeciesTypes {

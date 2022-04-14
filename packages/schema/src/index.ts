@@ -7,7 +7,6 @@ import {
   TreePhoto,
   TreePhotoPurpose,
   TreeSpecies,
-  TreeStatus,
   TreeLabel,
   TreeCensusLabel,
 } from "./tree";
@@ -21,7 +20,6 @@ export {
   TreePhoto,
   TreePhotoPurpose,
   TreeSpecies,
-  TreeStatus,
   TreeLabel,
   TreeCensusLabel,
   TreeCensus,

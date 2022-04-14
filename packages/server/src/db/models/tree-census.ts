@@ -12,7 +12,6 @@ import {
   Default,
 } from "sequelize-typescript";
 import Tree from "db/models/tree";
-import TreeStatus from "db/models/tree-status";
 import TreePhoto from "db/models/tree-photo";
 import TreeLabel from "db/models/tree-label";
 import TreeCensusLabel from "db/models/tree-census-label";
@@ -23,7 +22,6 @@ import {
   Tree as ITree,
   TreeCensus as ITreeCensus,
   TreePhoto as ITreePhoto,
-  TreeStatus as ITreeStatus,
   TreeLabel as ITreeLabel,
   Trip as ITrip,
   User as IUser,
