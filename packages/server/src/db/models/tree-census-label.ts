@@ -11,15 +11,18 @@ import { DataTypes } from "sequelize";
 import {
   TreeCensus as ITreeCensus,
   TreeLabel as ITreeLabel,
-  TreeTreeLabel as ITreeTreeLabel,
+  TreeCensusLabel as ITreeCensusLabel,
 } from "@ong-forestry/schema";
 import TreeCensus from "db/models/tree-census";
 import TreeLabel from "db/models/tree-label";
 
 @Table({
-  tableName: "tree_tree_label",
+  tableName: "tree_census_labels",
 })
-class TreeTreeLabel extends Model<ITreeTreeLabel> implements ITreeTreeLabel {
+class TreeCensusLabel
+  extends Model<ITreeCensusLabel>
+  implements ITreeCensusLabel
+{
   @PrimaryKey
   @Default(DataTypes.UUIDV4)
   @Column(DataTypes.UUID)
@@ -40,4 +43,4 @@ class TreeTreeLabel extends Model<ITreeTreeLabel> implements ITreeTreeLabel {
   treeLabel: ITreeLabel;
 }
 
-export default TreeTreeLabel;
+export default TreeCensusLabel;

@@ -9,7 +9,7 @@ import TreePhotoPurpose from "db/models/tree-photo-purpose";
 import TreeSpecies from "db/models/tree-species";
 import TreeStatus from "db/models/tree-status";
 import TreeLabel from "db/models/tree-label";
-import TreeTreeLabel from "db/models/tree-tree-label";
+import TreeCensusLabel from "db/models/tree-census-label";
 import Forest from "db/models/forest";
 import Trip from "db/models/trip";
 
@@ -25,7 +25,7 @@ export {
   TreeSpecies,
   TreeStatus,
   TreeLabel,
-  TreeTreeLabel,
+  TreeCensusLabel,
   Forest,
   Trip,
 };

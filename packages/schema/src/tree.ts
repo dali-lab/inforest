@@ -145,7 +145,7 @@ export interface TreeLabel {
 /**
  * Through-table to connect Trees to TreeLabels.
  */
-export interface TreeTreeLabel {
+export interface TreeCensusLabel {
   /**
    * The PK of the through table entity
    */

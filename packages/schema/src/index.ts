@@ -9,7 +9,7 @@ import {
   TreeSpecies,
   TreeStatus,
   TreeLabel,
-  TreeTreeLabel,
+  TreeCensusLabel,
 } from "./tree";
 import { TreeCensus } from "./tree-census";
 import { Forest } from "./forest";
@@ -23,7 +23,7 @@ export {
   TreeSpecies,
   TreeStatus,
   TreeLabel,
-  TreeTreeLabel,
+  TreeCensusLabel,
   TreeCensus,
   User,
   Team,

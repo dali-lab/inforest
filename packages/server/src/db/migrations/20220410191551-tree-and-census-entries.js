@@ -164,7 +164,7 @@ module.exports = {
 
       // Update tree_census_labels to point to tree_census.
       await queryInterface.addColumn(
-        "tree_tree_label",
+        "tree_census_labels",
         "treeCensusId",
         {
           type: Sequelize.UUID,
@@ -177,17 +177,17 @@ module.exports = {
       );
 
       // Grab existing tree to tree labels through table rows.
-      const existingTreeTreeLabelRows = await queryInterface.sequelize.query(
-        "SELECT * FROM tree_tree_label;",
+      const existingTreeCensusLabelRows = await queryInterface.sequelize.query(
+        "SELECT * FROM tree_census_labels;",
         { transaction, type: Sequelize.QueryTypes.SELECT }
       );
 
       await Promise.all(
-        existingTreeTreeLabelRows.map((existingTreeTreeLabelRow) => {
-          const { treeTag, id } = existingTreeTreeLabelRow;
+        existingTreeCensusLabelRows.map((existingTreeCensusLabelRow) => {
+          const { treeTag, id } = existingTreeCensusLabelRow;
           const treeCensusId = treeTagToTreeCensusId[treeTag];
           return queryInterface.bulkUpdate(
-            "tree_tree_label",
+            "tree_census_labels",
             {
               treeCensusId,
             },
@@ -199,9 +199,9 @@ module.exports = {
         })
       );
 
-      // Make tree_tree_label.treeCensusId mandatory.
+      // Make tree_census_labels.treeCensusId mandatory.
       await queryInterface.changeColumn(
-        "tree_tree_label",
+        "tree_census_labels",
         "treeCensusId",
         {
           type: Sequelize.UUID,
@@ -210,8 +210,8 @@ module.exports = {
         { transaction }
       );
 
-      // Remove tree_tree_label.treeTag.
-      await queryInterface.removeColumn("tree_tree_label", "treeTag", {
+      // Remove tree_census_labels.treeTag.
+      await queryInterface.removeColumn("tree_census_labels", "treeTag", {
         transaction,
       });
 
@@ -338,9 +338,9 @@ module.exports = {
        *
        */
 
-      // Add tree_tree_label.treeTag.
+      // Add tree_census_labels.treeTag.
       await queryInterface.addColumn(
-        "tree_tree_label",
+        "tree_census_labels",
         "treeTag",
         {
           type: Sequelize.STRING,
@@ -353,17 +353,17 @@ module.exports = {
       );
 
       // Grab existing tree to tree labels through table rows.
-      const existingTreeTreeLabelRows = await queryInterface.sequelize.query(
-        "SELECT * FROM tree_tree_label;",
+      const existingTreeCensusLabelRows = await queryInterface.sequelize.query(
+        "SELECT * FROM tree_census_labels;",
         { transaction, type: Sequelize.QueryTypes.SELECT }
       );
 
-      // Copy tree_tree_label.treeCensusId to tree_tree_label.treeTag.
+      // Copy tree_census_labels.treeCensusId to tree_census_labels.treeTag.
       await Promise.all(
-        existingTreeTreeLabelRows.map(async (existingTreeTreeLabelRow) => {
-          const { id, treeCensusId } = existingTreeTreeLabelRow;
+        existingTreeCensusLabelRows.map(async (existingTreeCensusLabelRow) => {
+          const { id, treeCensusId } = existingTreeCensusLabelRow;
           await queryInterface.bulkUpdate(
-            "tree_tree_label",
+            "tree_census_labels",
             {
               treeTag: treeCensusIdToTreeTag[treeCensusId],
             },
@@ -375,9 +375,9 @@ module.exports = {
         })
       );
 
-      // Make tree_tree_label.treeTag mandatory.
+      // Make tree_census_labels.treeTag mandatory.
       await queryInterface.changeColumn(
-        "tree_tree_label",
+        "tree_census_labels",
         "treeTag",
         {
           type: Sequelize.STRING,
@@ -386,8 +386,8 @@ module.exports = {
         { transaction }
       );
 
-      // Remove tree_tree_label.treeCensusId.
-      await queryInterface.removeColumn("tree_tree_label", "treeCensusId", {
+      // Remove tree_census_labels.treeCensusId.
+      await queryInterface.removeColumn("tree_census_labels", "treeCensusId", {
         transaction,
       });
 

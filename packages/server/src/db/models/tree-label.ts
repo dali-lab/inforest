@@ -2,7 +2,7 @@ import {
   TreeCensus as ITreeCensus,
   TreeLabel as ITreeLabel,
 } from "@ong-forestry/schema";
-import TreeTreeLabel from "db/models/tree-tree-label";
+import TreeCensusLabel from "db/models/tree-census-label";
 import TreeCensus from "db/models/tree-census";
 
 import {
@@ -23,7 +23,7 @@ class TreeLabel extends Model<ITreeLabel> implements ITreeLabel {
   @Column(DataTypes.STRING)
   description: string;
 
-  @BelongsToMany(() => TreeCensus, () => TreeTreeLabel)
+  @BelongsToMany(() => TreeCensus, () => TreeCensusLabel)
   censusEntries: ITreeCensus[];
 }
 

@@ -324,7 +324,7 @@ module.exports = {
        * Seed tree to tree label through table rows.
        */
       await queryInterface.bulkInsert(
-        "tree_tree_label",
+        "tree_census_labels",
         Object.values(trees).map((tree) => ({
           id: uuid(),
           treeCensusId: treeTagToTreeCensusId[tree.tag],
@@ -351,7 +351,7 @@ module.exports = {
       await queryInterface.bulkDelete("tree_photo_purposes", null, {
         transaction,
       });
-      await queryInterface.bulkDelete("tree_tree_label", null, {
+      await queryInterface.bulkDelete("tree_census_labels", null, {
         transaction,
       });
       await queryInterface.bulkDelete("tree_census", null, { transaction });

@@ -15,7 +15,7 @@ import Tree from "db/models/tree";
 import TreeStatus from "db/models/tree-status";
 import TreePhoto from "db/models/tree-photo";
 import TreeLabel from "db/models/tree-label";
-import TreeTreeLabel from "db/models/tree-tree-label";
+import TreeCensusLabel from "db/models/tree-census-label";
 import Trip from "db/models/trip";
 import User from "db/models/user";
 
@@ -65,7 +65,7 @@ class TreeCensus
   @Column(DataTypes.FLOAT)
   height: number;
 
-  @BelongsToMany(() => TreeLabel, () => TreeTreeLabel)
+  @BelongsToMany(() => TreeLabel, () => TreeCensusLabel)
   labels: ITreeLabel[];
 
   @HasMany(() => TreePhoto)
