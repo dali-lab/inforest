@@ -40,7 +40,7 @@ export interface User {
   teams?: Team[];
 
   /**
-   * Census entries made on this trip
+   * Census entries authored by the user
    */
   censusEntries: CensusEntry[];
 }
