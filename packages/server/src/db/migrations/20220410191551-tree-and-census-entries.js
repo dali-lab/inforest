@@ -166,6 +166,13 @@ module.exports = {
        *
        */
 
+      // Rename table.
+      await queryInterface.renameTable(
+        "tree_tree_label",
+        "tree_census_labels",
+        { transaction }
+      );
+
       // Update tree_census_labels to point to tree_census.
       await queryInterface.addColumn(
         "tree_census_labels",

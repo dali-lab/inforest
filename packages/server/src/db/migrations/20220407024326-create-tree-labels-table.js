@@ -29,7 +29,7 @@ module.exports = {
 
       // Create through table.
       await queryInterface.createTable(
-        "tree_census_labels",
+        "tree_tree_label",
         {
           id: {
             type: Sequelize.UUID,
@@ -70,7 +70,7 @@ module.exports = {
   },
 
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable("tree_census_labels");
+    await queryInterface.dropTable("tree_tree_label");
     await queryInterface.dropTable("tree_labels");
   },
 };
