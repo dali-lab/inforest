@@ -54,7 +54,7 @@ class User extends Model<IUser> implements IUser {
   teams: ITeam[];
 
   @HasMany(() => TreeCensus)
-  censusEntries: ITreeCensus[];
+  censusedTrees: ITreeCensus[];
 
   @BeforeCreate
   static encryptPassword = async (instance: IUser) => {

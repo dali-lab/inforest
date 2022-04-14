@@ -46,5 +46,5 @@ export interface Trip {
   /**
    * Census entries made on this trip
    */
-  censusEntries: TreeCensus[];
+  censusedTrees: TreeCensus[];
 }
