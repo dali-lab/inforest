@@ -139,7 +139,7 @@ export interface TreeLabel {
   /**
    * The census entries that have this label
    */
-  censusEntries: TreeCensus[];
+  censusedTrees: TreeCensus[];
 }
 
 /**

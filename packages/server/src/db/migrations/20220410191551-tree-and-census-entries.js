@@ -242,12 +242,12 @@ module.exports = {
       const treeCensusIdToTreeTag = {};
       const mostRecentTreeCensusForTree = {};
 
-      const existingCensusEntries = await queryInterface.sequelize.query(
+      const existingCensusedTrees = await queryInterface.sequelize.query(
         "SELECT * FROM tree_census;",
         { transaction, type: Sequelize.QueryTypes.SELECT }
       );
 
-      existingCensusEntries
+      existingCensusedTrees
         .sort((a, b) => b.updatedAt - a.updatedAt)
         .forEach((existingTreeCensus) => {
           treeCensusIdToTreeTag[existingTreeCensus.id] =

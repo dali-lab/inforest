@@ -40,7 +40,7 @@ class Trip extends Model<ITrip> implements ITrip {
   forestId: string;
 
   @HasMany(() => TreeCensus)
-  censusEntries: ITreeCensus[];
+  censusedTrees: ITreeCensus[];
 }
 
 export default Trip;

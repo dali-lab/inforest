@@ -42,5 +42,5 @@ export interface User {
   /**
    * Census entries authored by the user
    */
-  censusEntries: TreeCensus[];
+  censusedTrees?: TreeCensus[];
 }

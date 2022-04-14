@@ -24,7 +24,7 @@ class TreeLabel extends Model<ITreeLabel> implements ITreeLabel {
   description: string;
 
   @BelongsToMany(() => TreeCensus, () => TreeCensusLabel)
-  censusEntries: ITreeCensus[];
+  censusedTrees: ITreeCensus[];
 }
 
 export default TreeLabel;
