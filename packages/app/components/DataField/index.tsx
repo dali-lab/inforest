@@ -9,7 +9,8 @@ export interface DataFieldProps<T = string | number | boolean> {
     | "INTEGER"
     | "DECIMAL"
     | "SPECIES"
-    | "PHOTOS";
+    | "PHOTOS"
+    | "SELECT";
   label: string;
   value?: T;
   placeholder?: T;

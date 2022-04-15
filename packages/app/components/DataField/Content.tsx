@@ -46,6 +46,8 @@ const Content: React.FC<ContentProps> = ({
     (value: string) => {
       if (onUpdate) {
         switch (type) {
+          //TODO: build
+          case "SELECT":
           case "SHORT_TEXT":
           case "LONG_TEXT":
             onUpdate(value);
