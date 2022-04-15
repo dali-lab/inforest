@@ -1,8 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import {
-  Keyboard,
   KeyboardTypeOptions,
-  Modal,
   Pressable,
   StyleSheet,
   TextInput,
@@ -10,27 +8,11 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Inset, Queue } from "react-native-spacing-system";
-import Colors from "../constants/Colors";
-import { Text, TextVariants } from "./Themed";
-
-interface DataFieldProps<T = string | number | boolean> {
-  type:
-    | "SHORT_TEXT"
-    | "LONG_TEXT"
-    | "INTEGER"
-    | "DECIMAL"
-    | "SPECIES"
-    | "PHOTOS";
-  label: string;
-  value?: T;
-  placeholder?: T;
-  moreInfo?: string;
-  editable?: boolean;
-  onUpdate?: (newValue: T) => void;
-}
+import Colors from "../../constants/Colors";
+import { Text, TextVariants } from "../Themed";
+import { DataFieldProps } from "./index";
 
 type ContentProps = DataFieldProps & { editing: boolean };
-
 const Content: React.FC<ContentProps> = ({
   type,
   label,
@@ -95,8 +77,8 @@ const Content: React.FC<ContentProps> = ({
           color={Colors.neutral[7]}
         ></Ionicons>
       </View>
-      <Inset vertical={4}>
-        {type !== "PHOTOS" && (
+      <Inset vertical={4} horizontal={8}>
+        {type !== "PHOTOS" ? (
           <>
             {editing ? (
               <TextInput
@@ -132,96 +114,63 @@ const Content: React.FC<ContentProps> = ({
               </Text>
             )}
           </>
+        ) : (
+          <View style={styles.photoInputRow}>
+            <PhotoInput title="Bark" type="BARK" />
+            <PhotoInput title="Leaf" type="LEAF" />
+            <PhotoInput title="Full" type="FULL" />
+            <PhotoInput title="Other" type="OTHER" />
+          </View>
         )}
       </Inset>
     </>
   );
 };
 
-export const DataField: React.FC<View["props"] & DataFieldProps> = (props) => {
-  const { type, editable = true, style } = props;
-  const [editing, setEditing] = React.useState(false);
-  const [renderedWidth, setRenderedWidth] = React.useState<number>();
-  useEffect(() => {
-    const subscription = Keyboard.addListener("keyboardWillHide", () => {
-      setEditing(false);
-    });
-    return () => {
-      subscription.remove();
-    };
-  });
-  if (editable && type !== "PHOTOS") {
-    return (
-      <>
-        <Pressable
-          style={[style, styles.container]}
-          onPress={() => setEditing(true)}
-          onLayout={(e) => {
-            setRenderedWidth(e.nativeEvent.layout.width);
-          }}
-        >
-          <Content {...props} editing={false}></Content>
-        </Pressable>
-        <Modal
-          visible={editing}
-          animationType="fade"
-          transparent={true}
-          onRequestClose={() => setEditing(false)}
-        >
-          <Pressable
-            style={styles.centeredView}
-            onPress={() => setEditing(false)}
-          >
-            <View
-              style={[styles.modal, styles.container, { width: renderedWidth }]}
-            >
-              <Content {...props} editing={true}></Content>
-            </View>
-          </Pressable>
-        </Modal>
-      </>
-    );
-  } else {
-    return (
-      <>
-        <View
-          style={[style, styles.container]}
-          onLayout={(e) => {
-            setRenderedWidth(e.nativeEvent.layout.width);
-          }}
-        >
-          <Content {...props} editing={false}></Content>
-        </View>
-      </>
-    );
-  }
+interface PhotoInputProps {
+  title: string;
+  type: string;
+}
+
+const PhotoInput: React.FC<PhotoInputProps> = ({ title, type }) => {
+  return (
+    <View style={styles.photoInputWrapper}>
+      <Pressable style={styles.photoInput}>
+        <Ionicons name="cloud-upload-outline" size={28} color="#FFFFFF" />
+        <Text variant={TextVariants.Label} color="white">
+          Tap to Upload
+        </Text>
+      </Pressable>
+      <Text variant={TextVariants.Label}>{title}</Text>
+    </View>
+  );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    backgroundColor: "white",
-    padding: 12,
-    borderRadius: 12,
-  },
   header: {
     flexDirection: "row",
     alignItems: "center",
+    paddingLeft: 8,
   },
-  centeredView: {
-    flex: 1,
+  photoInputRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  photoInputWrapper: {
+    flexDirection: "column",
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.5)",
   },
-  modal: {
-    alignSelf: "center",
-    shadowColor: "black",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
+  photoInput: {
+    backgroundColor: "#5F6D64",
+    width: 160,
+    height: 120,
+    borderRadius: 10,
+    flexDirection: "column",
+    justifyContent: "center",
+    alignItems: "center",
+    marginVertical: 10,
   },
 });
+
+export default Content;
