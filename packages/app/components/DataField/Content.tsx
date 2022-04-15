@@ -8,6 +8,10 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Inset, Queue } from "react-native-spacing-system";
+import {
+  ImageLibraryOptions,
+  launchImageLibrary,
+} from "react-native-image-picker";
 import Colors from "../../constants/Colors";
 import { Text, TextVariants } from "../Themed";
 import { DataFieldProps } from "./index";
@@ -132,10 +136,24 @@ interface PhotoInputProps {
   type: string;
 }
 
+const photoLibraryOptions: ImageLibraryOptions = {
+  mediaType: "photo",
+  selectionLimit: 0,
+};
+
 const PhotoInput: React.FC<PhotoInputProps> = ({ title, type }) => {
+  const addPhoto = useCallback(async () => {
+    launchImageLibrary(photoLibraryOptions)
+      .then((result) => {
+        console.log(result.assets);
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+  }, []);
   return (
     <View style={styles.photoInputWrapper}>
-      <Pressable style={styles.photoInput}>
+      <Pressable style={styles.photoInput} onPress={addPhoto}>
         <Ionicons name="cloud-upload-outline" size={28} color="#FFFFFF" />
         <Text variant={TextVariants.Label} color="white">
           Tap to Upload
