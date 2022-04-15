@@ -1,3 +1,4 @@
+import { Tree } from "@ong-forestry/schema";
 import { useState } from "react";
 import { View, Button, StyleSheet, ScrollView } from "react-native";
 import { Queue, Stack } from "react-native-spacing-system";
@@ -7,6 +8,7 @@ import useAppSelector from "../../hooks/useAppSelector";
 import { updateTree, locallyUpdateTree } from "../../redux/slices/treeSlice";
 import { DataField } from "../DataField";
 import DrawerButton from "../DrawerButton";
+import { Text, TextVariants } from "../Themed";
 import FormProgress from "./FormProgress";
 
 //TODO: solidify these
@@ -40,9 +42,9 @@ const DataEntryForm: React.FC<DataEntryFormProps & View["props"]> = ({
           <FormProgress stage={stage} setStage={setStage} />
         </View>
         <View>
-          {StageList[stage] == "META" && <MetaDataForm />}
+          {StageList[stage] == "META" && <MetaDataForm selected={selected} />}
           {StageList[stage] == "DATA" && <DataForm />}
-          {StageList[stage] == "REVIEW" && <ReviewForm />}
+          {StageList[stage] == "REVIEW" && <ReviewForm selected={selected} />}
         </View>
         <View style={styles.formRow}>
           {stage !== 0 && (
@@ -225,19 +227,23 @@ const DataEntryForm: React.FC<DataEntryFormProps & View["props"]> = ({
   //   }
 };
 
-const MetaDataForm: React.FC = () => {
+interface FormProps {
+  selected: Tree;
+}
+
+const MetaDataForm: React.FC<FormProps> = ({ selected }) => {
   return (
     <View style={styles.formContainer}>
       <View style={styles.formRow}>
         <DataField
           type={"INTEGER"}
           label="Plot Number"
-          value={undefined}
+          value={selected.plotNumber}
           style={{ flex: 1 }}
           placeholder=""
           moreInfo="The number of the plot this tree belongs to"
           onUpdate={() => {}}
-          editable={true}
+          editable={false}
         />
         <DataField
           type={"SHORT_TEXT"}
@@ -252,12 +258,12 @@ const MetaDataForm: React.FC = () => {
         <DataField
           type={"SHORT_TEXT"}
           label="Relative Coordinates"
-          value={undefined}
+          value={`${selected.plotX}m, ${selected.plotY}m`}
           style={{ flex: 2 }}
           placeholder=""
           moreInfo="The tree's coordinates (in meters) in relation to the edge of the plot."
           onUpdate={() => {}}
-          editable={true}
+          editable={false}
         />
       </View>
       <View>
@@ -332,10 +338,54 @@ const DataForm: React.FC = () => {
   );
 };
 
-const ReviewForm: React.FC = () => {
+const ReviewableFieldMap: { [key in keyof Tree]?: string } = {
+  plotNumber: "Plot Number",
+  tag: "Tree Tag Number",
+  plotX: "X coordinate within plot (meters)",
+  plotY: "Y coordinate within plot (meters)",
+  dbh: "DBH",
+};
+const ReviewableFieldMapEntries = Object.entries(ReviewableFieldMap) as [
+  keyof Tree,
+  string
+][];
+
+const ReviewForm: React.FC<FormProps> = ({ selected }) => {
   return (
     <View style={styles.formContainer}>
-      <ScrollView />
+      <ScrollView
+        style={styles.reviewScroll}
+        showsVerticalScrollIndicator={true}
+        persistentScrollbar={true}
+      >
+        {ReviewableFieldMapEntries.map(([field, title]) => (
+          <ReviewEntry
+            field={title}
+            value={selected[field]?.toString() || ""}
+          />
+        ))}
+      </ScrollView>
+    </View>
+  );
+};
+
+interface ReviewEntryProps {
+  field: string;
+  value: string;
+}
+
+const ReviewEntry: React.FC<ReviewEntryProps> = ({ field, value }) => {
+  return (
+    <View style={{ flexDirection: "column", marginBottom: 24 }}>
+      <Text
+        variant={TextVariants.H2}
+        style={{ marginBottom: 10, fontSize: 14 }}
+      >
+        {field}
+      </Text>
+      <Text variant={TextVariants.Body} style={{ fontSize: 24 }}>
+        {value}
+      </Text>
     </View>
   );
 };
@@ -359,6 +409,12 @@ const styles = StyleSheet.create({
   navButton: {
     width: 72,
     flexGrow: 0,
+  },
+  reviewScroll: {
+    backgroundColor: "white",
+    borderRadius: 10,
+    paddingVertical: 20,
+    paddingHorizontal: 16,
   },
 });
 

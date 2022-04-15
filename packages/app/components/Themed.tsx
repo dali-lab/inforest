@@ -89,5 +89,5 @@ export function Text({
     additionalStyling.color = color;
   }
 
-  return <DefaultText style={[style, additionalStyling]} {...otherProps} />;
+  return <DefaultText style={[additionalStyling, style]} {...otherProps} />;
 }
