@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from "react";
+import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import {
   KeyboardTypeOptions,
   Pressable,
@@ -27,9 +27,10 @@ const Content: React.FC<ContentProps> = ({
   editing,
 }) => {
   const textInputRef = useRef<TextInput>(null);
+  const textInputNull = useMemo(() => textInputRef == null, [textInputRef]);
   useEffect(() => {
     textInputRef.current?.focus();
-  }, [textInputRef == null]);
+  }, [textInputNull]);
 
   let keyboardType: KeyboardTypeOptions = "default";
   switch (type) {
@@ -66,7 +67,7 @@ const Content: React.FC<ContentProps> = ({
         }
       }
     },
-    [type]
+    [type, onUpdate]
   );
 
   return (

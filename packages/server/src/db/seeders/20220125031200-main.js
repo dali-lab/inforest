@@ -113,7 +113,6 @@ module.exports = {
       const rows = await csv().fromFile(
         path.resolve(__dirname, "initial-forest-data.csv")
       );
-      console.log(rows[0]);
 
       /**
        * Plot data.
@@ -213,7 +212,7 @@ module.exports = {
           tree.tripId = DATA_SEEDER_TRIP_ID;
           tree.authorId = DATA_SEEDER_AUTHOR_ID;
           if (!!trees[tree.tag]) {
-            console.log("Duplicate tree entry", tree.tag);
+            console.error("Duplicate tree entry", tree.tag);
           }
           trees[tree.tag] = tree;
         }
@@ -301,7 +300,7 @@ module.exports = {
 
       await transaction.commit();
     } catch (err) {
-      console.log(err);
+      console.error(err);
       await transaction.rollback();
       throw err;
     }
@@ -329,7 +328,7 @@ module.exports = {
       await queryInterface.bulkDelete("teams", null, { transaction });
       await transaction.commit();
     } catch (err) {
-      console.log(err);
+      console.error(err);
       await transaction.rollback();
       throw err;
     }

@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { Fragment, useMemo } from "react";
 import { View, StyleSheet } from "react-native";
 import { BlurView } from "expo-blur";
 import { Queue, Stack } from "react-native-spacing-system";
@@ -30,14 +30,14 @@ const ColorKey: React.FC<ColorKeyProps> = ({ config }) => {
     <BlurView intensity={40}>
       <View style={styles.container}>
         {speciesToRender.map(([speciesCode, _num]) => (
-          <>
+          <Fragment key={speciesCode}>
             <KeyRow
               key={speciesCode}
               color={colorMap[speciesCode]}
               species={allSpecies?.[speciesCode]?.commonName}
             />
-            <Stack key={`${speciesCode}-spacer`} size={6}></Stack>
-          </>
+            <Stack key={`${speciesCode}-spacer`} size={6} />
+          </Fragment>
         ))}
         <KeyRow
           key="Miscellaneous"
