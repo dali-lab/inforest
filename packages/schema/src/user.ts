@@ -1,5 +1,6 @@
 import { TreeCensus } from "./tree-census";
 import { Team } from "./team";
+import { PlotCensus } from "plot-census";
 /**
  * App user
  */
@@ -43,4 +44,9 @@ export interface User {
    * Census entries authored by the user
    */
   censusedTrees?: TreeCensus[];
+
+  /**
+   * Plot censuses the user participated in
+   */
+  censusedPlots?: PlotCensus[];
 }

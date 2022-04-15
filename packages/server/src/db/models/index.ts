@@ -1,4 +1,6 @@
 import Plot from "db/models/plot";
+import PlotCensus from "db/models/plot-census";
+import PlotCensusAssignment from "db/models/plot-census-assignment";
 import Team from "db/models/team";
 import User from "db/models/user";
 import Membership from "db/models/membership";
@@ -10,10 +12,13 @@ import TreeSpecies from "db/models/tree-species";
 import TreeLabel from "db/models/tree-label";
 import TreeCensusLabel from "db/models/tree-census-label";
 import Forest from "db/models/forest";
+import ForestCensus from "db/models/forest-census";
 import Trip from "db/models/trip";
 
 export {
   Plot,
+  PlotCensus,
+  PlotCensusAssignment,
   Team,
   User,
   Membership,
@@ -25,5 +30,6 @@ export {
   TreeLabel,
   TreeCensusLabel,
   Forest,
+  ForestCensus,
   Trip,
 };

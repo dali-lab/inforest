@@ -1,6 +1,7 @@
-import { Tree, TreeLabel, TreePhoto } from "tree";
-import { Trip } from "trip";
-import { User } from "user";
+import { Tree, TreeLabel, TreePhoto } from "./tree";
+import { Trip } from "./trip";
+import { User } from "./user";
+import { PlotCensus } from "./plot-census";
 
 /**
  * Census entry of a tree in the forest.
@@ -50,6 +51,16 @@ export interface TreeCensus {
    * ID of this entry's trip
    */
   tripId: string;
+
+  /**
+   * Plot census this entry was taken during
+   */
+  plotCensus: PlotCensus;
+
+  /**
+   * ID of plot census
+   */
+  plotCensusId: string;
 
   /**
    * Object of the user who created this entry.

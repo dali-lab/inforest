@@ -13,8 +13,10 @@ import {
 import Team from "./team";
 import Plot from "./plot";
 import Trip from "./trip";
+import ForestCensus from "./forest-census";
 import {
   Forest as IForest,
+  ForestCensus as IForestCensus,
   Plot as IPlot,
   Team as ITeam,
   Trip as ITrip,
@@ -49,6 +51,9 @@ class Forest extends Model<IForest> implements IForest {
 
   @HasMany(() => Trip)
   trips: ITrip[];
+
+  @HasMany(() => ForestCensus)
+  censuses: IForestCensus[];
 }
 
 export default Forest;

@@ -1,4 +1,5 @@
 import { Plot } from "./plot";
+import { PlotCensus, PlotCensusAssignment } from "./plot-census";
 import { User } from "./user";
 import { Team } from "./team";
 import { Membership, MembershipRoles } from "./membership";
@@ -12,10 +13,13 @@ import {
 } from "./tree";
 import { TreeCensus } from "./tree-census";
 import { Forest } from "./forest";
+import { ForestCensus } from "forest-census";
 import { Trip, TripStatuses } from "./trip";
 
 export {
   Plot,
+  PlotCensus,
+  PlotCensusAssignment,
   Tree,
   TreePhoto,
   TreePhotoPurpose,
@@ -28,6 +32,7 @@ export {
   Membership,
   MembershipRoles,
   Forest,
+  ForestCensus,
   Trip,
   TripStatuses,
 };

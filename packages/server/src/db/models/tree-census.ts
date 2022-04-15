@@ -17,10 +17,11 @@ import TreeLabel from "db/models/tree-label";
 import TreeCensusLabel from "db/models/tree-census-label";
 import Trip from "db/models/trip";
 import User from "db/models/user";
-
+import PlotCensus from "db/models/plot-census";
 import {
   Tree as ITree,
   TreeCensus as ITreeCensus,
+  PlotCensus as IPlotCensus,
   TreePhoto as ITreePhoto,
   TreeLabel as ITreeLabel,
   Trip as ITrip,
@@ -84,6 +85,14 @@ class TreeCensus
 
   @BelongsTo(() => User)
   author: IUser;
+
+  @ForeignKey(() => PlotCensus)
+  @AllowNull(false)
+  @Column(DataTypes.STRING)
+  plotCensusId: string;
+
+  @BelongsTo(() => PlotCensus)
+  plotCensus: IPlotCensus;
 }
 
 export default TreeCensus;
