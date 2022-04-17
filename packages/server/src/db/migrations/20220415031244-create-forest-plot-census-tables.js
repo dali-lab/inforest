@@ -99,18 +99,19 @@ module.exports = {
       });
 
       // insert in table
-      await queryInterface.bulkInsert(
-        "forest_census",
-        uniqueForestIds.map((forestId) => ({
-          id: uuid(),
-          name: "Initial Data",
-          active: false,
-          forestId,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        })),
-        { transaction }
-      );
+      if (uniqueForestIds.length > 0)
+        await queryInterface.bulkInsert(
+          "forest_census",
+          uniqueForestIds.map((forestId) => ({
+            id: uuid(),
+            name: "Initial Data",
+            active: false,
+            forestId,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          })),
+          { transaction }
+        );
 
       // create one default plot census for each plot that has data
       // select the numbers of all plots that have tree entries (may have duplicates)
@@ -131,18 +132,19 @@ module.exports = {
       });
 
       // insert plot censuses
-      await queryInterface.bulkInsert(
-        "plot_census",
-        uniquePlots.map((plot) => ({
-          id: uuid(),
-          approved: true,
-          plotNumber: plot.number,
-          forestCensusId: plot.id,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        })),
-        { transaction }
-      );
+      if (uniquePlots.length > 0)
+        await queryInterface.bulkInsert(
+          "plot_census",
+          uniquePlots.map((plot) => ({
+            id: uuid(),
+            approved: true,
+            plotNumber: plot.number,
+            forestCensusId: plot.id,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          })),
+          { transaction }
+        );
 
       // add plot census id column to tree census table
       await queryInterface.addColumn(
@@ -167,14 +169,17 @@ module.exports = {
         }
       );
 
-      treeCensuses.map(async (census) => {
-        await queryInterface.bulkUpdate(
-          "tree_census",
-          { plotCensusId: census.plotCensusId },
-          { id: census.treeCensusId },
-          { transaction }
+      if (treeCensuses.length > 0)
+        await Promise.all(
+          treeCensuses.map(async (census) => {
+            return queryInterface.bulkUpdate(
+              "tree_census",
+              { plotCensusId: census.plotCensusId },
+              { id: census.treeCensusId },
+              { transaction }
+            );
+          })
         );
-      });
 
       await transaction.commit();
     } catch (e) {

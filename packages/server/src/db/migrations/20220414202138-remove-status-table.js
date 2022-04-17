@@ -120,22 +120,24 @@ module.exports = {
         // there is no label equivalent for ALIVE
       };
 
-      data
-        .filter((row) => {
-          row.treeLabelCode in labelStatuses;
-        })
-        .map(async (row) => {
-          await queryInterface.bulkUpdate(
-            "trees",
-            {
-              statusName: labelStatuses[row.treeLabelCode],
-            },
-            {
-              tag: row.tag,
-            },
-            { transaction }
-          );
-        });
+      await Promise.all(
+        data
+          .filter((row) => {
+            row.treeLabelCode in labelStatuses;
+          })
+          .map(async (row) => {
+            return queryInterface.bulkUpdate(
+              "trees",
+              {
+                statusName: labelStatuses[row.treeLabelCode],
+              },
+              {
+                tag: row.tag,
+              },
+              { transaction }
+            );
+          })
+      );
 
       await transaction.commit();
     } catch (e) {
