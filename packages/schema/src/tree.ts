@@ -43,12 +43,12 @@ export interface Tree {
   /**
    * Object of the tree status.
    */
-  status?: TreeStatus;
+  // status?: TreeStatus;
 
   /**
    * Name of the tree status.
    */
-  statusName?: string;
+  // statusName?: string;
 
   /**
    * Object of the tree species.
