@@ -33,6 +33,7 @@ class PlotCensus extends Model<IPlotCensus> implements IPlotCensus {
   @Column({ type: DataTypes.UUID })
   id: string;
 
+  @Default(false)
   @Column(DataTypes.BOOLEAN)
   approved: boolean;
 
