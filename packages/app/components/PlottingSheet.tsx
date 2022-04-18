@@ -239,7 +239,7 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
             const { plotX, plotY } = tree;
             if (!!plotX && !!plotY) {
               const treePixelSize =
-                (tree.dbh ?? DEFAULT_DBH) *
+                (tree.censuses?.at(0)?.dbh ?? DEFAULT_DBH) *
                 0.01 *
                 (sheetSize /
                   Math.sqrt(
