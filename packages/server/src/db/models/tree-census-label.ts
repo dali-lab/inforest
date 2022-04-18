@@ -9,28 +9,31 @@ import {
 } from "sequelize-typescript";
 import { DataTypes } from "sequelize";
 import {
-  Tree as ITree,
+  TreeCensus as ITreeCensus,
   TreeLabel as ITreeLabel,
-  TreeTreeLabel as ITreeTreeLabel,
+  TreeCensusLabel as ITreeCensusLabel,
 } from "@ong-forestry/schema";
-import Tree from "db/models/tree";
+import TreeCensus from "db/models/tree-census";
 import TreeLabel from "db/models/tree-label";
 
 @Table({
-  tableName: "tree_tree_label",
+  tableName: "tree_census_labels",
 })
-class TreeTreeLabel extends Model<ITreeTreeLabel> implements ITreeTreeLabel {
+class TreeCensusLabel
+  extends Model<ITreeCensusLabel>
+  implements ITreeCensusLabel
+{
   @PrimaryKey
   @Default(DataTypes.UUIDV4)
   @Column(DataTypes.UUID)
   id: string;
 
-  @Column(DataTypes.STRING)
-  @ForeignKey(() => Tree)
-  treeTag: string;
+  @Column(DataTypes.UUID)
+  @ForeignKey(() => TreeCensus)
+  treeCensusId: string;
 
-  @BelongsTo(() => Tree)
-  tree: ITree;
+  @BelongsTo(() => TreeCensus)
+  treeCensus: ITreeCensus;
 
   @Column(DataTypes.STRING)
   @ForeignKey(() => TreeLabel)
@@ -40,4 +43,4 @@ class TreeTreeLabel extends Model<ITreeTreeLabel> implements ITreeTreeLabel {
   treeLabel: ITreeLabel;
 }
 
-export default TreeTreeLabel;
+export default TreeCensusLabel;
