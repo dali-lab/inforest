@@ -23,7 +23,6 @@ import {
   Tree as ITree,
   TreeCensus as ITreeCensus,
   TreePhoto as ITreePhoto,
-  TreeStatus as ITreeStatus,
   TreeLabel as ITreeLabel,
   Trip as ITrip,
   User as IUser,
