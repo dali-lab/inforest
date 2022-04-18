@@ -155,6 +155,10 @@ const ExploreView: React.FC<ExploreViewProps> = (props) => {
           mapRef.current?.animateToRegion(focusToPlotRegion, 500);
           setRegionSnapshot(focusToPlotRegion);
         }
+      } else {
+        alert(
+          "A tree with that tag could not be found. Please try a different tag and try again."
+        );
       }
     },
     [allPlots, allTrees, dispatch, selectPlot]
@@ -162,36 +166,43 @@ const ExploreView: React.FC<ExploreViewProps> = (props) => {
 
   const treeNodes = useMemo(() => {
     setSpeciesFrequencyMap({});
-    return trees.map((tree: Tree) => {
-      if (!!tree.latitude && !!tree.longitude) {
-        const selected = selectedTree === tree.tag;
-        let nodeColor = visualizationConfig.satellite
-          ? Colors.neutral[1]
-          : Colors.primary.normal;
-        if (visualizationConfig.colorBySpecies) {
-          const { speciesCode } = tree;
-          if (speciesCode) {
-            nodeColor = colorMap[speciesCode];
+    // This ternary expression ensures that the selected tree is at the end of the list and is therefore rendered on top of others
+    return (selectedTree ? [...trees, allTrees[selectedTree]] : trees).map(
+      (tree: Tree, i) => {
+        if (
+          !!tree?.latitude &&
+          !!tree?.longitude &&
+          (tree.tag !== selectedTree || i !== trees.length)
+        ) {
+          const selected = selectedTree === tree.tag;
+          let nodeColor = visualizationConfig.satellite
+            ? Colors.neutral[1]
+            : Colors.primary.normal;
+          if (visualizationConfig.colorBySpecies) {
+            const { speciesCode } = tree;
+            if (speciesCode) {
+              nodeColor = colorMap[speciesCode];
+            }
           }
+          const treePixelSize =
+            (tree.dbh ?? DEFAULT_DBH) * 0.01 * 0.5 * FOLIAGE_MAGNIFICATION;
+          return (
+            <Circle
+              key={tree.tag}
+              center={{
+                latitude: tree.latitude,
+                longitude: tree.longitude,
+              }}
+              radius={treePixelSize}
+              strokeColor={selected ? Colors.highlight : nodeColor}
+              strokeWidth={6}
+              fillColor={selected ? "lightblue" : nodeColor}
+              zIndex={selected ? 50 : 2}
+            ></Circle>
+          );
         }
-        const treePixelSize =
-          (tree.dbh ?? DEFAULT_DBH) * 0.01 * 0.5 * FOLIAGE_MAGNIFICATION;
-        return (
-          <Circle
-            key={tree.tag}
-            center={{
-              latitude: tree.latitude,
-              longitude: tree.longitude,
-            }}
-            radius={treePixelSize}
-            strokeColor={selected ? Colors.highlight : nodeColor}
-            strokeWidth={4}
-            fillColor={nodeColor}
-            zIndex={selected ? 50 : 2}
-          ></Circle>
-        );
       }
-    });
+    );
   }, [
     trees,
     visualizationConfig.colorBySpecies,
