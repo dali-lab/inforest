@@ -80,6 +80,41 @@ module.exports = {
         { transaction }
       );
 
+      // create plot census assignment table
+      await queryInterface.createTable(
+        "plot_census_assignment",
+        {
+          id: {
+            type: Sequelize.UUID,
+            defaultValue: Sequelize.UUIDV4,
+            primaryKey: true,
+          },
+          plotCensusId: {
+            type: Sequelize.UUID,
+            references: {
+              model: "plot_census",
+              key: "id",
+            },
+          },
+          userId: {
+            type: Sequelize.UUID,
+            references: {
+              model: "users",
+              key: "id",
+            },
+          },
+          createdAt: {
+            type: Sequelize.DATE,
+            allowNull: false,
+          },
+          updatedAt: {
+            type: Sequelize.DATE,
+            allowNull: false,
+          },
+        },
+        { transaction }
+      );
+
       // create one default forest census for each forest that has data
       // select the ids of all forests that have tree entries (may have duplicates)
       const forests = await queryInterface.sequelize.query(
@@ -99,7 +134,7 @@ module.exports = {
       });
 
       // insert in table
-      if (uniqueForestIds.length > 0)
+      if (uniqueForestIds.length > 0) {
         await queryInterface.bulkInsert(
           "forest_census",
           uniqueForestIds.map((forestId) => ({
@@ -112,11 +147,12 @@ module.exports = {
           })),
           { transaction }
         );
+      }
 
       // create one default plot census for each plot that has data
       // select the numbers of all plots that have tree entries (may have duplicates)
       const plots = await queryInterface.sequelize.query(
-        'SELECT plots.number, forest_census.id FROM tree_census LEFT OUTER JOIN trees ON tree_census."treeTag" = trees.tag LEFT OUTER JOIN plots ON trees."plotNumber" = plots.number LEFT OUTER JOIN forests ON plots."forestId" = forests.id LEFT OUTER JOIN forest_census ON forests.id = forest_census."forestId";',
+        'SELECT plots.number AS "plotNumber", forest_census.id AS "forestCensusId" FROM tree_census LEFT OUTER JOIN trees ON tree_census."treeTag" = trees.tag LEFT OUTER JOIN plots ON trees."plotNumber" = plots.number LEFT OUTER JOIN forests ON plots."forestId" = forests.id LEFT OUTER JOIN forest_census ON forests.id = forest_census."forestId";',
         {
           transaction,
           type: Sequelize.QueryTypes.SELECT,
@@ -126,25 +162,42 @@ module.exports = {
       // remove duplicates
       var uniquePlots = [];
       plots.map((plot) => {
-        if (!uniquePlots.some((value) => plot.number == value.number)) {
-          uniquePlots.push(plot);
+        if (!uniquePlots.some((value) => plot.plotNumber == value.plotNumber)) {
+          uniquePlots.push({ ...plot, plotCensusId: uuid() });
         }
       });
 
       // insert plot censuses
-      if (uniquePlots.length > 0)
+      if (uniquePlots.length > 0) {
         await queryInterface.bulkInsert(
           "plot_census",
           uniquePlots.map((plot) => ({
-            id: uuid(),
+            id: plot.plotCensusId,
             approved: true,
-            plotNumber: plot.number,
-            forestCensusId: plot.id,
+            plotNumber: plot.plotNumber,
+            forestCensusId: plot.forestCensusId,
             createdAt: new Date(),
             updatedAt: new Date(),
           })),
           { transaction }
         );
+      }
+
+      // insert assignments to default user
+      const dataSeederId = "24ea9f85-5352-4f69-b642-23291a27ff1e";
+      if (uniquePlots.length > 0) {
+        await queryInterface.bulkInsert(
+          "plot_census_assignment",
+          uniquePlots.map((plot) => ({
+            id: uuid(),
+            plotCensusId: plot.plotCensusId,
+            userId: dataSeederId,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          })),
+          { transaction }
+        );
+      }
 
       // add plot census id column to tree census table
       await queryInterface.addColumn(
@@ -169,7 +222,7 @@ module.exports = {
         }
       );
 
-      if (treeCensuses.length > 0)
+      if (treeCensuses.length > 0) {
         await Promise.all(
           treeCensuses.map(async (census) => {
             return queryInterface.bulkUpdate(
@@ -180,6 +233,7 @@ module.exports = {
             );
           })
         );
+      }
 
       await transaction.commit();
     } catch (e) {
@@ -195,6 +249,7 @@ module.exports = {
       await queryInterface.removeColumn("tree_census", "plotCensusId", {
         transaction,
       });
+      await queryInterface.dropTable("plot_census_assignment", { transaction });
       await queryInterface.dropTable("plot_census", { transaction });
       await queryInterface.dropTable("forest_census", { transaction });
 
