@@ -185,7 +185,10 @@ const ExploreView: React.FC<ExploreViewProps> = (props) => {
             }
           }
           const treePixelSize =
-            (tree.dbh ?? DEFAULT_DBH) * 0.01 * 0.5 * FOLIAGE_MAGNIFICATION;
+            (tree.censuses?.at(0)?.dbh ?? DEFAULT_DBH) *
+            0.01 *
+            0.5 *
+            FOLIAGE_MAGNIFICATION;
           return (
             <Circle
               key={tree.tag}
