@@ -20,7 +20,7 @@ export interface PlotCensus {
   /**
    * Plot censused.
    */
-  plot: Plot;
+  plot?: Plot;
 
   /**
    * Plot number of the plot censused.
@@ -30,7 +30,7 @@ export interface PlotCensus {
   /**
    * Forest census this plot census belongs to
    */
-  forestCensus: ForestCensus;
+  forestCensus?: ForestCensus;
 
   /**
    * ID of plot census' forest census
@@ -40,12 +40,12 @@ export interface PlotCensus {
   /**
    * Users assigned to census this plot
    */
-  authors: User[];
+  authors?: User[];
 
   /**
    * Tree censuses taken during this plot census
    */
-  treeCensuses: TreeCensus[];
+  treeCensuses?: TreeCensus[];
 }
 
 /**
@@ -60,7 +60,7 @@ export interface PlotCensusAssignment {
   /**
    * The plot census contributed to by the user
    */
-  plotCensus: PlotCensus;
+  plotCensus?: PlotCensus;
 
   /**
    * The ID of the plot census
@@ -70,7 +70,7 @@ export interface PlotCensusAssignment {
   /**
    * The user censusing the plot in this census generation
    */
-  user: User;
+  user?: User;
 
   /**
    * User's ID

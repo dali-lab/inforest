@@ -20,7 +20,7 @@ export interface TreeCensus {
   /**
    * Object of the tree being censused.
    */
-  tree: Tree;
+  tree?: Tree;
 
   /**
    * Tree diameter breast height in centimeters.
@@ -40,12 +40,12 @@ export interface TreeCensus {
   /**
    * Tree photos.
    */
-  photos: TreePhoto[];
+  photos?: TreePhoto[];
 
   /**
    * Trip this entry was collected during
    */
-  trip: Trip;
+  trip?: Trip;
 
   /**
    * ID of this entry's trip
@@ -55,7 +55,7 @@ export interface TreeCensus {
   /**
    * Plot census this entry was taken during
    */
-  plotCensus: PlotCensus;
+  plotCensus?: PlotCensus;
 
   /**
    * ID of plot census
@@ -65,7 +65,7 @@ export interface TreeCensus {
   /**
    * Object of the user who created this entry.
    */
-  author: User;
+  author?: User;
 
   /**
    * ID of the user who created this entry.

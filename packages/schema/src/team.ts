@@ -23,10 +23,10 @@ export interface Team {
   /**
    * List of non-admin Users, both admins and non-admins, who will be able to contribute data to the Team
    */
-  members: User[];
+  members?: User[];
 
   /**
    * Forests managed by this team
    */
-  forests: Forest[];
+  forests?: Forest[];
 }

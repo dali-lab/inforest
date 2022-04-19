@@ -36,7 +36,7 @@ export interface Trip {
   /**
    * Forest where the trip was carried out
    */
-  forest: Forest;
+  forest?: Forest;
 
   /**
    * ID of Forest
@@ -46,5 +46,5 @@ export interface Trip {
   /**
    * Census entries made on this trip
    */
-  censusedTrees: TreeCensus[];
+  censusedTrees?: TreeCensus[];
 }

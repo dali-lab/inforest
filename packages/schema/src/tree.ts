@@ -95,12 +95,12 @@ export interface TreeSpecies {
   /**
    * Species type
    */
-  type: TreeSpeciesTypes;
+  type?: TreeSpeciesTypes;
 
   /**
    * Entries for trees of this species
    */
-  trees: Tree[];
+  trees?: Tree[];
 }
 
 export interface TreeLabel {
@@ -117,7 +117,7 @@ export interface TreeLabel {
   /**
    * The census entries that have this label
    */
-  censusedTrees: TreeCensus[];
+  censusedTrees?: TreeCensus[];
 }
 
 /**
@@ -137,7 +137,7 @@ export interface TreeCensusLabel {
   /**
    * The object of the census entry
    */
-  treeCensus: TreeCensus;
+  treeCensus?: TreeCensus;
 
   /**
    * The code of the tree's TreeLabel
@@ -147,7 +147,7 @@ export interface TreeCensusLabel {
   /**
    * The tree's TreeLabel
    */
-  treeLabel: TreeLabel;
+  treeLabel?: TreeLabel;
 }
 
 export interface TreePhoto {
@@ -169,7 +169,7 @@ export interface TreePhoto {
   /**
    * Object of the census entry this photograph belongs to
    */
-  treeCensus: TreeCensus;
+  treeCensus?: TreeCensus;
 
   /**
    * Name/foreign key of photo's associated purpose
@@ -179,7 +179,7 @@ export interface TreePhoto {
   /**
    * Photo's full associated purpose
    */
-  purpose: TreePhotoPurpose;
+  purpose?: TreePhotoPurpose;
 }
 
 export interface TreePhotoPurpose {
@@ -191,5 +191,5 @@ export interface TreePhotoPurpose {
   /**
    * Photos with this purpose
    */
-  photos: TreePhoto[];
+  photos?: TreePhoto[];
 }

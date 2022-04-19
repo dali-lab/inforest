@@ -23,7 +23,7 @@ export interface ForestCensus {
   /**
    * Forest being censused
    */
-  forest: Forest;
+  forest?: Forest;
 
   /**
    * ID of the forest censused.
@@ -33,5 +33,5 @@ export interface ForestCensus {
   /**
    * Plot censuses that are part of this forest census
    */
-  plotCensuses: PlotCensus[];
+  plotCensuses?: PlotCensus[];
 }
