@@ -1,6 +1,6 @@
 import React from "react";
 import { View } from "react-native";
-import Color from "color";
+import Colors from "../constants/Colors";
 
 type TreeMarkerProps = {
   color: string;
@@ -16,9 +16,7 @@ export const TreeMarker = ({
   return (
     <View
       style={{
-        backgroundColor: selected
-          ? new Color().hex(color).lighten(0.1).toString()
-          : color,
+        backgroundColor: selected ? Colors.highlight : color,
         width: size,
         height: size,
         borderRadius: size / 2,

@@ -198,8 +198,7 @@ const ExploreView: React.FC<ExploreViewProps> = (props) => {
               }}
               radius={treePixelSize}
               strokeColor={selected ? Colors.highlight : nodeColor}
-              strokeWidth={6}
-              fillColor={selected ? "lightblue" : nodeColor}
+              fillColor={selected ? Colors.highlight : nodeColor}
               zIndex={selected ? 50 : 2}
             ></Circle>
           );
@@ -207,6 +206,7 @@ const ExploreView: React.FC<ExploreViewProps> = (props) => {
       }
     );
   }, [
+    allTrees,
     trees,
     visualizationConfig.colorBySpecies,
     visualizationConfig.satellite,
