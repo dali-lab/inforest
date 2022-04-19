@@ -174,7 +174,6 @@ export const getTrees = async (params: GetTreesParams) => {
   return await TreeModel.findAll({
     ...query,
     include: TreeCensus,
-    order: [[TreeCensus, "createdAt", "DESC"]],
   });
 };
 
