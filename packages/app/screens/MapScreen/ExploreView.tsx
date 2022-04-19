@@ -185,7 +185,10 @@ const ExploreView: React.FC<ExploreViewProps> = (props) => {
             }
           }
           const treePixelSize =
-            (tree.dbh ?? DEFAULT_DBH) * 0.01 * 0.5 * FOLIAGE_MAGNIFICATION;
+            (tree.censuses?.at(0)?.dbh ?? DEFAULT_DBH) *
+            0.01 *
+            0.5 *
+            FOLIAGE_MAGNIFICATION;
           return (
             <Circle
               key={tree.tag}
@@ -195,8 +198,7 @@ const ExploreView: React.FC<ExploreViewProps> = (props) => {
               }}
               radius={treePixelSize}
               strokeColor={selected ? Colors.highlight : nodeColor}
-              strokeWidth={6}
-              fillColor={selected ? "lightblue" : nodeColor}
+              fillColor={selected ? Colors.highlight : nodeColor}
               zIndex={selected ? 50 : 2}
             ></Circle>
           );
@@ -204,6 +206,7 @@ const ExploreView: React.FC<ExploreViewProps> = (props) => {
       }
     );
   }, [
+    allTrees,
     trees,
     visualizationConfig.colorBySpecies,
     visualizationConfig.satellite,

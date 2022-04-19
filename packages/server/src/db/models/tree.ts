@@ -7,15 +7,17 @@ import {
   ForeignKey,
   BelongsTo,
   AllowNull,
+  HasMany,
 } from "sequelize-typescript";
 import Plot from "db/models/plot";
 import TreeStatus from "db/models/tree-status";
 import TreeSpecies from "db/models/tree-species";
-
+import TreeCensus from "db/models/tree-census";
 import {
   Tree as ITree,
   TreeSpecies as ITreeSpecies,
   TreeStatus as ITreeStatus,
+  TreeCensus as ITreeCensus,
   Plot as IPlot,
 } from "@ong-forestry/schema";
 
@@ -73,6 +75,9 @@ class Tree
 
   @BelongsTo(() => TreeStatus)
   status: ITreeStatus;
+
+  @HasMany(() => TreeCensus)
+  censuses: ITreeCensus[];
 }
 
 export default Tree;
