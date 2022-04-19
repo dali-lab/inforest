@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import * as utm from "utm";
 import DashedLine from "react-native-dashed-line";
@@ -64,7 +64,12 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
     drafts,
     selected: selectedTreeTag,
   } = useAppSelector((state) => state.trees);
-  const selected = selectedTreeTag ? all[selectedTreeTag] : undefined;
+  const selected = useMemo(() => {
+    if (selectedTreeTag) {
+      return all[selectedTreeTag];
+    }
+    return;
+  }, [all, selectedTreeTag]);
   const trees = useTreesInPlots(
     useTreesByDensity(
       useAppSelector((state) => state),
