@@ -185,7 +185,7 @@ const ExploreView: React.FC<ExploreViewProps> = (props) => {
             }
           }
           const treePixelSize =
-            (tree.censuses?.at(0)?.dbh ?? DEFAULT_DBH) *
+            (tree?.censuses?.[0]?.dbh ?? DEFAULT_DBH) *
             0.01 *
             0.5 *
             FOLIAGE_MAGNIFICATION;
@@ -196,7 +196,7 @@ const ExploreView: React.FC<ExploreViewProps> = (props) => {
                 latitude: tree.latitude,
                 longitude: tree.longitude,
               }}
-              radius={treePixelSize}
+              radius={selected ? 1.5 : treePixelSize}
               strokeColor={selected ? Colors.highlight : nodeColor}
               fillColor={selected ? Colors.highlight : nodeColor}
               zIndex={selected ? 50 : 2}
