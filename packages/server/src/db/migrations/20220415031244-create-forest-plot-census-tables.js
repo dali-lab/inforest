@@ -126,7 +126,7 @@ module.exports = {
       );
 
       // remove duplicates
-      var uniqueForestIds = [];
+      const uniqueForestIds = [];
       forests.map((forest) => {
         if (!uniqueForestIds.includes(forest.id)) {
           uniqueForestIds.push(forest.id);
@@ -160,7 +160,7 @@ module.exports = {
       );
 
       // remove duplicates
-      var uniquePlots = [];
+      const uniquePlots = [];
       plots.map((plot) => {
         if (!uniquePlots.some((value) => plot.plotNumber == value.plotNumber)) {
           uniquePlots.push({ ...plot, plotCensusId: uuid() });
