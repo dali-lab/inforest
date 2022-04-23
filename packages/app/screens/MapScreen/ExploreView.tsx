@@ -196,7 +196,7 @@ const ExploreView: React.FC<ExploreViewProps> = (props) => {
                 latitude: tree.latitude,
                 longitude: tree.longitude,
               }}
-              radius={selected ? 1.5 : treePixelSize}
+              radius={selected ? Math.max(1.5, treePixelSize) : treePixelSize}
               strokeColor={selected ? Colors.highlight : nodeColor}
               fillColor={selected ? Colors.highlight : nodeColor}
               zIndex={selected ? 50 : 2}
