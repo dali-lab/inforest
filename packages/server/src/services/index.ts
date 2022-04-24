@@ -2,6 +2,8 @@ export * from "services/tree-service";
 export * from "services/team-service";
 export * from "services/user-service";
 export * from "services/plot-service";
+export * from "services/plot-census-service";
+export * from "services/plot-census-assignment-service";
 export * from "services/forest-service";
 export * from "services/trip-service";
 export * from "services/membership-service";

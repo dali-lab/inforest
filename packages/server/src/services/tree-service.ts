@@ -8,7 +8,7 @@ export const createTrees = async (tree: Tree) => {
 
 export interface GetTreesParams {
   tags?: string[];
-  plotNumbers?: number[];
+  plotIds?: string[];
   speciesCodes?: string[];
 
   latMin?: number;
@@ -37,7 +37,7 @@ export interface GetTreesParams {
 const constructQuery = (params: GetTreesParams) => {
   const {
     tags,
-    plotNumbers,
+    plotIds,
     latMin,
     latMax,
     longMin,
@@ -64,9 +64,9 @@ const constructQuery = (params: GetTreesParams) => {
       [Op.in]: tags,
     };
   }
-  if (plotNumbers) {
-    query.where.plotNumber = {
-      [Op.in]: plotNumbers,
+  if (plotIds) {
+    query.where.plotId = {
+      [Op.in]: plotIds,
     };
   }
   if (speciesCodes) {
