@@ -1,4 +1,5 @@
 export * from "routes/tree-routes";
+export * from "routes/tree-census-routes";
 export * from "routes/user-routes";
 export * from "routes/team-routes";
 export * from "routes/forest-routes";

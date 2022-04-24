@@ -9,6 +9,7 @@ import morgan from "morgan";
 import * as models from "db/models";
 import {
   treeRouter,
+  treeCensusRouter,
   plotRouter,
   plotCensusRouter,
   plotCensusAssignmentRouter,
@@ -55,6 +56,7 @@ try {
 }
 
 app.use("/trees", treeRouter);
+app.use("/tree_census", treeCensusRouter);
 app.use("/plots", plotRouter);
 app.use("/plot_census", plotCensusRouter);
 app.use("/plot_census_assignments", plotCensusAssignmentRouter);
