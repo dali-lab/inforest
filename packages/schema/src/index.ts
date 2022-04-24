@@ -17,7 +17,7 @@ import {
 } from "./tree";
 import { TreeCensus } from "./tree-census";
 import { Forest } from "./forest";
-import { ForestCensus } from "forest-census";
+import { ForestCensus } from "./forest-census";
 import { Trip, TripStatuses } from "./trip";
 
 export {
