@@ -9,13 +9,11 @@ import {
   AllowNull,
 } from "sequelize-typescript";
 import Plot from "db/models/plot";
-import TreeStatus from "db/models/tree-status";
 import TreeSpecies from "db/models/tree-species";
 
 import {
   Tree as ITree,
   TreeSpecies as ITreeSpecies,
-  TreeStatus as ITreeStatus,
   Plot as IPlot,
 } from "@ong-forestry/schema";
 
@@ -66,13 +64,6 @@ class Tree
 
   @BelongsTo(() => TreeSpecies)
   species: ITreeSpecies;
-
-  @ForeignKey(() => TreeStatus)
-  @Column(DataTypes.STRING)
-  statusName: string;
-
-  @BelongsTo(() => TreeStatus)
-  status: ITreeStatus;
 }
 
 export default Tree;

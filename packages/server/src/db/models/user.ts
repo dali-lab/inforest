@@ -14,12 +14,15 @@ import {
 import bcrypt from "bcrypt";
 import {
   TreeCensus as ITreeCensus,
+  PlotCensus as IPlotCensus,
   User as IUser,
   Team as ITeam,
 } from "@ong-forestry/schema";
 import Team from "db/models/team";
 import Membership from "db/models/membership";
 import TreeCensus from "db/models/tree-census";
+import PlotCensus from "db/models/plot-census";
+import PlotCensusAssignment from "db/models/plot-census-assignment";
 
 @Table({
   tableName: "users",
@@ -55,6 +58,9 @@ class User extends Model<IUser> implements IUser {
 
   @HasMany(() => TreeCensus)
   censusedTrees: ITreeCensus[];
+
+  @BelongsToMany(() => PlotCensus, () => PlotCensusAssignment)
+  censusedPlots: IPlotCensus[];
 
   @BeforeCreate
   static encryptPassword = async (instance: IUser) => {
