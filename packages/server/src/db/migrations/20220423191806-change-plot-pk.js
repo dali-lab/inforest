@@ -105,6 +105,17 @@ module.exports = {
   async down(queryInterface, Sequelize) {
     const transaction = await queryInterface.sequelize.transaction();
     try {
+      // make number unique
+      await queryInterface.changeColumn(
+        "plots",
+        "number",
+        {
+          type: Sequelize.STRING,
+          unique: true,
+        },
+        { transaction }
+      );
+
       // get all plot ids and numbers
       const plots = await queryInterface.sequelize.query(
         "SELECT id, number FROM plots",
@@ -141,7 +152,7 @@ module.exports = {
         })
       );
       await queryInterface.sequelize.query(
-        'ALTER TABLE trees DROP CONSTRAINT "trees_plotId_fkey"; ALTER TABLE trees ADD CONSTRAINT "trees_plotNumber_fkey" FOREIGN KEY (plotNumber) REFERENCES plots (number)',
+        'ALTER TABLE trees DROP CONSTRAINT "trees_plotId_fkey"; ALTER TABLE trees ADD CONSTRAINT "trees_plotNumber_fkey" FOREIGN KEY ("plotNumber") REFERENCES plots (number)',
         { transaction }
       );
       await queryInterface.removeColumn("trees", "plotId", { transaction });
@@ -164,7 +175,7 @@ module.exports = {
         })
       );
       await queryInterface.sequelize.query(
-        'ALTER TABLE plot_census DROP CONSTRAINT "plot_census_plotId_fkey"; ALTER TABLE plot_census ADD CONSTRAINT "plot_census_plotNumber_fkey" FOREIGN KEY (plotNumber) REFERENCES plots (number)',
+        'ALTER TABLE plot_census DROP CONSTRAINT "plot_census_plotId_fkey"; ALTER TABLE plot_census ADD CONSTRAINT "plot_census_plotNumber_fkey" FOREIGN KEY ("plotNumber") REFERENCES plots (number)',
         { transaction }
       );
       await queryInterface.removeColumn("plot_census", "plotId", {
