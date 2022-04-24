@@ -11,7 +11,7 @@ type GetForestPlotsParams = {
 
 export const getForestPlots = createAsyncThunk(
   "plot/getForestPlots",
-  async (params: GetForestPlotsParams, thunkApi) => {
+  async (params: GetForestPlotsParams) => {
     return await axios
       .get<Plot[]>(`${BASE_URL}?forestId=${params.forestId}`)
       .then((response) => {

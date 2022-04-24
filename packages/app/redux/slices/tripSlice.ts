@@ -1,8 +1,8 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { Trip } from "@ong-forestry/schema";
-import SERVER_URL from "../../constants/Url";
+// import SERVER_URL from "../../constants/Url";
 
-const BASE_URL = SERVER_URL + "trips/";
+// const BASE_URL = SERVER_URL + "trips/";
 
 export interface TripState {
   currentForestTrips: Trip[];

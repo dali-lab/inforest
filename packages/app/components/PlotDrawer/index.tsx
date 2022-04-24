@@ -12,18 +12,26 @@ import { Text, TextVariants } from "../Themed";
 import useAppDispatch from "../../hooks/useAppDispatch";
 import DataEntryForm from "./DataEntryForm";
 
-interface PlotDrawerProps {
-  mode: MapScreenModes;
+type PlotDrawerProps = {
   drawerState: DrawerStates;
   plot?: Plot;
   forest?: Forest;
-  setDrawerHeight: (height: number) => void;
-  openVisualizationModal: () => void;
-  beginPlotting: () => void;
-  endPlotting: () => void;
   expandDrawer: () => void;
   minimizeDrawer: () => void;
-}
+} & (
+  | {
+      mode: MapScreenModes.Select | MapScreenModes.Explore;
+      beginPlotting: () => void;
+      endPlotting?: undefined;
+      setDrawerHeight: (height: number) => void;
+    }
+  | {
+      mode: MapScreenModes.Plot;
+      beginPlotting?: undefined;
+      endPlotting: () => void;
+      setDrawerHeight?: (height: number) => void;
+    }
+);
 
 export const PlotDrawer: React.FC<PlotDrawerProps> = ({
   mode,
@@ -36,10 +44,9 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
 }) => {
   useEffect(() => {
     return function cleanup() {
-      setDrawerHeight(0);
+      setDrawerHeight && setDrawerHeight(0);
     };
   }, []);
-
   const dispatch = useAppDispatch();
 
   const {
@@ -72,7 +79,7 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
       }
       return latestCensus;
     },
-    [byPlots]
+    [byPlots, all]
   );
 
   if (drawerState === DrawerStates.Closed) {
@@ -83,7 +90,7 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
     <Animated.View
       style={{ ...styles.container, ...setStyle() }}
       onLayout={(e) => {
-        setDrawerHeight(e.nativeEvent.layout.height);
+        setDrawerHeight && setDrawerHeight(e.nativeEvent.layout.height);
       }}
     >
       <BlurView style={styles.blurContainer} intensity={40}>
@@ -164,7 +171,7 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
             {drawerState === "EXPANDED" && !!selected && (
               <>
                 <Stack size={24}></Stack>
-                <View style={styles.content}>
+                <View>
                   <DataEntryForm
                     cancel={() => {
                       dispatch(locallyDeleteTree(selected.tag));
@@ -209,8 +216,5 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-  },
-  content: {
-    // height: 512,
   },
 });

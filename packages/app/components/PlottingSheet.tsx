@@ -56,7 +56,7 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
         ) / 100
       );
     },
-    [sheetSize]
+    [sheetSize, plot.length, plot.width]
   );
   const dispatch = useAppDispatch();
   const {

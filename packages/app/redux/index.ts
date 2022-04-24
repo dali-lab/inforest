@@ -8,8 +8,8 @@ import {
   tripReducer,
   treeSpeciesReducer,
 } from "./slices";
-import { persistReducer } from "redux-persist";
-import ExpoFileSystemStorage from "redux-persist-expo-filesystem";
+// import { persistReducer } from "redux-persist";
+// import ExpoFileSystemStorage from "redux-persist-expo-filesystem";
 import { enableMapSet } from "immer";
 
 enableMapSet();
@@ -25,10 +25,10 @@ const rootReducer = combineReducers({
   trips: tripReducer,
 });
 
-const persistConfig = {
-  key: "root",
-  storage: ExpoFileSystemStorage,
-};
+// const persistConfig = {
+//   key: "root",
+//   storage: ExpoFileSystemStorage,
+// };
 
 // const persistedReducer = persistReducer(persistConfig, rootReducer);
 
