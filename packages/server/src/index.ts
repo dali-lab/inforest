@@ -10,6 +10,7 @@ import * as models from "db/models";
 import {
   treeRouter,
   plotRouter,
+  plotCensusRouter,
   plotCensusAssignmentRouter,
   userRouter,
   teamRouter,
@@ -55,6 +56,7 @@ try {
 
 app.use("/trees", treeRouter);
 app.use("/plots", plotRouter);
+app.use("/plot_census", plotCensusRouter);
 app.use("/plot_census_assignments", plotCensusAssignmentRouter);
 app.use("/users", userRouter);
 app.use("/teams", teamRouter);
