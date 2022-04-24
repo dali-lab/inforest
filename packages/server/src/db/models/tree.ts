@@ -41,7 +41,7 @@ class Tree
   @ForeignKey(() => Plot)
   @AllowNull(false)
   @Column(DataTypes.STRING)
-  plotNumber: string;
+  plotId: string;
 
   @BelongsTo(() => Plot)
   plot: IPlot;

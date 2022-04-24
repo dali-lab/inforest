@@ -11,9 +11,9 @@ export interface Tree {
   tag: string;
 
   /**
-   * Number of the plot where the tree is located.
+   * ID of the plot where the tree is located.
    */
-  plotNumber: string;
+  plotId: string;
 
   /**
    * Object of the plot where the tree is located.
