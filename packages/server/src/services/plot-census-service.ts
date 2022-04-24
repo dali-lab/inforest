@@ -110,6 +110,6 @@ export const submitForReview = async (args: { plotId: string }) => {
 
   await PlotCensusModel.update(
     { status: PlotCensusStatuses.Pending },
-    { where: { id: census[0].id } }
+    { where: { id: { [Op.eq]: census[0].id } } }
   );
 };

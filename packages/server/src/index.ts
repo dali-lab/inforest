@@ -16,6 +16,7 @@ import {
   userRouter,
   teamRouter,
   forestRouter,
+  forestCensusRouter,
   membershipRouter,
   tripRouter,
 } from "routes";
@@ -63,5 +64,6 @@ app.use("/plot_census_assignments", plotCensusAssignmentRouter);
 app.use("/users", userRouter);
 app.use("/teams", teamRouter);
 app.use("/forests", forestRouter);
+app.use("/forest_census", forestCensusRouter);
 app.use("/memberships", membershipRouter);
 app.use("/trips", tripRouter);
