@@ -23,7 +23,7 @@ import {
   indexes: [
     {
       name: "absolute_position",
-      fields: ["lat", "long"],
+      fields: ["latitude", "longitude"],
     },
     {
       name: "relative_position",

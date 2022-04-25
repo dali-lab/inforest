@@ -7,7 +7,7 @@ import {
   getTrips,
   GetTripsParams,
 } from "services";
-import { requireAuth } from "services/auth-service";
+import { requireAuth } from "middleware/auth";
 
 const tripRouter = express.Router();
 

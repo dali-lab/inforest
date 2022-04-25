@@ -19,7 +19,7 @@ import {
 } from "@ong-forestry/schema";
 
 @Table({
-  tableName: "Trips",
+  tableName: "trips",
 })
 class Trip extends Model<ITrip> implements ITrip {
   @PrimaryKey
@@ -36,7 +36,7 @@ class Trip extends Model<ITrip> implements ITrip {
 
   @ForeignKey(() => Forest)
   @AllowNull(false)
-  @Column(DataTypes.STRING)
+  @Column(DataTypes.UUID)
   forestId: string;
 
   @HasMany(() => TreeCensus)

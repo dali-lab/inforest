@@ -1,24 +1,35 @@
 import { TreePhoto } from "@ong-forestry/schema";
 import express from "express";
+import multer from "multer";
 import {
   createTreePhoto,
   getTreePhotos,
   editTreePhotos,
   deleteTreePhotos,
 } from "services";
-import { requireAuth } from "services/auth-service";
+import { requireAuth, imageResize } from "middleware";
+
+const upload = multer({
+  limits: { fieldSize: 25 * 1024 * 1024 },
+});
 
 const treePhotoRouter = express.Router();
 
-treePhotoRouter.post<{}, any, TreePhoto>("/", async (req, res) => {
-  try {
-    const photo = await createTreePhoto(req.body);
-    res.status(201).json(photo);
-  } catch (e: any) {
-    console.error(e);
-    res.status(500).send(e?.message ?? "Unknown error.");
+treePhotoRouter.post<{}, any, TreePhoto>(
+  "/",
+  // the second input of upload.array() is the max number of images uploaded at a time
+  // this route only handles single images being sent at a time, so we set it to 1
+  [upload.array("images", 1), imageResize],
+  async (req: any, res: any) => {
+    try {
+      const photo = await createTreePhoto(req);
+      res.status(201).json(photo);
+    } catch (e: any) {
+      console.error(e);
+      res.status(500).send(e?.message ?? "Unknown error.");
+    }
   }
-});
+);
 
 const parseParams = (query: any) => ({
   id: query.id as string,

@@ -7,7 +7,7 @@ import {
   getMemberships,
   GetMembershipsParams,
 } from "services";
-import { requireAuth } from "services/auth-service";
+import { requireAuth } from "middleware/auth";
 
 const membershipRouter = express.Router();
 

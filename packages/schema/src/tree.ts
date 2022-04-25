@@ -162,9 +162,14 @@ export interface TreePhoto {
   id: string;
 
   /**
-   * URL link to photo
+   * URL link to full-sized photo
    */
-  url: string;
+  fullUrl: string;
+
+  /**
+   * URL link to minified, thumbnail version of the photo
+   */
+  thumbUrl: string;
 
   /**
    * ID of census entry this photograph belongs to

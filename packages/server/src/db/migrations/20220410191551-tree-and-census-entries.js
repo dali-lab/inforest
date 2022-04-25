@@ -404,6 +404,11 @@ module.exports = {
         transaction,
       });
 
+      await queryInterface.renameTable(
+        "tree_census_labels",
+        "tree_tree_label",
+        { transaction }
+      );
       /**
        *
        * UNMIGRATE TREE_PHOTOS TABLE

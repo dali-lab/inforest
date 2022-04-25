@@ -1,6 +1,6 @@
 import { TreeLabel } from "@ong-forestry/schema";
 import express from "express";
-import { requireAuth } from "services/auth-service";
+import { requireAuth } from "middleware/auth";
 import {
   createTreeLabel,
   deleteTreeLabels,

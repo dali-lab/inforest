@@ -50,7 +50,7 @@ class PlotCensus extends Model<IPlotCensus> implements IPlotCensus {
 
   @ForeignKey(() => ForestCensus)
   @AllowNull(false)
-  @Column(DataTypes.STRING)
+  @Column(DataTypes.UUID)
   forestCensusId: string;
 
   @BelongsToMany(() => User, () => PlotCensusAssignment)

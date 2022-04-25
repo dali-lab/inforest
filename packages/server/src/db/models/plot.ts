@@ -22,13 +22,12 @@ import PlotCensus from "./plot-census";
   indexes: [
     {
       name: "position",
-      fields: ["lat", "long"],
+      fields: ["latitude", "longitude"],
     },
   ],
 })
 class Plot extends Model<IPlot> implements IPlot {
   @PrimaryKey
-  @AutoIncrement
   @Column(DataTypes.STRING)
   number: string;
 
@@ -45,7 +44,7 @@ class Plot extends Model<IPlot> implements IPlot {
   width: number;
 
   @ForeignKey(() => Forest)
-  @Column(DataTypes.STRING)
+  @Column(DataTypes.UUID)
   forestId: string;
 
   @BelongsTo(() => Forest)

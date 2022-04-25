@@ -72,7 +72,7 @@ class TreeCensus
 
   @ForeignKey(() => Trip)
   @AllowNull(false)
-  @Column(DataTypes.STRING)
+  @Column(DataTypes.UUID)
   tripId: string;
 
   @BelongsTo(() => Trip)
@@ -80,7 +80,7 @@ class TreeCensus
 
   @ForeignKey(() => User)
   @AllowNull(false)
-  @Column(DataTypes.STRING)
+  @Column(DataTypes.UUID)
   authorId: string;
 
   @BelongsTo(() => User)
@@ -88,7 +88,7 @@ class TreeCensus
 
   @ForeignKey(() => PlotCensus)
   @AllowNull(false)
-  @Column(DataTypes.STRING)
+  @Column(DataTypes.UUID)
   plotCensusId: string;
 
   @BelongsTo(() => PlotCensus)

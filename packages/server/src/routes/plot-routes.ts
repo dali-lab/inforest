@@ -7,7 +7,7 @@ import {
   getPlots,
   GetPlotsParams,
 } from "services";
-import { requireAuth } from "services/auth-service";
+import { requireAuth } from "middleware/auth";
 
 const plotRouter = express.Router();
 

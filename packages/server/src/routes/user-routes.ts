@@ -9,7 +9,7 @@ import {
 } from "services";
 import passport from "passport";
 import jwt from "jsonwebtoken";
-import { requireAuth } from "services/auth-service";
+import { requireAuth } from "middleware/auth";
 
 const userRouter = express.Router();
 

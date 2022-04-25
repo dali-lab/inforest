@@ -7,7 +7,7 @@ import {
   editTrees,
   deleteTrees,
 } from "services";
-import { requireAuth } from "services/auth-service";
+import { requireAuth } from "middleware/auth";
 import { treePhotoRouter } from "./tree-photo-routes";
 import { treeSpeciesRouter } from "./tree-species-routes";
 import { treeLabelRouter } from "./tree-label-routes";

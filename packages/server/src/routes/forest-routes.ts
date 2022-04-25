@@ -7,7 +7,7 @@ import {
   getForests,
   GetForestsParams,
 } from "services";
-import { requireAuth } from "services/auth-service";
+import { requireAuth } from "middleware";
 
 const forestRouter = express.Router();
 
