@@ -207,7 +207,6 @@ module.exports = {
           tree.longitude = longitude;
           tree.createdAt = new Date(date);
           tree.updatedAt = tree.createdAt;
-          tree.statusName = "ALIVE";
           tree.labelCodes = Code in labels ? [Code] : ["P"];
           tree.tripId = DATA_SEEDER_TRIP_ID;
           tree.authorId = DATA_SEEDER_AUTHOR_ID;
@@ -230,27 +229,7 @@ module.exports = {
         })),
         { transaction }
       );
-      await queryInterface.bulkInsert(
-        "tree_statuses",
-        [
-          {
-            name: "ALIVE",
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          },
-          {
-            name: "DEAD_STANDING",
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          },
-          {
-            name: "DEAD_FALLEN",
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          },
-        ],
-        { transaction }
-      );
+
       const treePurposes = ["FULL", "CANOPY", "BARK", "LEAF", "SOIL"];
       await queryInterface.bulkInsert(
         "tree_photo_purposes",
@@ -286,7 +265,6 @@ module.exports = {
           plotX: tree.plotX,
           plotY: tree.plotY,
           speciesCode: tree.speciesCode,
-          statusName: tree.statusName,
           createdAt: tree.createdAt,
           updatedAt: tree.updatedAt,
         })),
@@ -356,7 +334,6 @@ module.exports = {
       await queryInterface.bulkDelete("tree_census", null, { transaction });
       await queryInterface.bulkDelete("trees", null, { transaction });
       await queryInterface.bulkDelete("tree_species", null, { transaction });
-      await queryInterface.bulkDelete("tree_statuses", null, { transaction });
       await queryInterface.bulkDelete("tree_labels", null, { transaction });
       await queryInterface.bulkDelete("users", null, { transaction });
       await queryInterface.bulkDelete("plots", null, { transaction });

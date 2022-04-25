@@ -7,9 +7,15 @@ import {
   AutoIncrement,
   ForeignKey,
   BelongsTo,
+  HasMany,
 } from "sequelize-typescript";
-import { Forest as IForest, Plot as IPlot } from "@ong-forestry/schema";
+import {
+  Forest as IForest,
+  Plot as IPlot,
+  PlotCensus as IPlotCensus,
+} from "@ong-forestry/schema";
 import Forest from "./forest";
+import PlotCensus from "./plot-census";
 
 @Table({
   tableName: "plots",
@@ -44,6 +50,9 @@ class Plot extends Model<IPlot> implements IPlot {
 
   @BelongsTo(() => Forest)
   forest: IForest;
+
+  @HasMany(() => PlotCensus)
+  censuses: IPlotCensus[];
 }
 
 export default Plot;
