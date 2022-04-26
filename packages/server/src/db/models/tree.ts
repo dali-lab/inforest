@@ -16,6 +16,7 @@ import {
   Tree as ITree,
   TreeSpecies as ITreeSpecies,
   Plot as IPlot,
+  TreeCensus as ITreeCensus,
 } from "@ong-forestry/schema";
 
 @Table({
@@ -65,6 +66,9 @@ class Tree
 
   @BelongsTo(() => TreeSpecies)
   species: ITreeSpecies;
+
+  @HasMany(() => TreeCensus)
+  censuses: ITreeCensus[];
 }
 
 export default Tree;
