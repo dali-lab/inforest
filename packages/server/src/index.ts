@@ -50,6 +50,8 @@ const sequelize = new Sequelize(
   }
 );
 
+// sequelize.sync();
+
 try {
   sequelize.authenticate();
   console.log("Database connection has been established successfully.");

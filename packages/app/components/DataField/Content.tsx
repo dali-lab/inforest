@@ -13,11 +13,11 @@ import {
   View,
   Image,
   FlatList,
-  ListRenderItem,
   ListRenderItemInfo,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Inset, Queue } from "react-native-spacing-system";
+import { Picker } from "@react-native-picker/picker";
 import {
   launchImageLibraryAsync,
   ImagePickerOptions,
@@ -37,6 +37,7 @@ const Content: React.FC<ContentProps> = ({
   onUpdate,
   editing,
   suffix,
+  pickerOptions,
 }) => {
   const textInputRef = useRef<TextInput>(null);
   const textInputNull = useMemo(() => textInputRef == null, [textInputRef]);
@@ -96,7 +97,23 @@ const Content: React.FC<ContentProps> = ({
         ></Ionicons>
       </View>
       <Inset vertical={4} horizontal={8}>
-        {type !== "PHOTOS" ? (
+        {type === "PHOTOS" ? (
+          <View>
+            <PhotoInput onUpdate={onUpdate as any} />
+          </View>
+        ) : type === "SELECT" ? (
+          <Picker
+            selectedValue={value}
+            onValueChange={(itemValue) => {
+              console.log("E");
+              onUpdate && onUpdate(itemValue);
+            }}
+          >
+            {pickerOptions?.map(({ label, value }) => (
+              <Picker.Item label={label} value={value} key={value} />
+            ))}
+          </Picker>
+        ) : (
           <View
             style={{ flexDirection: "row", justifyContent: "space-between" }}
           >
@@ -127,10 +144,6 @@ const Content: React.FC<ContentProps> = ({
               </Text>
             )}
             {suffix && <Text style={{ textAlign: "right" }}>{suffix}</Text>}
-          </View>
-        ) : (
-          <View>
-            <PhotoInput onUpdate={onUpdate as any} />
           </View>
         )}
       </Inset>

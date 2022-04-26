@@ -1,11 +1,8 @@
-import React, { ReactNode, useMemo } from "react";
-import { StyleSheet, View, Pressable, Text, Image } from "react-native";
-import Colors from "../../constants/Colors";
-import Svg from "react-native-svg";
+import React, { useMemo } from "react";
+import { StyleSheet, View, Pressable, Text } from "react-native";
 import EditIcon from "../../assets/icons/edit-icon.svg";
 import MetaIcon from "../../assets/icons/meta-icon.svg";
 import SaveIcon from "../../assets/icons/save-icon.svg";
-import { FormStages, StageList } from "./DataEntryForm";
 
 interface FormProgressProps {
   stage: number;
@@ -20,7 +17,7 @@ const FormProgress: React.FC<FormProgressProps> = ({ stage, setStage }) => {
           stage={0}
           currentStage={stage}
           Icon={MetaIcon}
-          title="Documentation"
+          title="Tree Info"
           setStage={setStage}
         />
         <StageDivider />
@@ -28,7 +25,7 @@ const FormProgress: React.FC<FormProgressProps> = ({ stage, setStage }) => {
           stage={1}
           currentStage={stage}
           Icon={EditIcon}
-          title="Data"
+          title="Census Data"
           setStage={setStage}
         />
         <StageDivider />

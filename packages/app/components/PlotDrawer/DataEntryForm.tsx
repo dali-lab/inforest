@@ -1,9 +1,10 @@
 import { Tree, TreeCensus } from "@ong-forestry/schema";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { View, StyleSheet, ScrollView } from "react-native";
 import useAppDispatch from "../../hooks/useAppDispatch";
 import useAppSelector from "../../hooks/useAppSelector";
-import { updateTree, locallyUpdateTree } from "../../redux/slices/treeSlice";
+import { RootState } from "../../redux";
+import { locallyUpdateTree } from "../../redux/slices/treeSlice";
 import { DataField } from "../DataField";
 import DrawerButton from "../DrawerButton";
 import { Text, TextVariants } from "../Themed";
@@ -102,6 +103,17 @@ interface FormProps {
 }
 
 const MetaDataForm: React.FC<FormProps> = ({ selected, updateDraft }) => {
+  const { all: allSpecies } = useAppSelector(
+    (state: RootState) => state.treeSpecies
+  );
+  const speciesOptions = useMemo(
+    () =>
+      Object.values(allSpecies).map((species) => ({
+        label: species.commonName,
+        value: species.code,
+      })),
+    [allSpecies]
+  );
   return (
     <View style={styles.formContainer}>
       <View style={styles.formRow}>
@@ -122,8 +134,11 @@ const MetaDataForm: React.FC<FormProps> = ({ selected, updateDraft }) => {
           value={selected.speciesCode}
           placeholder=""
           moreInfo="The code representing the tree's species"
-          onUpdate={(newValue) => {}}
-          editable={false}
+          onUpdate={(newValue) => {
+            updateDraft({ speciesCode: newValue.toString() });
+          }}
+          editable={true}
+          pickerOptions={speciesOptions}
         />
         <DataField
           type="DECIMAL"

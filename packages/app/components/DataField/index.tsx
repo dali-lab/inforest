@@ -1,5 +1,12 @@
 import React, { useEffect } from "react";
-import { Keyboard, Modal, Pressable, StyleSheet, View } from "react-native";
+import {
+  Keyboard,
+  Modal,
+  Pressable,
+  StyleSheet,
+  View,
+  Text,
+} from "react-native";
 import Content from "./Content";
 
 export interface DataFieldProps<T = string | number | boolean> {
@@ -18,10 +25,11 @@ export interface DataFieldProps<T = string | number | boolean> {
   editable?: boolean;
   onUpdate?: (newValue: T) => void;
   suffix?: string;
+  pickerOptions?: { label: string; value: string }[];
 }
 
 export const DataField: React.FC<View["props"] & DataFieldProps> = (props) => {
-  const { type, editable = true, style } = props;
+  const { type, editable = true, style, value } = props;
   const [editing, setEditing] = React.useState(false);
   const [renderedWidth, setRenderedWidth] = React.useState<number>();
   useEffect(() => {
@@ -32,6 +40,7 @@ export const DataField: React.FC<View["props"] & DataFieldProps> = (props) => {
       subscription.remove();
     };
   });
+  console.log(value);
   if (editable && type !== "PHOTOS") {
     return (
       <>
@@ -42,7 +51,16 @@ export const DataField: React.FC<View["props"] & DataFieldProps> = (props) => {
             setRenderedWidth(e.nativeEvent.layout.width);
           }}
         >
-          <Content {...props} editing={false}></Content>
+          {type == "SELECT" ? (
+            <Content
+              {...props}
+              editable={false}
+              editing={true}
+              type={"SHORT_TEXT"}
+            ></Content>
+          ) : (
+            <Content {...props} editing={false}></Content>
+          )}
         </Pressable>
         <Modal
           visible={editing}
