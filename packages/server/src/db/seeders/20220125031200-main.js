@@ -13,6 +13,7 @@ const NUM_PLOTS_NORTHWARD = 10;
 const DATA_SEEDER_FOREST_ID = "53dfd605-8189-44c7-ac9a-4b6ef8a203cf";
 const DATA_SEEDER_TRIP_ID = "f03c4244-55d2-4f59-b5b1-0ea595982476";
 const DATA_SEEDER_AUTHOR_ID = "24ea9f85-5352-4f69-b642-23291a27ff1e";
+const DATA_SEEDER_FOREST_CENSUS_ID = "7488abd6-4b1a-41ad-a5a8-042b7bc4afb2";
 
 module.exports = {
   async up(queryInterface, Sequelize) {
@@ -128,6 +129,7 @@ module.exports = {
             ROOT_PLOT_UTM.zoneLetter
           );
           plots[`${j >= 10 ? j : `0${j}`}${i >= 10 ? i : `0${i}`}`] = {
+            id: uuid(),
             number: `${j >= 10 ? j : `0${j}`}${i >= 10 ? i : `0${i}`}`,
             latitude,
             longitude,
@@ -178,10 +180,10 @@ module.exports = {
           Family,
           Type,
         } = row;
-        tree.plotNumber = Quadrat;
-        if (tree.plotNumber in plots) {
-          const plot = plots[tree.plotNumber];
+        if (Quadrat in plots) {
+          const plot = plots[Quadrat];
           tree.tag = Tag;
+          tree.plotId = plot.id;
           if (!species[Species]) {
             species[Species] = {
               code: Species,
@@ -259,7 +261,7 @@ module.exports = {
         "trees",
         Object.values(trees).map((tree) => ({
           tag: tree.tag,
-          plotNumber: tree.plotNumber,
+          plotId: tree.plotId,
           latitude: tree.latitude,
           longitude: tree.longitude,
           plotX: tree.plotX,
@@ -273,29 +275,63 @@ module.exports = {
         }
       );
 
-      const treeTagToTreeCensusId = {};
+      const initial_forest_census = [
+        {
+          id: DATA_SEEDER_FOREST_CENSUS_ID,
+          name: "Imported O-Farm Data",
+          active: false,
+          forestId: DATA_SEEDER_FOREST_ID,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      ];
 
-      /**
-       * Seed census entries.
-       */
+      await queryInterface.bulkInsert("forest_census", initial_forest_census, {
+        transaction,
+      });
+
+      const plot_censuses = {};
+      for (const plot of Object.values(plots)) {
+        plot_censuses[plot.id] = {
+          id: uuid(),
+          status: "APPROVED",
+          plotId: plot.id,
+          forestCensusId: DATA_SEEDER_FOREST_CENSUS_ID,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+      }
+
       await queryInterface.bulkInsert(
-        "tree_census",
-        Object.values(trees).map((tree) => {
-          treeTagToTreeCensusId[tree.tag] = uuid();
-          return {
-            id: treeTagToTreeCensusId[tree.tag],
-            treeTag: tree.tag,
-            dbh: tree.dbh,
-            tripId: DATA_SEEDER_TRIP_ID,
-            authorId: DATA_SEEDER_AUTHOR_ID,
-            createdAt: tree.createdAt,
-            updatedAt: tree.updatedAt,
-          };
-        }),
+        "plot_census",
+        Object.values(plot_censuses),
         {
           transaction,
         }
       );
+
+      const treeTagToTreeCensusId = {};
+
+      const tree_censuses = Object.values(trees).map((tree) => {
+        treeTagToTreeCensusId[tree.tag] = uuid();
+        return {
+          id: treeTagToTreeCensusId[tree.tag],
+          treeTag: tree.tag,
+          dbh: tree.dbh,
+          tripId: DATA_SEEDER_TRIP_ID,
+          authorId: DATA_SEEDER_AUTHOR_ID,
+          plotCensusId: plot_censuses[tree.plotId].id,
+          createdAt: tree.createdAt,
+          updatedAt: tree.updatedAt,
+        };
+      });
+
+      /**
+       * Seed census entries.
+       */
+      await queryInterface.bulkInsert("tree_census", tree_censuses, {
+        transaction,
+      });
 
       /**
        * Seed tree to tree label through table rows.
@@ -331,6 +367,7 @@ module.exports = {
       await queryInterface.bulkDelete("tree_census_labels", null, {
         transaction,
       });
+      await queryInterface.bulkDelete("forest_census", null, { transaction });
       await queryInterface.bulkDelete("plot_census", null, { transaction });
       await queryInterface.bulkDelete("tree_census", null, { transaction });
       await queryInterface.bulkDelete("trees", null, { transaction });

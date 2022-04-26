@@ -1,7 +1,7 @@
 import { ForestCensus } from "@ong-forestry/schema";
 import express from "express";
 import { createForestCensus, closeForestCensus } from "services";
-import { requireAuth } from "services/auth-service";
+import { requireAuth } from "middleware";
 
 const forestCensusRouter = express.Router();
 

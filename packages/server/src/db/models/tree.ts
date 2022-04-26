@@ -42,7 +42,7 @@ class Tree
 
   @ForeignKey(() => Plot)
   @AllowNull(false)
-  @Column(DataTypes.STRING)
+  @Column(DataTypes.UUID)
   plotId: string;
 
   @BelongsTo(() => Plot)

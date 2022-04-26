@@ -34,7 +34,7 @@ class PlotCensus extends Model<IPlotCensus> implements IPlotCensus {
   @Column({ type: DataTypes.UUID })
   id: string;
 
-  @Default(false)
+  @Default("IN_PROGRESS")
   @Column(DataTypes.ENUM({ values: Object.values(PlotCensusStatuses) }))
   status: PlotCensusStatuses;
 
@@ -43,7 +43,7 @@ class PlotCensus extends Model<IPlotCensus> implements IPlotCensus {
 
   @ForeignKey(() => Plot)
   @AllowNull(false)
-  @Column(DataTypes.STRING)
+  @Column(DataTypes.UUID)
   plotId: string;
 
   @BelongsTo(() => ForestCensus)

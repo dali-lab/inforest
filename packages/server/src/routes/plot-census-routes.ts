@@ -1,6 +1,6 @@
 import express from "express";
 import { submitForReview } from "services";
-import { requireAuth } from "services/auth-service";
+import { requireAuth } from "middleware";
 
 const plotCensusRouter = express.Router();
 
