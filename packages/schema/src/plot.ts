@@ -5,6 +5,11 @@ import { Forest } from "./forest";
  */
 export interface Plot {
   /**
+   * The ID of this plot.
+   */
+  id: string;
+
+  /**
    * Plot number.
    */
   number: string;
@@ -32,7 +37,7 @@ export interface Plot {
   /**
    * Forest this plot belongs to
    */
-  forest: Forest;
+  forest?: Forest;
 
   /**
    * ID of plot's forest
@@ -42,5 +47,5 @@ export interface Plot {
   /**
    * Censuses made on this plot.
    */
-  censuses: PlotCensus[];
+  censuses?: PlotCensus[];
 }

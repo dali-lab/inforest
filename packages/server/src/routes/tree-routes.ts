@@ -26,9 +26,7 @@ treeRouter.post<{}, any, Tree>("/", requireAuth, async (req, res) => {
 
 const parseParams = (query: any) => ({
   tags: (query.tags as string)?.split(","),
-  plotNumbers: (query.plotNumbers as string)
-    ?.split(",")
-    .map((plotNumber) => parseInt(plotNumber)),
+  plotIds: (query.plotIds as string)?.split(","),
   speciesCodes: (query.speciesCodes as string)?.split(","),
   statusNames: (query.statusNames as string)?.split(","),
   latMin: parseFloat(query.latMin as string),

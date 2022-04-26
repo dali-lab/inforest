@@ -8,6 +8,7 @@ import {
   ForeignKey,
   BelongsTo,
   HasMany,
+  Default,
 } from "sequelize-typescript";
 import {
   Forest as IForest,
@@ -28,6 +29,10 @@ import PlotCensus from "./plot-census";
 })
 class Plot extends Model<IPlot> implements IPlot {
   @PrimaryKey
+  @Default(DataTypes.UUIDV4)
+  @Column({ type: DataTypes.UUID })
+  id: string;
+
   @Column(DataTypes.STRING)
   number: string;
 

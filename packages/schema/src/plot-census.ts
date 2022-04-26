@@ -4,6 +4,15 @@ import { Plot } from "./plot";
 import { User } from "./user";
 
 /**
+ * Enum of possible states a plot census can be in.
+ */
+export enum PlotCensusStatuses {
+  InProgress = "IN_PROGRESS",
+  Pending = "PENDING",
+  Approved = "APPROVED",
+}
+
+/**
  * A "generation" of census data for the trees in a specific plot
  */
 export interface PlotCensus {
@@ -15,7 +24,7 @@ export interface PlotCensus {
   /**
    * This census' approval status.
    */
-  approved: boolean;
+  status?: PlotCensusStatuses;
 
   /**
    * Plot censused.
@@ -23,9 +32,9 @@ export interface PlotCensus {
   plot?: Plot;
 
   /**
-   * Plot number of the plot censused.
+   * ID of the plot censused.
    */
-  plotNumber: string;
+  plotId: string;
 
   /**
    * Forest census this plot census belongs to
