@@ -5,6 +5,7 @@ import TreeCensusModel from "db/models/tree-census";
 import TreeModel from "db/models/tree";
 import ForestCensusModel from "db/models/forest-census";
 import { Op } from "sequelize";
+import { CensusExistsError } from "errors";
 
 const uuid = require("uuid4");
 
@@ -23,8 +24,15 @@ export const createPlotCensus = async (plotId: string) => {
       status: { [Op.not]: PlotCensusStatuses.Approved },
     },
   });
-  if (existingCensus.length > 0) {
-    throw Error("This plot is already being censused.");
+
+  // there should only be one un-approved census per plot
+  // this should never happen
+  if (existingCensus.length > 1) {
+    throw Error("Error: more than one open census on this plot");
+  }
+
+  if (existingCensus.length == 1) {
+    throw new CensusExistsError(existingCensus[0]);
   }
 
   // find in-progress forest census on forest containing this plot
@@ -36,9 +44,7 @@ export const createPlotCensus = async (plotId: string) => {
   });
 
   if (forestCensus.length > 1) {
-    throw Error(
-      "Fatal error: more than one open census on this forest. Ask an administrator for assistance"
-    );
+    throw Error("Error: more than one open census on this forest");
   }
 
   // if it doesn't exist, cannot create plot census
@@ -83,7 +89,7 @@ export const submitForReview = async (args: { plotId: string }) => {
   }
 
   if (census.length > 1) {
-    throw Error("More than one census on this plot");
+    throw Error("Error: more than one open census on this plot");
   }
 
   // check that all trees on this plot have been censused

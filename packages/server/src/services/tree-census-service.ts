@@ -20,15 +20,19 @@ const getPlotCensus = async (treeCensus: Omit<TreeCensus, "plotCensusId">) => {
   if (plot == null) {
     throw Error("Plot does not exist");
   }
-  const plotCensus = await PlotCensusModel.findOne({
+  const plotCensuses = await PlotCensusModel.findAll({
     where: {
       plotId: { [Op.eq]: plot.id },
       status: { [Op.eq]: PlotCensusStatuses.InProgress },
     },
   });
-  if (plotCensus == null) {
+  if (plotCensuses.length > 1) {
+    throw Error("Error: more than one active census on this plot");
+  }
+  if (plotCensuses.length == 0) {
     throw Error("There is no active census on this plot");
   }
+  const plotCensus = plotCensuses[0];
 
   // check that user is assigned to this plot census
   const assignment = await PlotCensusAssignmentModel.findOne({
@@ -84,6 +88,9 @@ export const editTreeCensuses = async (
   treeCensus: Omit<TreeCensus, "plotCensusId">,
   params: EditTreeCensusParams
 ) => {
+  // the author of the census is the person who last updated
+  // frontend should include id of editor in the request body
+
   await getPlotCensus(treeCensus);
   // ^ throws error if census is not in_progress
 
