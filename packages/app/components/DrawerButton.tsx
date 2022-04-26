@@ -1,10 +1,11 @@
-import React from "react";
+import React, { ReactNode } from "react";
 import {
   GestureResponderEvent,
   Pressable,
   StyleProp,
   StyleSheet,
   ViewStyle,
+  View,
 } from "react-native";
 import Colors from "../constants/Colors";
 import { Text, TextVariants } from "./Themed";
@@ -14,6 +15,7 @@ interface DrawerButtonProps {
   onPress: (event: GestureResponderEvent) => void;
   disabled?: boolean;
   style?: StyleProp<ViewStyle>;
+  icon?: ReactNode;
 }
 
 const DrawerButton: React.FC<DrawerButtonProps> = ({
@@ -21,18 +23,22 @@ const DrawerButton: React.FC<DrawerButtonProps> = ({
   onPress,
   disabled = false,
   style,
+  icon,
 }) => {
   return (
     <Pressable
       style={[style, styles.button]}
       onPress={!disabled ? onPress : undefined}
     >
-      <Text
-        variant={TextVariants.Label}
-        color={disabled ? Colors.neutral[4] : undefined}
-      >
-        {children}
-      </Text>
+      <View style={{ flexDirection: "row", alignItems: "center" }}>
+        {icon}
+        <Text
+          variant={TextVariants.Label}
+          color={disabled ? Colors.neutral[4] : undefined}
+        >
+          {children}
+        </Text>
+      </View>
     </Pressable>
   );
 };

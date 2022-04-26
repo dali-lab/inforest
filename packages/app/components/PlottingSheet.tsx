@@ -75,7 +75,7 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
       useAppSelector((state) => state),
       1.0
     ),
-    new Set([plot.number])
+    new Set([plot.id])
   );
 
   return (

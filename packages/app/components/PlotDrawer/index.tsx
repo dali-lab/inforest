@@ -4,6 +4,7 @@ import { Queue, Stack } from "react-native-spacing-system";
 import { BlurView } from "expo-blur";
 import dateformat from "dateformat";
 import { Forest, Plot } from "@ong-forestry/schema";
+import { Ionicons } from "@expo/vector-icons";
 import { MapScreenModes, DrawerStates } from "../../constants";
 import useAppSelector from "../../hooks/useAppSelector";
 import { locallyDeleteTree, deselectTree } from "../../redux/slices/treeSlice";
@@ -11,6 +12,7 @@ import DrawerButton from "../DrawerButton";
 import { Text, TextVariants } from "../Themed";
 import useAppDispatch from "../../hooks/useAppDispatch";
 import DataEntryForm from "./DataEntryForm";
+import FlagIcon from "../../assets/icons/flag-icon.svg";
 
 type PlotDrawerProps = {
   drawerState: DrawerStates;
@@ -158,12 +160,38 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
                 </>
               )}
               {drawerState === "EXPANDED" && !!selected && (
-                <>
-                  <Text variant={TextVariants.H2}>New tree</Text>
-                  <Text variant={TextVariants.Body}>
-                    This is the {byPlots[plot.id].size + 1}th tree in the plot.
-                  </Text>
-                </>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    // justifyContent: "space-between",
+                    alignItems: "center",
+                    width: "100%",
+                  }}
+                >
+                  <View style={{ flexDirection: "column", flex: 1 }}>
+                    <Text variant={TextVariants.H2}>
+                      New Census Entry in Plot {plot.number}
+                    </Text>
+                    <Text variant={TextVariants.Body}>
+                      This is the {byPlots[plot.id].size + 1}th tree in the
+                      plot.
+                    </Text>
+                  </View>
+                  <DrawerButton
+                    style={{ marginHorizontal: 12 }}
+                    onPress={() => {}}
+                    icon={
+                      <FlagIcon
+                        height={16}
+                        width={16}
+                        style={{ marginRight: 12 }}
+                      />
+                    }
+                  >
+                    Flag for Review
+                  </DrawerButton>
+                  <Ionicons name="close" size={24} onPress={minimizeDrawer} />
+                </View>
               )}
             </View>
 

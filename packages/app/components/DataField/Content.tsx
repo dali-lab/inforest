@@ -1,17 +1,28 @@
-import React, { useCallback, useEffect, useMemo, useRef } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   KeyboardTypeOptions,
   Pressable,
   StyleSheet,
   TextInput,
   View,
+  Image,
+  FlatList,
+  ListRenderItem,
+  ListRenderItemInfo,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Inset, Queue } from "react-native-spacing-system";
 import {
-  ImageLibraryOptions,
-  launchImageLibrary,
-} from "react-native-image-picker";
+  launchImageLibraryAsync,
+  ImagePickerOptions,
+  ImageInfo,
+} from "expo-image-picker";
 import Colors from "../../constants/Colors";
 import { Text, TextVariants } from "../Themed";
 import { DataFieldProps } from "./index";
@@ -25,6 +36,7 @@ const Content: React.FC<ContentProps> = ({
   editable = true,
   onUpdate,
   editing,
+  suffix,
 }) => {
   const textInputRef = useRef<TextInput>(null);
   const textInputNull = useMemo(() => textInputRef == null, [textInputRef]);
@@ -85,15 +97,14 @@ const Content: React.FC<ContentProps> = ({
       </View>
       <Inset vertical={4} horizontal={8}>
         {type !== "PHOTOS" ? (
-          <>
+          <View
+            style={{ flexDirection: "row", justifyContent: "space-between" }}
+          >
             {editing ? (
               <TextInput
                 ref={textInputRef}
                 style={{
-                  fontFamily:
-                    type === "DECIMAL" || type === "INTEGER"
-                      ? "Courier New"
-                      : "Open Sans Regular",
+                  fontFamily: "Open Sans Regular",
                   height: type === "LONG_TEXT" ? 128 : undefined,
                 }}
                 focusable={true}
@@ -108,24 +119,18 @@ const Content: React.FC<ContentProps> = ({
               </TextInput>
             ) : (
               <Text
-                variant={
-                  type === "DECIMAL" || type === "INTEGER"
-                    ? TextVariants.Numerical
-                    : TextVariants.Body
-                }
+                variant={TextVariants.Body}
                 color={editable ? undefined : Colors.neutral[4]}
                 style={{ height: type === "LONG_TEXT" ? 128 : undefined }}
               >
                 {value ?? placeholder}
               </Text>
             )}
-          </>
+            {suffix && <Text style={{ textAlign: "right" }}>{suffix}</Text>}
+          </View>
         ) : (
-          <View style={styles.photoInputRow}>
-            <PhotoInput title="Bark" type="BARK" />
-            <PhotoInput title="Leaf" type="LEAF" />
-            <PhotoInput title="Full" type="FULL" />
-            <PhotoInput title="Other" type="OTHER" />
+          <View>
+            <PhotoInput onUpdate={onUpdate as any} />
           </View>
         )}
       </Inset>
@@ -133,35 +138,73 @@ const Content: React.FC<ContentProps> = ({
   );
 };
 
-interface PhotoInputProps {
-  title: string;
-  type: string;
-}
-
-const photoLibraryOptions: ImageLibraryOptions = {
-  mediaType: "photo",
-  selectionLimit: 0,
+const imageLibraryOptions: ImagePickerOptions = {
+  base64: true,
 };
 
-const PhotoInput: React.FC<PhotoInputProps> = ({ title, type }) => {
+interface PhotoInputProps {
+  onUpdate: (newValue: any[]) => void;
+}
+
+const PhotoInput: React.FC<PhotoInputProps> = ({ onUpdate }) => {
+  const [photos, setPhotos] = useState<ImageInfo[]>([]);
   const addPhoto = useCallback(async () => {
-    launchImageLibrary(photoLibraryOptions)
-      .then((result) => {
-        console.log(result.assets);
-      })
-      .catch((err) => {
-        console.error(err);
-      });
-  }, []);
+    const photo = await launchImageLibraryAsync(imageLibraryOptions);
+    if (!photo.cancelled) setPhotos((prev) => [...prev, photo]);
+  }, [setPhotos]);
+  useEffect(() => {
+    onUpdate(photos);
+  }, [photos]);
+  const renderItem = (item: ListRenderItemInfo<ImageInfo>) => (
+    <View style={styles.photoWrapper}>
+      <Image
+        style={{
+          width: 120,
+          height: 90,
+          borderTopLeftRadius: 10,
+          borderTopRightRadius: 10,
+        }}
+        source={{
+          uri: item.item.uri,
+        }}
+      />
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <Text>Label</Text>
+      </View>
+    </View>
+  );
+
   return (
     <View style={styles.photoInputWrapper}>
-      <Pressable style={styles.photoInput} onPress={addPhoto}>
-        <Ionicons name="cloud-upload-outline" size={28} color="#FFFFFF" />
-        <Text variant={TextVariants.Label} color="white">
-          Tap to Upload
-        </Text>
-      </Pressable>
-      <Text variant={TextVariants.Label}>{title}</Text>
+      <View style={styles.photoUploadContainer}>
+        <Pressable style={styles.photoInput} onPress={addPhoto}>
+          <Ionicons
+            name="cloud-upload-outline"
+            size={28}
+            style={{ marginVertical: 4 }}
+          />
+          <Text variant={TextVariants.Label} style={{ fontSize: 14 }}>
+            Tap to Upload
+          </Text>
+        </Pressable>
+      </View>
+      <View style={styles.addedPhotosContainer}>
+        {/* // @ts-ignore */}
+        <FlatList
+          data={photos}
+          renderItem={renderItem}
+          horizontal={true}
+          keyExtractor={(_item, i) => i.toString()}
+          style={{ paddingVertical: 12 }}
+        ></FlatList>
+      </View>
+      {/* <Text variant={TextVariants.Label}>{title}</Text> */}
     </View>
   );
 };
@@ -172,24 +215,45 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingLeft: 8,
   },
-  photoInputRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
   photoInputWrapper: {
-    flexDirection: "column",
-    justifyContent: "center",
+    flexDirection: "row",
+    justifyContent: "flex-start",
     alignItems: "center",
   },
+  photoUploadContainer: {
+    borderRightWidth: 2,
+    borderRightColor: "black",
+    paddingHorizontal: 24,
+  },
+  addedPhotosContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+  },
+  photoWrapper: {
+    width: 120,
+    height: 120,
+    borderRadius: 10,
+    marginHorizontal: 12,
+    backgroundColor: "#EAEAEA",
+    flexDirection: "column",
+    alignItems: "center",
+    shadowColor: "black",
+    shadowRadius: 4,
+    shadowOffset: { width: 4, height: 4 },
+    shadowOpacity: 0.2,
+  },
   photoInput: {
-    backgroundColor: "#5F6D64",
-    width: 160,
+    width: 120,
     height: 120,
     borderRadius: 10,
     flexDirection: "column",
     justifyContent: "center",
     alignItems: "center",
     marginVertical: 10,
+    borderColor: "#1F3527",
+    borderWidth: 2,
+    padding: 16,
   },
 });
 

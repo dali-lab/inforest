@@ -17,6 +17,7 @@ export interface DataFieldProps<T = string | number | boolean> {
   moreInfo?: string;
   editable?: boolean;
   onUpdate?: (newValue: T) => void;
+  suffix?: string;
 }
 
 export const DataField: React.FC<View["props"] & DataFieldProps> = (props) => {
