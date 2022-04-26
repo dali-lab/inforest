@@ -91,10 +91,10 @@ export const treeSlice = createSlice({
       // add to drafts
       state.drafts.add(newTree.tag);
       // update plots index
-      if (!(newTree.plotNumber in state.indices.byPlots)) {
-        state.indices.byPlots[newTree.plotNumber] = new Set();
+      if (!(newTree.plotId in state.indices.byPlots)) {
+        state.indices.byPlots[newTree.plotId] = new Set();
       }
-      state.indices.byPlots[newTree.plotNumber].add(newTree.tag);
+      state.indices.byPlots[newTree.plotId].add(newTree.tag);
       // update latitude index
       if (newTree.latitude) {
         state.indices.byLatitude.push({
@@ -119,7 +119,7 @@ export const treeSlice = createSlice({
       // remove from drafts
       state.drafts.delete(treeTag);
       // remove from plots index
-      state.indices.byPlots[treeTag.plotNumber]?.delete(treeTag);
+      state.indices.byPlots[treeTag.plotId]?.delete(treeTag);
       // remove from latitude index
       state.indices.byLatitude.splice(
         state.indices.byLatitude.indexOf(treeTag)
@@ -144,8 +144,8 @@ export const treeSlice = createSlice({
           state.drafts.delete(tag);
           state.drafts.add(updates.tag);
         }
-        state.indices.byPlots[oldTree.plotNumber]?.delete(tag);
-        state.indices.byPlots[oldTree.plotNumber]?.add(updates.tag);
+        state.indices.byPlots[oldTree.plotId]?.delete(tag);
+        state.indices.byPlots[oldTree.plotId]?.add(updates.tag);
       }
       // todo: update indices
       return state;
@@ -164,11 +164,11 @@ export const treeSlice = createSlice({
       action.payload.forEach((tree) => {
         state.all[tree.tag] = tree;
         // initialize plot index key if needed
-        if (!(tree.plotNumber in state.indices.byPlots)) {
-          state.indices.byPlots[tree.plotNumber] = new Set();
+        if (!(tree.plotId in state.indices.byPlots)) {
+          state.indices.byPlots[tree.plotId] = new Set();
         }
         // add to plots index
-        state.indices.byPlots[tree.plotNumber].add(tree.tag);
+        state.indices.byPlots[tree.plotId].add(tree.tag);
         // add to latitude index
         if (tree.latitude) {
           state.indices.byLatitude.push({

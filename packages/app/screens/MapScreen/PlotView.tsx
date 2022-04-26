@@ -1,4 +1,5 @@
 import { Dimensions, View, StyleSheet } from "react-native";
+import { useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { Plot } from "@ong-forestry/schema";
 import { PlottingSheet } from "../../components/PlottingSheet";
@@ -8,7 +9,6 @@ import { formPlotNumber, parsePlotNumber } from "../../constants/plots";
 import useAppSelector from "../../hooks/useAppSelector";
 import { RootState } from "../../redux";
 import Colors from "../../constants/Colors";
-import { useState } from "react";
 
 interface PlotViewProps {
   selectedPlot: Plot;

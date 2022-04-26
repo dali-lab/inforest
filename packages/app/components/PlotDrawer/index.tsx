@@ -68,8 +68,8 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
   }, [drawerState]);
 
   const computePlotLastUpdatedDate = useCallback(
-    (plotNumber: string) => {
-      const plotTrees = byPlots[plotNumber];
+    (plotId: string) => {
+      const plotTrees = byPlots[plotId];
       let latestCensus: Date | undefined;
       for (const treeTag of plotTrees) {
         const { updatedAt } = all[treeTag];
@@ -101,7 +101,7 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
               <Queue size={36}></Queue>
               <>
                 {(() => {
-                  const lastUpdated = computePlotLastUpdatedDate(plot.number);
+                  const lastUpdated = computePlotLastUpdatedDate(plot.id);
                   return (
                     <Text variant={TextVariants.Body}>
                       {lastUpdated
@@ -161,8 +161,7 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
                 <>
                   <Text variant={TextVariants.H2}>New tree</Text>
                   <Text variant={TextVariants.Body}>
-                    This is the {byPlots[plot.number].size + 1}th tree in the
-                    plot.
+                    This is the {byPlots[plot.id].size + 1}th tree in the plot.
                   </Text>
                 </>
               )}

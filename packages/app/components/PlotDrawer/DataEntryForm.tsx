@@ -238,7 +238,7 @@ const MetaDataForm: React.FC<FormProps> = ({ selected }) => {
         <DataField
           type={"INTEGER"}
           label="Plot Number"
-          value={selected.plotNumber}
+          value={"ADD PLOT NUMBER HERE"}
           style={{ flex: 1 }}
           placeholder=""
           moreInfo="The number of the plot this tree belongs to"
@@ -297,7 +297,7 @@ const DataForm: React.FC = () => {
         <DataField
           type={"INTEGER"}
           label="DBH"
-          value={selected.dbh}
+          value={0}
           style={{ flex: 0, marginRight: 12 }}
           placeholder=""
           moreInfo="The diameter of the tree at around breast height"
@@ -339,11 +339,11 @@ const DataForm: React.FC = () => {
 };
 
 const ReviewableFieldMap: { [key in keyof Tree]?: string } = {
-  plotNumber: "Plot Number",
+  // plotNumber: "Plot Number",
   tag: "Tree Tag Number",
   plotX: "X coordinate within plot (meters)",
   plotY: "Y coordinate within plot (meters)",
-  dbh: "DBH",
+  // dbh: "DBH",
 };
 const ReviewableFieldMapEntries = Object.entries(ReviewableFieldMap) as [
   keyof Tree,

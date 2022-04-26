@@ -22,7 +22,7 @@ export const getForestPlots = createAsyncThunk(
 
 type PlotNumericalIndex = {
   value: number;
-  plotNumber: string;
+  plotId: string;
 }[];
 
 export interface PlotState {
@@ -50,16 +50,16 @@ export const plotSlice = createSlice({
   extraReducers: (builder) => {
     builder.addCase(getForestPlots.fulfilled, (state, action) => {
       action.payload.forEach((plot) => {
-        state.all[plot.number] = plot;
+        state.all[plot.id] = plot;
         // add to latitude index
         state.indices.latitude.push({
           value: plot.latitude,
-          plotNumber: plot.number,
+          plotId: plot.id,
         });
         // add to longitude index
         state.indices.longitude.push({
           value: plot.longitude,
-          plotNumber: plot.number,
+          plotId: plot.id,
         });
       });
       // sort indices

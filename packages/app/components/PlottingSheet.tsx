@@ -171,7 +171,7 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
                 const tag = getRandomBytes(2).join("").substring(0, 5);
                 const newTree = {
                   tag,
-                  plotNumber: plot.number,
+                  plotId: plot.id,
                   plotX,
                   plotY,
                   latitude,
@@ -238,7 +238,7 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
       {/* trees */}
       <>
         {trees
-          .filter((tree) => tree.plotNumber === plot.number)
+          .filter((tree) => tree.plotId === plot.id)
           .map((tree) => {
             const isDraft = drafts.has(tree.tag);
             const { plotX, plotY } = tree;

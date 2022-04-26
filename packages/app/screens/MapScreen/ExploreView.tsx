@@ -134,7 +134,7 @@ const ExploreView: React.FC<ExploreViewProps> = (props) => {
       const tree = allTrees[treeTag];
       if (tree) {
         dispatch(selectTree(tree.tag));
-        const plot = tree.plotNumber;
+        const plot = tree.plotId;
         if (plot) {
           selectPlot(allPlots[plot]);
           const { easting, northing, zoneNum, zoneLetter } = utm.fromLatLon(
