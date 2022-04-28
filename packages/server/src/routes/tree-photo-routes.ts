@@ -8,6 +8,7 @@ import {
   deleteTreePhotos,
 } from "services";
 import { requireAuth, imageResize } from "middleware";
+import { treePhotoPurposeRouter } from "./tree-photo-purpose-routes";
 
 const upload = multer({
   limits: { fieldSize: 25 * 1024 * 1024 },
@@ -76,5 +77,7 @@ treePhotoRouter.delete<{}, any, TreePhoto>(
     }
   }
 );
+
+treePhotoRouter.use("/purposes", treePhotoPurposeRouter);
 
 export { treePhotoRouter };

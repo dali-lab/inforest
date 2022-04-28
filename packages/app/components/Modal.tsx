@@ -20,9 +20,9 @@ const styles = StyleSheet.create({
   modal: {
     backgroundColor: "rgba(255, 255, 255, 0.9)",
     borderRadius: 12,
-    width: 384,
     zIndex: 3,
     padding: 24,
+    width: 600,
   },
 });
 

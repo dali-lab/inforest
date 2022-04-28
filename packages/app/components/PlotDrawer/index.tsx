@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Animated, Dimensions, StyleSheet, View } from "react-native";
 import { Queue, Stack } from "react-native-spacing-system";
 import { BlurView } from "expo-blur";
@@ -8,7 +8,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { MapScreenModes, DrawerStates } from "../../constants";
 import useAppSelector from "../../hooks/useAppSelector";
 import { locallyDeleteTree, deselectTree } from "../../redux/slices/treeSlice";
-import DrawerButton from "../DrawerButton";
+import AppButton from "../AppButton";
 import { Text, TextVariants } from "../Themed";
 import useAppDispatch from "../../hooks/useAppDispatch";
 import DataEntryForm from "./DataEntryForm";
@@ -84,6 +84,12 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
     [byPlots, all]
   );
 
+  const [flagged, setFlagged] = useState<boolean>(false);
+
+  const toggleFlagged = useCallback(() => {
+    setFlagged((prev) => !prev);
+  }, [setFlagged]);
+
   if (drawerState === DrawerStates.Closed) {
     return null;
   }
@@ -118,7 +124,7 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
               </>
             </View>
             {drawerState === "MINIMIZED" && (
-              <DrawerButton onPress={beginPlotting}>Add Trees</DrawerButton>
+              <AppButton onPress={beginPlotting}>Add Trees</AppButton>
             )}
           </View>
         )}
@@ -156,7 +162,7 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
                       )}
                     </Text>
                   </View>
-                  <DrawerButton onPress={expandDrawer}>Edit</DrawerButton>
+                  <AppButton onPress={expandDrawer}>Edit</AppButton>
                 </>
               )}
               {drawerState === "EXPANDED" && !!selected && (
@@ -177,19 +183,22 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
                       plot.
                     </Text>
                   </View>
-                  <DrawerButton
+                  <AppButton
                     style={{ marginHorizontal: 12 }}
-                    onPress={() => {}}
+                    onPress={toggleFlagged}
+                    type={flagged ? "RED" : "PLAIN"}
                     icon={
                       <FlagIcon
                         height={16}
                         width={16}
                         style={{ marginRight: 12 }}
+                        strokeWidth={4}
+                        stroke={flagged ? "white" : "black"}
                       />
                     }
                   >
-                    Flag for Review
-                  </DrawerButton>
+                    {flagged ? "Flagged" : "Flag"} for Review
+                  </AppButton>
                   <Ionicons name="close" size={24} onPress={minimizeDrawer} />
                 </View>
               )}

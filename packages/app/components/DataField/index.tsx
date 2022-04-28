@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { ReactNode, useEffect, useMemo, useState } from "react";
 import {
   Keyboard,
   Modal,
@@ -6,7 +6,10 @@ import {
   StyleSheet,
   View,
   Text,
+  TouchableOpacity,
 } from "react-native";
+import Colors from "../../constants/Colors";
+import AppButton from "../AppButton";
 import Content from "./Content";
 
 export interface DataFieldProps<T = string | number | boolean> {
@@ -18,20 +21,32 @@ export interface DataFieldProps<T = string | number | boolean> {
     | "SPECIES"
     | "PHOTOS"
     | "SELECT";
-  label: string;
+  label?: string;
   value?: T;
   placeholder?: T;
   moreInfo?: string;
   editable?: boolean;
   onUpdate?: (newValue: T) => void;
   suffix?: string;
+  modalOnly?: boolean;
   pickerOptions?: { label: string; value: string }[];
+  prefixComponent?: ReactNode;
+  noLabel?: boolean;
 }
 
 export const DataField: React.FC<View["props"] & DataFieldProps> = (props) => {
-  const { type, editable = true, style, value } = props;
-  const [editing, setEditing] = React.useState(false);
-  const [renderedWidth, setRenderedWidth] = React.useState<number>();
+  const {
+    type,
+    editable = true,
+    style,
+    value,
+    onUpdate,
+    modalOnly,
+    pickerOptions,
+  } = props;
+  const [editing, setEditing] = useState(false);
+  const [currValue, setCurrValue] = useState<string>("");
+  const [renderedWidth, setRenderedWidth] = useState<number>();
   useEffect(() => {
     const subscription = Keyboard.addListener("keyboardWillHide", () => {
       setEditing(false);
@@ -39,8 +54,14 @@ export const DataField: React.FC<View["props"] & DataFieldProps> = (props) => {
     return () => {
       subscription.remove();
     };
-  });
-  console.log(value);
+  }, []);
+  const sortedPickerOptions = useMemo(
+    () =>
+      pickerOptions
+        ? pickerOptions.sort((a, b) => a.label.localeCompare(b.label))
+        : [],
+    [pickerOptions]
+  );
   if (editable && type !== "PHOTOS") {
     return (
       <>
@@ -51,15 +72,20 @@ export const DataField: React.FC<View["props"] & DataFieldProps> = (props) => {
             setRenderedWidth(e.nativeEvent.layout.width);
           }}
         >
-          {type == "SELECT" ? (
+          {modalOnly ? (
             <Content
               {...props}
+              value={value}
               editable={false}
-              editing={true}
+              editing={false}
               type={"SHORT_TEXT"}
             ></Content>
           ) : (
-            <Content {...props} editing={false}></Content>
+            <Content
+              {...props}
+              editing={false}
+              setCurrValue={setCurrValue}
+            ></Content>
           )}
         </Pressable>
         <Modal
@@ -70,12 +96,37 @@ export const DataField: React.FC<View["props"] & DataFieldProps> = (props) => {
         >
           <Pressable
             style={styles.centeredView}
-            onPress={() => setEditing(false)}
+            onPress={() => {
+              setEditing(false);
+            }}
           >
             <View
-              style={[styles.modal, styles.container, { width: renderedWidth }]}
+              style={[
+                styles.modal,
+                styles.container,
+                { width: type !== "SELECT" ? renderedWidth : 500 },
+              ]}
             >
-              <Content {...props} editing={true}></Content>
+              {/* this pressable prevents propagation of click from centeredView */}
+              <Pressable>
+                <Content
+                  {...props}
+                  editing={true}
+                  pickerOptions={sortedPickerOptions}
+                  currValue={currValue}
+                  setCurrValue={setCurrValue}
+                ></Content>
+                <AppButton
+                  onPress={() => {
+                    setEditing(false);
+                    onUpdate && currValue && onUpdate(currValue);
+                  }}
+                  style={{ marginTop: 12 }}
+                  type="COLOR"
+                >
+                  Submit
+                </AppButton>
+              </Pressable>
             </View>
           </Pressable>
         </Modal>
@@ -119,5 +170,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 5,
+    minWidth: 150,
   },
 });

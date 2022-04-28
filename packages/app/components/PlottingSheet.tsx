@@ -19,7 +19,7 @@ import {
 } from "../redux/slices/treeSlice";
 import useAppDispatch from "../hooks/useAppDispatch";
 import { AUTHOR_ID, TRIP_ID } from "../constants/dev";
-import DrawerButton from "./DrawerButton";
+import AppButton from "./AppButton";
 
 const SMALL_OFFSET = 8;
 
@@ -152,7 +152,7 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
               top: markerPos.y + SMALL_OFFSET,
             }}
           >
-            <DrawerButton
+            <AppButton
               onPress={() => {
                 const { easting, northing, zoneNum, zoneLetter } =
                   utm.fromLatLon(plot.latitude, plot.longitude);
@@ -189,7 +189,7 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
               }}
             >
               Plot tree
-            </DrawerButton>
+            </AppButton>
           </View>
           <View
             style={{

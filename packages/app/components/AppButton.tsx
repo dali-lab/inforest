@@ -10,31 +10,43 @@ import {
 import Colors from "../constants/Colors";
 import { Text, TextVariants } from "./Themed";
 
-interface DrawerButtonProps {
+interface AppButtonProps {
   children: React.ReactNode;
   onPress: (event: GestureResponderEvent) => void;
   disabled?: boolean;
   style?: StyleProp<ViewStyle>;
   icon?: ReactNode;
+  type?: "PLAIN" | "COLOR" | "RED";
 }
 
-const DrawerButton: React.FC<DrawerButtonProps> = ({
+const AppButton: React.FC<AppButtonProps> = ({
   children,
   onPress,
   disabled = false,
   style,
   icon,
+  type = "PLAIN",
 }) => {
   return (
     <Pressable
-      style={[style, styles.button]}
+      style={[
+        styles.button,
+        type === "PLAIN" && styles.plainButton,
+        type === "COLOR" && styles.colorButton,
+        type === "RED" && styles.redButton,
+        style,
+      ]}
       onPress={!disabled ? onPress : undefined}
     >
       <View style={{ flexDirection: "row", alignItems: "center" }}>
         {icon}
         <Text
           variant={TextVariants.Label}
-          color={disabled ? Colors.neutral[4] : undefined}
+          style={[
+            type === "PLAIN" && styles.plainText,
+            (type === "COLOR" || type === "RED") && styles.colorText,
+            disabled && styles.disabledText,
+          ]}
         >
           {children}
         </Text>
@@ -45,7 +57,6 @@ const DrawerButton: React.FC<DrawerButtonProps> = ({
 
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: "white",
     borderRadius: 11,
     height: 48,
     alignItems: "center",
@@ -53,9 +64,27 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 16,
   },
+  plainButton: {
+    backgroundColor: "white",
+  },
+  colorButton: {
+    backgroundColor: Colors.secondary.dark,
+  },
+  redButton: {
+    backgroundColor: Colors.error,
+  },
   text: {
     fontWeight: "bold",
   },
+  plainText: {
+    color: "black",
+  },
+  colorText: {
+    color: "white",
+  },
+  disabledText: {
+    color: Colors.neutral[4],
+  },
 });
 
-export default DrawerButton;
+export default AppButton;

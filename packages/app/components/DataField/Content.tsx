@@ -25,9 +25,15 @@ import {
 } from "expo-image-picker";
 import Colors from "../../constants/Colors";
 import { Text, TextVariants } from "../Themed";
-import { DataFieldProps } from "./index";
+import { DataField, DataFieldProps } from "./index";
+import useAppSelector from "../../hooks/useAppSelector";
+import { RootState } from "../../redux";
 
-type ContentProps = DataFieldProps & { editing: boolean };
+type ContentProps = DataFieldProps & {
+  editing: boolean;
+  currValue?: string;
+  setCurrValue?: React.Dispatch<React.SetStateAction<string>>;
+};
 const Content: React.FC<ContentProps> = ({
   type,
   label,
@@ -37,14 +43,17 @@ const Content: React.FC<ContentProps> = ({
   onUpdate,
   editing,
   suffix,
+  prefixComponent,
   pickerOptions,
+  currValue,
+  setCurrValue,
+  noLabel,
 }) => {
   const textInputRef = useRef<TextInput>(null);
   const textInputNull = useMemo(() => textInputRef == null, [textInputRef]);
   useEffect(() => {
     textInputRef.current?.focus();
   }, [textInputNull]);
-
   let keyboardType: KeyboardTypeOptions = "default";
   switch (type) {
     case "INTEGER":
@@ -61,7 +70,11 @@ const Content: React.FC<ContentProps> = ({
         switch (type) {
           //TODO: build
           case "SELECT":
+            onUpdate(value);
+            break;
           case "SHORT_TEXT":
+            onUpdate(value);
+            break;
           case "LONG_TEXT":
             onUpdate(value);
             break;
@@ -88,7 +101,7 @@ const Content: React.FC<ContentProps> = ({
   return (
     <>
       <View style={styles.header}>
-        <Text variant={TextVariants.Label}>{label}</Text>
+        {label && !noLabel && <Text variant={TextVariants.Label}>{label}</Text>}
         <Queue size={6}></Queue>
         <Ionicons
           name="ios-information-circle-outline"
@@ -103,20 +116,29 @@ const Content: React.FC<ContentProps> = ({
           </View>
         ) : type === "SELECT" ? (
           <Picker
-            selectedValue={value}
-            onValueChange={(itemValue) => {
-              console.log("E");
-              onUpdate && onUpdate(itemValue);
+            selectedValue={currValue || value}
+            onValueChange={(itemValue, _itemIndex) => {
+              setCurrValue && setCurrValue(itemValue.toString());
             }}
           >
             {pickerOptions?.map(({ label, value }) => (
-              <Picker.Item label={label} value={value} key={value} />
+              <Picker.Item
+                style={{ width: 600 }}
+                label={label}
+                value={value}
+                key={value}
+              />
             ))}
           </Picker>
         ) : (
           <View
-            style={{ flexDirection: "row", justifyContent: "space-between" }}
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
           >
+            {prefixComponent}
             {editing ? (
               <TextInput
                 ref={textInputRef}
@@ -129,6 +151,9 @@ const Content: React.FC<ContentProps> = ({
                 onSubmitEditing={(e) => {
                   onSubmitEditing(e.nativeEvent.text);
                 }}
+                onChange={(e) => {
+                  setCurrValue && setCurrValue(e.nativeEvent.text);
+                }}
                 multiline={type === "LONG_TEXT"}
                 returnKeyType="done"
               >
@@ -138,7 +163,10 @@ const Content: React.FC<ContentProps> = ({
               <Text
                 variant={TextVariants.Body}
                 color={editable ? undefined : Colors.neutral[4]}
-                style={{ height: type === "LONG_TEXT" ? 128 : undefined }}
+                style={{
+                  flex: 1,
+                  height: type === "LONG_TEXT" ? 128 : undefined,
+                }}
               >
                 {value ?? placeholder}
               </Text>
@@ -160,14 +188,31 @@ interface PhotoInputProps {
 }
 
 const PhotoInput: React.FC<PhotoInputProps> = ({ onUpdate }) => {
+  const { all: allPurposes } = useAppSelector(
+    (state: RootState) => state.treePhotoPurposes
+  );
   const [photos, setPhotos] = useState<ImageInfo[]>([]);
   const addPhoto = useCallback(async () => {
     const photo = await launchImageLibraryAsync(imageLibraryOptions);
     if (!photo.cancelled) setPhotos((prev) => [...prev, photo]);
   }, [setPhotos]);
+  const removePhoto = useCallback(
+    async (url: string) => {
+      setPhotos((prev) => prev.filter((photo) => photo.uri !== url));
+    },
+    [setPhotos]
+  );
   useEffect(() => {
     onUpdate(photos);
   }, [photos]);
+  const purposesOptions = useMemo(
+    () =>
+      Object.values(allPurposes).map((purpose) => ({
+        label: purpose.name,
+        value: purpose.name,
+      })),
+    [allPurposes]
+  );
   const renderItem = (item: ListRenderItemInfo<ImageInfo>) => (
     <View style={styles.photoWrapper}>
       <Image
@@ -188,8 +233,30 @@ const PhotoInput: React.FC<PhotoInputProps> = ({ onUpdate }) => {
           alignItems: "center",
         }}
       >
-        <Text>Label</Text>
+        {/* <DataField
+          type={"SELECT"}
+          label="Photo Label"
+          style={{ flex: 1 }}
+          placeholder="Select data codes here"
+          moreInfo="A series of data codes describing specific aspects of the tree"
+          onUpdate={(newValue) => {}}
+          modalOnly
+          pickerOptions={purposesOptions}
+          editable
+          noLabel
+        /> */}
+        <Text variant={TextVariants.Label} style={{ marginVertical: 4 }}>
+          Label
+        </Text>
       </View>
+      <Pressable
+        onPress={() => {
+          removePhoto(item.item.uri);
+        }}
+        style={styles.photoRemove}
+      >
+        <Ionicons name="close-outline" size={24} color="white" />
+      </Pressable>
     </View>
   );
 
@@ -266,7 +333,19 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     borderColor: "#1F3527",
     borderWidth: 2,
-    padding: 16,
+    padding: 24,
+  },
+  photoRemove: {
+    backgroundColor: Colors.error,
+    height: 24,
+    width: 24,
+    borderRadius: 12,
+    position: "absolute",
+    top: -8,
+    right: -8,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
   },
 });
 

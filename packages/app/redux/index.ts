@@ -6,7 +6,9 @@ import {
   treeReducer,
   teamReducer,
   tripReducer,
+  treeLabelReducer,
   treeSpeciesReducer,
+  treePhotoPurposeReducer,
 } from "./slices";
 // import { persistReducer } from "redux-persist";
 // import ExpoFileSystemStorage from "redux-persist-expo-filesystem";
@@ -20,9 +22,11 @@ const rootReducer = combineReducers({
   forest: forestReducer,
   plots: plotReducer,
   trees: treeReducer,
+  treeLabels: treeLabelReducer,
   treeSpecies: treeSpeciesReducer,
   teams: teamReducer,
   trips: tripReducer,
+  treePhotoPurposes: treePhotoPurposeReducer,
 });
 
 // const persistConfig = {

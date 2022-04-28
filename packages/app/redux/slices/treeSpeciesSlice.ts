@@ -10,7 +10,7 @@ type GetTreeSpeciesParams = {
 };
 
 export const getTreeSpecies = createAsyncThunk(
-  "tree/getTreeSpecies",
+  "treeSpecies/getTreeSpecies",
   async (params: GetTreeSpeciesParams) => {
     return await axios
       .get<TreeSpecies[]>(`${BASE_URL}?code=${params.code}`)
@@ -25,7 +25,7 @@ type GetManyTreeSpeciesParams = {
 };
 
 export const getManyTreeSpecies = createAsyncThunk(
-  "tree/getManyTreeSpecies",
+  "treeSpecies/getManyTreeSpecies",
   async (params: GetManyTreeSpeciesParams) => {
     return await axios
       .get<TreeSpecies[]>(`${BASE_URL}?codes=${params.codes}`)
@@ -36,7 +36,7 @@ export const getManyTreeSpecies = createAsyncThunk(
 );
 
 export const getAllTreeSpecies = createAsyncThunk(
-  "tree/getAllTreeSpecies",
+  "treeSpecies/getAllTreeSpecies",
   async () => {
     return await axios.get<TreeSpecies[]>(`${BASE_URL}`).then((response) => {
       return response.data;

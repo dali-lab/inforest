@@ -8,8 +8,10 @@ import { getForestPlots } from "../../redux/slices/plotSlice";
 import { deselectTree, getForestTrees } from "../../redux/slices/treeSlice";
 import { FOREST_ID } from "../../constants/dev";
 import { getAllTreeSpecies } from "../../redux/slices/treeSpeciesSlice";
+import { getAllTreeLabels } from "../../redux/slices/treeLabelSlice";
 import PlotView from "./PlotView";
 import ExploreView from "./ExploreView";
+import { getAllTreePhotoPurposes } from "../../redux/slices/treePhotoPurpose";
 
 export default function MapScreen() {
   const dispatch = useAppDispatch();
@@ -22,6 +24,8 @@ export default function MapScreen() {
       })
     );
     dispatch(getAllTreeSpecies());
+    dispatch(getAllTreeLabels());
+    dispatch(getAllTreePhotoPurposes());
   }, [dispatch]);
 
   const [mode, setMode] = useState<MapScreenModes>(MapScreenModes.Explore);
