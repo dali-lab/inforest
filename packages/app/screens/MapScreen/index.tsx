@@ -39,9 +39,8 @@ export default function MapScreen() {
   }, []);
 
   const beginPlotting = useCallback(() => {
-    dispatch(deselectTree());
     setMode(MapScreenModes.Plot);
-  }, [dispatch]);
+  }, []);
 
   const endPlotting = useCallback(() => {
     dispatch(deselectTree());
