@@ -11,7 +11,6 @@ export interface GetTreesParams {
   tags?: string[];
   plotNumbers?: number[];
   speciesCodes?: string[];
-  statusNames?: string[];
 
   latMin?: number;
   latMax?: number;
@@ -53,7 +52,6 @@ const constructQuery = (params: GetTreesParams) => {
     heightMin,
     heightMax,
     speciesCodes,
-    statusNames,
     tripId,
     authorId,
     limit = 30,
@@ -75,11 +73,6 @@ const constructQuery = (params: GetTreesParams) => {
   if (speciesCodes) {
     query.where.speciesCode = {
       [Op.in]: speciesCodes,
-    };
-  }
-  if (statusNames) {
-    query.where.statusName = {
-      [Op.in]: statusNames,
     };
   }
   if (latMin) {

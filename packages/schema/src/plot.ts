@@ -1,3 +1,4 @@
+import { PlotCensus } from "plot-census";
 import { Forest } from "./forest";
 /**
  * Forestry census plot.
@@ -37,4 +38,9 @@ export interface Plot {
    * ID of plot's forest
    */
   forestId: string;
+
+  /**
+   * Censuses made on this plot.
+   */
+  censuses: PlotCensus[];
 }

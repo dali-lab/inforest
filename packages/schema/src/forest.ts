@@ -1,3 +1,4 @@
+import { ForestCensus } from "forest-census";
 import { Plot } from "./plot";
 import { Team } from "./team";
 import { Trip } from "./trip";
@@ -23,12 +24,12 @@ export interface Forest {
   /**
    * Plots contained within this forest
    */
-  plots: Plot[];
+  plots?: Plot[];
 
   /**
    * Team this forest belongs to
    */
-  team: Team;
+  team?: Team;
 
   /**
    * ID of team this forest belongs to
@@ -38,5 +39,10 @@ export interface Forest {
   /**
    * Trips undertaken in this forest
    */
-  trips: Trip[];
+  trips?: Trip[];
+
+  /**
+   * Censuses made on this forest.
+   */
+  censuses?: ForestCensus[];
 }

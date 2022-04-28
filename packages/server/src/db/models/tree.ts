@@ -10,13 +10,11 @@ import {
   HasMany,
 } from "sequelize-typescript";
 import Plot from "db/models/plot";
-import TreeStatus from "db/models/tree-status";
 import TreeSpecies from "db/models/tree-species";
 import TreeCensus from "db/models/tree-census";
 import {
   Tree as ITree,
   TreeSpecies as ITreeSpecies,
-  TreeStatus as ITreeStatus,
   TreeCensus as ITreeCensus,
   Plot as IPlot,
 } from "@ong-forestry/schema";
@@ -68,13 +66,6 @@ class Tree
 
   @BelongsTo(() => TreeSpecies)
   species: ITreeSpecies;
-
-  @ForeignKey(() => TreeStatus)
-  @Column(DataTypes.STRING)
-  statusName: string;
-
-  @BelongsTo(() => TreeStatus)
-  status: ITreeStatus;
 
   @HasMany(() => TreeCensus)
   censuses: ITreeCensus[];
