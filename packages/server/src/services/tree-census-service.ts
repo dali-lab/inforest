@@ -71,22 +71,34 @@ export const createTreeCensus = async (
   });
 };
 
-export interface EditTreeCensusParams {
+export interface TreeCensusParams {
   treeTags?: string[];
+  plotCensusId?: string;
+  authorId?: string;
 }
 
-const constructQuery = (params: EditTreeCensusParams) => {
-  const { treeTags } = params;
+const constructQuery = (params: TreeCensusParams) => {
+  const { treeTags, plotCensusId, authorId } = params;
   const query: any = { where: {} };
   if (treeTags) {
     query.where.treeTags = { [Op.in]: treeTags };
   }
+  if (plotCensusId) {
+    query.where.plotCensusId = { [Op.eq]: plotCensusId };
+  }
+  if (authorId) {
+    query.where.authorId = { [Op.eq]: authorId };
+  }
   return query;
+};
+
+export const getTreeCensuses = async (params: TreeCensusParams) => {
+  return await TreeCensusModel.findAll(constructQuery(params));
 };
 
 export const editTreeCensuses = async (
   treeCensus: Omit<TreeCensus, "plotCensusId">,
-  params: EditTreeCensusParams
+  params: TreeCensusParams
 ) => {
   // the author of the census is the person who last updated
   // frontend should include id of editor in the request body

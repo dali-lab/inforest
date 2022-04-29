@@ -1,6 +1,7 @@
 import { PlotCensus, PlotCensusStatuses } from "@ong-forestry/schema";
 import PlotCensusModel from "db/models/plot-census";
 import PlotModel from "db/models/plot";
+import PlotCensusAssignmentModel from "db/models/plot-census-assignment";
 import TreeCensusModel from "db/models/tree-census";
 import TreeModel from "db/models/tree";
 import ForestCensusModel from "db/models/forest-census";
@@ -71,6 +72,74 @@ export const createPlotCensus = async (plotId: string) => {
     status: PlotCensusStatuses.InProgress,
     forestCensusId: forestCensus[0].id,
   });
+};
+
+export interface GetPlotCensusParams {
+  forestCensusId?: string;
+  plotId?: string;
+
+  userId?: string;
+  status?: string;
+
+  limit?: number;
+  offset?: number;
+}
+
+const constructQuery = (params: GetPlotCensusParams) => {
+  const { forestCensusId, plotId, status, limit, offset } = params;
+  const query: any = {
+    where: {},
+  };
+  if (forestCensusId) {
+    query.where.forestCensusId = {
+      [Op.eq]: forestCensusId,
+    };
+  }
+  if (plotId) {
+    query.where.plotId = {
+      [Op.eq]: plotId,
+    };
+  }
+  if (status) {
+    query.where.status = {
+      [Op.eq]: status,
+    };
+  }
+  return query;
+};
+
+export const getPlotCensuses = async (params: GetPlotCensusParams) => {
+  const query = constructQuery(params);
+  var plotCensuses = await PlotCensusModel.findAll(query);
+
+  // search by user assigned to this plot census
+  if (params.userId) {
+    // search the plot assignment table for plot censuses this user is assigned to
+    const userCensuses = (
+      await PlotCensusAssignmentModel.findAll({
+        where: { userId: { [Op.eq]: params.userId } },
+      })
+    ).map((plotCensusAssignment) => plotCensusAssignment.plotCensusId);
+
+    // intersect found plot censuses with plot censuses assigned to this user
+    plotCensuses = plotCensuses.filter((plotCensus) =>
+      userCensuses.includes(plotCensus.id)
+    );
+  }
+
+  // need to handle limit and offset manually
+  if (params.offset) {
+    plotCensuses = plotCensuses.filter(
+      (plotCensus, index) => index >= (params.offset ?? 0)
+    );
+  }
+  if (params.limit) {
+    plotCensuses = plotCensuses.filter((plotCensus, index) =>
+      params.limit ? index < params.limit : true
+    );
+  }
+
+  return plotCensuses;
 };
 
 export const submitForReview = async (args: { plotId: string }) => {

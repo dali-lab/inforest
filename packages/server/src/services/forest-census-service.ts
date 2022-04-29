@@ -19,6 +19,36 @@ export const createForestCensus = async (forestCensus: ForestCensus) => {
   return await ForestCensusModel.create(forestCensus);
 };
 
+export interface GetForestCensusesParams {
+  forestId?: string;
+  limit?: number;
+  offset?: number;
+}
+
+const constructQuery = (params: GetForestCensusesParams) => {
+  const { forestId, limit, offset } = params;
+  const query: any = {
+    where: {},
+  };
+  if (forestId) {
+    query.where.forestId = {
+      [Op.eq]: forestId,
+    };
+  }
+  if (limit) {
+    query.limit = limit;
+  }
+  if (offset) {
+    query.offset = offset;
+  }
+  return query;
+};
+
+export const getForestCensuses = async (params: GetForestCensusesParams) => {
+  const query = constructQuery(params);
+  return await ForestCensusModel.findAll(query);
+};
+
 export const closeForestCensus = async (params: { forestId: string }) => {
   const { forestId } = params;
 
