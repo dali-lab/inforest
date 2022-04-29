@@ -13,9 +13,9 @@ export interface TreeCensus {
   id: string;
 
   /**
-   * Tag of the tree being censused.
+   * Id of the tree being censused.
    */
-  treeTag: string;
+  treeId: string;
 
   /**
    * Object of the tree being censused.

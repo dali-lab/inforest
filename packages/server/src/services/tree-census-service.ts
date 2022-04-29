@@ -9,7 +9,7 @@ import { Op } from "sequelize";
 const getPlotCensus = async (treeCensus: Omit<TreeCensus, "plotCensusId">) => {
   // find tree being censused -> plot it's on -> active plot census
   const tree = await TreeModel.findOne({
-    where: { tag: { [Op.eq]: treeCensus.treeTag } },
+    where: { id: { [Op.eq]: treeCensus.treeId } },
   });
   if (tree == null) {
     throw Error("Tree does not exist");
@@ -57,7 +57,7 @@ export const createTreeCensus = async (
   // check whether census on this tree in this plot census already exists
   const existingCensuses = await TreeCensusModel.findAll({
     where: {
-      treeTag: { [Op.eq]: treeCensus.treeTag },
+      treeId: { [Op.eq]: treeCensus.treeId },
       plotCensusId: { [Op.eq]: plotCensusId },
     },
   });
@@ -72,16 +72,16 @@ export const createTreeCensus = async (
 };
 
 export interface TreeCensusParams {
-  treeTags?: string[];
+  treeIds?: string[];
   plotCensusId?: string;
   authorId?: string;
 }
 
 const constructQuery = (params: TreeCensusParams) => {
-  const { treeTags, plotCensusId, authorId } = params;
+  const { treeIds, plotCensusId, authorId } = params;
   const query: any = { where: {} };
-  if (treeTags) {
-    query.where.treeTags = { [Op.in]: treeTags };
+  if (treeIds) {
+    query.where.treeIds = { [Op.in]: treeIds };
   }
   if (plotCensusId) {
     query.where.plotCensusId = { [Op.eq]: plotCensusId };

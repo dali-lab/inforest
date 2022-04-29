@@ -1,12 +1,6 @@
 import { Tree } from "@ong-forestry/schema";
 import express from "express";
-import {
-  createTrees,
-  getTrees,
-  GetTreesParams,
-  editTrees,
-  deleteTrees,
-} from "services";
+import { createTree, getTrees, editTrees, deleteTrees } from "services";
 import { requireAuth } from "services/auth-service";
 import { treePhotoRouter } from "./tree-photo-routes";
 import { treeSpeciesRouter } from "./tree-species-routes";
@@ -16,7 +10,7 @@ const treeRouter = express.Router();
 
 treeRouter.post<{}, any, Tree>("/", requireAuth, async (req, res) => {
   try {
-    const tree = await createTrees(req.body);
+    const tree = await createTree(req.body);
     res.status(201).json(tree);
   } catch (e: any) {
     console.error(e);
@@ -25,6 +19,7 @@ treeRouter.post<{}, any, Tree>("/", requireAuth, async (req, res) => {
 });
 
 const parseParams = (query: any) => ({
+  ids: (query.ids as string)?.split(","),
   tags: (query.tags as string)?.split(","),
   plotIds: (query.plotIds as string)?.split(","),
   speciesCodes: (query.speciesCodes as string)?.split(","),

@@ -171,7 +171,7 @@ export const submitForReview = async (args: { plotId: string }) => {
     trees.map(async (tree) => {
       const treeCensuses = await TreeCensusModel.findAll({
         where: {
-          treeTag: { [Op.eq]: tree.tag },
+          treeId: { [Op.eq]: tree.id },
           plotCensusId: { [Op.eq]: census[0].id },
         },
       });

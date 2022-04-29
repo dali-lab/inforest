@@ -53,7 +53,7 @@ class TreeCensus
   @ForeignKey(() => Tree)
   @AllowNull(false)
   @Column(DataTypes.STRING)
-  treeTag: string;
+  treeId: string;
 
   @BelongsTo(() => Tree)
   tree: ITree;

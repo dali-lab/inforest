@@ -1,12 +1,36 @@
 import { Tree } from "@ong-forestry/schema";
 import TreeModel from "db/models/tree";
+import PlotModel from "db/models/plot";
 import { Op } from "sequelize";
 
-export const createTrees = async (tree: Tree) => {
+export const createTree = async (tree: Tree) => {
+  // ensure tag unique in this forest
+  // find plot tree is in
+  const plot = await PlotModel.findOne({
+    where: { id: { [Op.eq]: tree.plotId } },
+  });
+  if (plot == null) {
+    throw Error("Plot does not exist");
+  }
+  // find other plots in the same forest
+  const plots = await PlotModel.findAll({
+    where: { forestId: { [Op.eq]: plot.forestId } },
+  });
+  // get ids of plots
+  const plotIds = plots.map((plot) => plot.id);
+
+  // get trees with this tag in the plots in the same forest as this tree
+  const treesWithTag = await TreeModel.findAll({
+    where: { tag: { [Op.eq]: tree.tag }, plotId: { [Op.in]: plotIds } },
+  });
+  if (treesWithTag.length > 0) {
+    throw Error("There is already a tree with this tag in this forest.");
+  }
   return await TreeModel.create(tree);
 };
 
 export interface GetTreesParams {
+  ids?: string[];
   tags?: string[];
   plotIds?: string[];
   speciesCodes?: string[];
@@ -36,6 +60,7 @@ export interface GetTreesParams {
 
 const constructQuery = (params: GetTreesParams) => {
   const {
+    ids,
     tags,
     plotIds,
     latMin,
@@ -59,6 +84,11 @@ const constructQuery = (params: GetTreesParams) => {
   const query: any = {
     where: {},
   };
+  if (ids) {
+    query.where.id = {
+      [Op.in]: ids,
+    };
+  }
   if (tags) {
     query.where.tag = {
       [Op.in]: tags,

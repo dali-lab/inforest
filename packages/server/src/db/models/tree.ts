@@ -7,6 +7,7 @@ import {
   ForeignKey,
   BelongsTo,
   AllowNull,
+  Default,
 } from "sequelize-typescript";
 import Plot from "db/models/plot";
 import TreeSpecies from "db/models/tree-species";
@@ -35,6 +36,10 @@ class Tree
   implements Omit<ITree, "createdAt" | "updatedAt">
 {
   @PrimaryKey
+  @Default(DataTypes.UUID)
+  @Column(DataTypes.UUID)
+  id: string;
+
   @Column(DataTypes.STRING)
   tag: string;
 
