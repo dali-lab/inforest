@@ -9,14 +9,11 @@ import morgan from "morgan";
 import * as models from "db/models";
 import {
   treeRouter,
-  treeCensusRouter,
   plotRouter,
-  plotCensusRouter,
   plotCensusAssignmentRouter,
   userRouter,
   teamRouter,
   forestRouter,
-  forestCensusRouter,
   membershipRouter,
   tripRouter,
 } from "routes";
@@ -57,13 +54,10 @@ try {
 }
 
 app.use("/trees", treeRouter);
-app.use("/tree_census", treeCensusRouter);
 app.use("/plots", plotRouter);
-app.use("/plot_census", plotCensusRouter);
 app.use("/plot_census_assignments", plotCensusAssignmentRouter);
 app.use("/users", userRouter);
 app.use("/teams", teamRouter);
 app.use("/forests", forestRouter);
-app.use("/forest_census", forestCensusRouter);
 app.use("/memberships", membershipRouter);
 app.use("/trips", tripRouter);

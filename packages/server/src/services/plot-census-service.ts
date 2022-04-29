@@ -1,4 +1,4 @@
-import { PlotCensus, PlotCensusStatuses } from "@ong-forestry/schema";
+import { PlotCensusStatuses } from "@ong-forestry/schema";
 import PlotCensusModel from "db/models/plot-census";
 import PlotModel from "db/models/plot";
 import PlotCensusAssignmentModel from "db/models/plot-census-assignment";
@@ -74,7 +74,7 @@ export const createPlotCensus = async (plotId: string) => {
   });
 };
 
-export interface GetPlotCensusParams {
+export interface PlotCensusParams {
   forestCensusId?: string;
   plotId?: string;
 
@@ -85,7 +85,7 @@ export interface GetPlotCensusParams {
   offset?: number;
 }
 
-const constructQuery = (params: GetPlotCensusParams) => {
+const constructQuery = (params: PlotCensusParams) => {
   const { forestCensusId, plotId, status, limit, offset } = params;
   const query: any = {
     where: {},
@@ -108,7 +108,7 @@ const constructQuery = (params: GetPlotCensusParams) => {
   return query;
 };
 
-export const getPlotCensuses = async (params: GetPlotCensusParams) => {
+export const getPlotCensuses = async (params: PlotCensusParams) => {
   const query = constructQuery(params);
   var plotCensuses = await PlotCensusModel.findAll(query);
 

@@ -11,7 +11,6 @@ import {
 } from "sequelize-typescript";
 import Plot from "db/models/plot";
 import TreeSpecies from "db/models/tree-species";
-
 import {
   Tree as ITree,
   TreeSpecies as ITreeSpecies,

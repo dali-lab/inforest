@@ -5,6 +5,7 @@ import { requireAuth } from "services/auth-service";
 import { treePhotoRouter } from "./tree-photo-routes";
 import { treeSpeciesRouter } from "./tree-species-routes";
 import { treeLabelRouter } from "./tree-label-routes";
+import { treeCensusRouter } from "./tree-census-routes";
 
 const treeRouter = express.Router();
 
@@ -23,7 +24,6 @@ const parseParams = (query: any) => ({
   tags: (query.tags as string)?.split(","),
   plotIds: (query.plotIds as string)?.split(","),
   speciesCodes: (query.speciesCodes as string)?.split(","),
-  statusNames: (query.statusNames as string)?.split(","),
   latMin: parseFloat(query.latMin as string),
   latMax: parseFloat(query.latMax as string),
   longMin: parseFloat(query.longMin as string),
@@ -32,10 +32,6 @@ const parseParams = (query: any) => ({
   plotXMax: parseFloat(query.plotXMax as string),
   plotYMin: parseFloat(query.plotYMin as string),
   plotYMax: parseFloat(query.plotYMax as string),
-  dbhMin: parseFloat(query.dbhMin as string),
-  dbhMax: parseFloat(query.dbhMax as string),
-  heightMin: parseFloat(query.heightMin as string),
-  heightMax: parseFloat(query.heightMax as string),
   tripId: query.tripId as string,
   authorId: query.authorId as string,
   limit: parseInt(query.limit as string),
@@ -65,7 +61,7 @@ treeRouter.get<{}, any, Tree>("/", requireAuth, async (req, res) => {
 treeRouter.delete<{}, any, Tree>("/", requireAuth, async (req, res) => {
   try {
     await deleteTrees(parseParams(req.query));
-    res.status(201).send("Trees deleted successfully.");
+    res.status(200).send("Trees deleted successfully.");
   } catch (e: any) {
     console.error(e);
     res.status(500).send(e?.message ?? "Unknown error.");
@@ -75,5 +71,6 @@ treeRouter.delete<{}, any, Tree>("/", requireAuth, async (req, res) => {
 treeRouter.use("/photos", treePhotoRouter);
 treeRouter.use("/species", treeSpeciesRouter);
 treeRouter.use("/labels", treeLabelRouter);
+treeRouter.use("/census", treeCensusRouter);
 
 export { treeRouter };

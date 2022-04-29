@@ -17,7 +17,8 @@ const parseParams = (query: any) => ({
 
 plotCensusRouter.get<{}, any, any>("/", requireAuth, async (req, res) => {
   try {
-    await getPlotCensuses(parseParams(req.query));
+    const plotCensuses = await getPlotCensuses(parseParams(req.query));
+    res.status(200).json(plotCensuses);
   } catch (e: any) {
     console.error(e);
     res.status(500).send(e?.message ?? "Unknown error.");

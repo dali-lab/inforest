@@ -45,12 +45,6 @@ export interface GetTreesParams {
   plotYMin?: number;
   plotYMax?: number;
 
-  dbhMin?: number;
-  dbhMax?: number;
-
-  heightMin?: number;
-  heightMax?: number;
-
   tripId?: string;
   authorId?: string;
 
@@ -71,10 +65,6 @@ const constructQuery = (params: GetTreesParams) => {
     plotXMax,
     plotYMin,
     plotYMax,
-    dbhMin,
-    dbhMax,
-    heightMin,
-    heightMax,
     speciesCodes,
     tripId,
     authorId,
@@ -142,26 +132,6 @@ const constructQuery = (params: GetTreesParams) => {
   if (plotYMax) {
     query.where.plotY = {
       [Op.lte]: plotYMax,
-    };
-  }
-  if (dbhMin) {
-    query.where.dbh = {
-      [Op.gte]: dbhMin,
-    };
-  }
-  if (dbhMax) {
-    query.where.dbh = {
-      [Op.lte]: dbhMax,
-    };
-  }
-  if (heightMin) {
-    query.where.height = {
-      [Op.gte]: heightMin,
-    };
-  }
-  if (heightMax) {
-    query.where.height = {
-      [Op.lte]: heightMax,
     };
   }
   if (tripId) {

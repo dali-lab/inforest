@@ -10,7 +10,7 @@ import { requireAuth } from "services/auth-service";
 
 const treePhotoRouter = express.Router();
 
-treePhotoRouter.post<{}, any, TreePhoto>("/", async (req, res) => {
+treePhotoRouter.post<{}, any, TreePhoto>("/", requireAuth, async (req, res) => {
   try {
     const photo = await createTreePhoto(req.body);
     res.status(201).json(photo);
