@@ -49,7 +49,6 @@ export interface GetTreesParams {
   plotYMax?: number;
 
   tripId?: string;
-  authorId?: string;
 
   limit?: number;
   offset?: number;
@@ -70,7 +69,6 @@ const constructQuery = (params: GetTreesParams) => {
     plotYMax,
     speciesCodes,
     tripId,
-    authorId,
     limit = 30,
     offset = 0,
   } = params;
@@ -140,11 +138,6 @@ const constructQuery = (params: GetTreesParams) => {
   if (tripId) {
     query.where.tripId = {
       [Op.eq]: tripId,
-    };
-  }
-  if (authorId) {
-    query.where.authorId = {
-      [Op.eq]: authorId,
     };
   }
   if (limit) {

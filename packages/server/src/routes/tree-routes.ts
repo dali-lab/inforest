@@ -33,7 +33,6 @@ const parseParams = (query: any) => ({
   plotYMin: parseFloat(query.plotYMin as string),
   plotYMax: parseFloat(query.plotYMax as string),
   tripId: query.tripId as string,
-  authorId: query.authorId as string,
   limit: parseInt(query.limit as string),
   offset: parseInt(query.offset as string),
 });
