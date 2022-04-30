@@ -1,9 +1,28 @@
 import { Membership, MembershipRoles } from "@ong-forestry/schema";
 import MembershipModel from "db/models/membership";
 import { Op } from "sequelize";
+import { getUsers } from "./";
+import { createInactiveAccount } from "./user-service";
 
-export const createMembership = async (membership: Membership) => {
-  return await MembershipModel.create(membership);
+const uuid = require("uuid4");
+
+export const createMembership = async (membership: {
+  email: string;
+  teamId: string;
+}) => {
+  // check whether user with this email exists
+  const users = await getUsers({ email: membership.email });
+
+  // no user with this email exists. create inactive user account
+  if (users.length == 0) {
+    users.push(await createInactiveAccount(membership.email));
+  }
+
+  return await MembershipModel.create({
+    id: uuid(),
+    userId: users[0].id,
+    teamId: membership.teamId,
+  });
 };
 
 export interface GetMembershipsParams {

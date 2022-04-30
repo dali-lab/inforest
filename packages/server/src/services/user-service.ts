@@ -4,7 +4,27 @@ import { Op } from "sequelize";
 import bcrypt from "bcrypt";
 
 export const createUser = async (user: User) => {
-  return await UserModel.create(user);
+  // check for inactive account with this email
+  // db-level unique constraint on email; can safely findOne
+  const inactiveUser = await UserModel.findOne({
+    where: { email: { [Op.eq]: user.email, active: { [Op.eq]: false } } },
+  });
+
+  // if no inactive user is found, create a new one
+  if (inactiveUser == null) {
+    return await UserModel.create(user);
+  }
+  // else update this user's information and make them active
+  else {
+    return await UserModel.update(
+      { ...user, active: true },
+      { where: { email: { [Op.eq]: user.email } } }
+    );
+  }
+};
+
+export const createInactiveAccount = async (email: string) => {
+  return await UserModel.create({ email, password: "", active: false });
 };
 
 export interface GetUsersParams {
