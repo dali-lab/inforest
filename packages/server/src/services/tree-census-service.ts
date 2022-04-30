@@ -1,68 +1,65 @@
 import { PlotCensusStatuses, TreeCensus } from "@ong-forestry/schema";
 import TreeCensusModel from "db/models/tree-census";
-import TreeModel from "db/models/tree";
-import PlotModel from "db/models/plot";
-import PlotCensusModel from "db/models/plot-census";
-import PlotCensusAssignmentModel from "db/models/plot-census-assignment";
 import { Op } from "sequelize";
+import { getPlotCensusAssignments } from "./plot-census-assignment-service";
+import { getPlotCensuses } from "./plot-census-service";
+import { getPlots } from "./plot-service";
+import { getTrees } from "./tree-service";
 
-const getPlotCensus = async (treeCensus: Omit<TreeCensus, "plotCensusId">) => {
+const validatePlotCensus = async (
+  treeCensus: Omit<TreeCensus, "plotCensusId">
+) => {
   // find tree being censused -> plot it's on -> active plot census
-  const tree = await TreeModel.findOne({
-    where: { id: { [Op.eq]: treeCensus.treeId } },
+  const trees = await getTrees({
+    ids: [treeCensus.treeId],
   });
-  if (tree == null) {
-    throw Error("Tree does not exist");
+  if (trees.length == 0) {
+    throw new Error("Tree does not exist");
   }
-  const plot = await PlotModel.findOne({
-    where: { id: { [Op.eq]: tree.plotId } },
+
+  const plots = await getPlots({
+    id: trees[0].plotId,
   });
-  if (plot == null) {
-    throw Error("Plot does not exist");
+  if (plots.length == 0) {
+    throw new Error("Plot does not exist");
   }
-  const plotCensuses = await PlotCensusModel.findAll({
-    where: {
-      plotId: { [Op.eq]: plot.id },
-      status: { [Op.eq]: PlotCensusStatuses.InProgress },
-    },
+
+  const plotCensuses = await getPlotCensuses({
+    plotId: plots[0].id,
+    status: PlotCensusStatuses.InProgress,
   });
   if (plotCensuses.length > 1) {
-    throw Error("Error: more than one active census on this plot");
+    throw new Error("Error: more than one active census on this plot");
   }
   if (plotCensuses.length == 0) {
-    throw Error("There is no active census on this plot");
+    throw new Error("There is no active census on this plot");
   }
-  const plotCensus = plotCensuses[0];
 
   // check that user is assigned to this plot census
-  const assignment = await PlotCensusAssignmentModel.findOne({
-    where: {
-      plotCensusId: { [Op.eq]: plotCensus.id },
-      userId: { [Op.eq]: treeCensus.authorId },
-    },
+  const assignment = await getPlotCensusAssignments({
+    plotCensusId: plotCensuses[0].id,
+    userId: treeCensus.authorId,
   });
   if (assignment == null) {
-    throw Error("You are not assigned to this plot.");
+    throw new Error("You are not assigned to this plot.");
   }
 
-  return plotCensus.id;
+  return plotCensuses[0].id;
 };
 
 export const createTreeCensus = async (
   treeCensus: Omit<TreeCensus, "plotCensusId">
 ) => {
-  const plotCensusId = await getPlotCensus(treeCensus);
+  const plotCensusId = await validatePlotCensus(treeCensus);
   // ^ throws error if census is not in_progress
 
   // check whether census on this tree in this plot census already exists
-  const existingCensuses = await TreeCensusModel.findAll({
-    where: {
-      treeId: { [Op.eq]: treeCensus.treeId },
-      plotCensusId: { [Op.eq]: plotCensusId },
-    },
+  const existingCensuses = await getTreeCensuses({
+    treeIds: [treeCensus.treeId],
+    plotCensusId: plotCensusId,
   });
   if (existingCensuses.length > 0) {
-    throw Error("This tree has already been censused.");
+    throw new Error("This tree has already been censused.");
   }
 
   return await TreeCensusModel.create({
@@ -108,7 +105,7 @@ export const editTreeCensuses = async (
   // the author of the census is the person who last updated
   // frontend should include id of editor in the request body
 
-  await getPlotCensus(treeCensus);
+  await validatePlotCensus(treeCensus);
   // ^ throws error if census is not in_progress
 
   const query = constructQuery(params);

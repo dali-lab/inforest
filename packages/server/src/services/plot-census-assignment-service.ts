@@ -30,20 +30,18 @@ export const createAssignment = async (plotAssignment: {
 
   // if pending / something else?, cannot assign self to census
   if (plotCensus.status != PlotCensusStatuses.InProgress) {
-    throw Error("You cannot assign yourself to a pending plot.");
+    throw new Error("You cannot assign yourself to a pending plot.");
   }
 
   // check whether user is already assigned
-  const existingAssignments: any = await PlotCensusAssignmentModel.findAll({
-    where: {
-      userId: { [Op.eq]: userId },
-      plotCensusId: { [Op.eq]: plotCensus.id },
-    },
+  const existingAssignments = await getPlotCensusAssignments({
+    userId,
+    plotCensusId: plotCensus.id,
   });
 
   // if assignment exists, throw an error
   if (existingAssignments.length > 0) {
-    throw Error("You are already assigned to this plot.");
+    throw new Error("You are already assigned to this plot.");
   }
 
   //finally, assign user to this plot census
@@ -52,4 +50,31 @@ export const createAssignment = async (plotAssignment: {
     plotCensusId: plotCensus.id,
     userId,
   });
+};
+
+interface PlotCensusAssignmentParams {
+  plotCensusId?: string;
+  userId?: string;
+}
+
+const constructQuery = (params: PlotCensusAssignmentParams) => {
+  const { plotCensusId, userId } = params;
+  const query: any = { where: {} };
+  if (plotCensusId) {
+    query.where.plotCensusId = {
+      [Op.eq]: plotCensusId,
+    };
+  }
+  if (userId) {
+    query.where.userId = {
+      [Op.eq]: userId,
+    };
+  }
+  return query;
+};
+
+export const getPlotCensusAssignments = async (
+  params: PlotCensusAssignmentParams
+) => {
+  return await PlotCensusAssignmentModel.findAll(constructQuery(params));
 };

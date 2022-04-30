@@ -5,20 +5,21 @@ import bcrypt from "bcrypt";
 
 export const createUser = async (user: User) => {
   // check for inactive account with this email
-  // db-level unique constraint on email; can safely findOne
-  const inactiveUser = await UserModel.findOne({
-    where: { email: { [Op.eq]: user.email, active: { [Op.eq]: false } } },
+  // db-level unique constraint on email; can assume only one user if any
+  const inactiveUsers = await getUsers({
+    email: user.email,
+    active: false,
   });
 
   // if no inactive user is found, create a new one
-  if (inactiveUser == null) {
+  if (inactiveUsers.length == 0) {
     return await UserModel.create(user);
   }
   // else update this user's information and make them active
   else {
-    return await UserModel.update(
+    return await editUsers(
       { ...user, active: true },
-      { where: { email: { [Op.eq]: user.email } } }
+      { id: inactiveUsers[0].id }
     );
   }
 };
@@ -31,12 +32,14 @@ export interface GetUsersParams {
   id?: string;
   email?: string;
 
+  active?: boolean;
+
   limit?: number;
   offset?: number;
 }
 
 const constructQuery = (params: GetUsersParams) => {
-  const { id, email, limit = 30, offset = 0 } = params;
+  const { id, email, active, limit = 30, offset = 0 } = params;
   const query: any = {
     where: {},
     attributes: { exclude: ["password"] },
@@ -49,6 +52,11 @@ const constructQuery = (params: GetUsersParams) => {
   if (email) {
     query.where.email = {
       [Op.eq]: email,
+    };
+  }
+  if (active != undefined) {
+    query.where.active = {
+      [Op.eq]: active,
     };
   }
   if (limit) {
@@ -79,7 +87,11 @@ export const deleteUsers = async (params: GetUsersParams) => {
 };
 
 export const isValidPassword = async (email: string, password: string) => {
-  const user = await UserModel.findAll({ where: { email } });
-  if (user.length !== 1) throw new Error("No user exists with this email.");
-  return await bcrypt.compare(password, user[0].password);
+  const users = await getUsers({ email });
+  if (users.length > 1) {
+    throw new Error("Error: more than one user with this email");
+  }
+
+  if (users.length == 0) throw new Error("No user exists with this email.");
+  return await bcrypt.compare(password, users[0].password);
 };

@@ -1,31 +1,34 @@
 import { Tree } from "@ong-forestry/schema";
 import TreeModel from "db/models/tree";
-import PlotModel from "db/models/plot";
 import { Op } from "sequelize";
+import { getPlots } from "./plot-service";
 
 export const createTree = async (tree: Tree) => {
   // ensure tag unique in this forest
   // find plot tree is in
-  const plot = await PlotModel.findOne({
-    where: { id: { [Op.eq]: tree.plotId } },
+  const plots = await getPlots({
+    id: tree.plotId,
   });
-  if (plot == null) {
-    throw Error("Plot does not exist");
+  if (plots.length == 0) {
+    throw new Error("Plot does not exist");
   }
+
   // find other plots in the same forest
-  const plots = await PlotModel.findAll({
-    where: { forestId: { [Op.eq]: plot.forestId } },
+  const allPlots = await getPlots({
+    forestId: plots[0].forestId,
   });
   // get ids of plots
-  const plotIds = plots.map((plot) => plot.id);
+  const plotIds = allPlots.map((plot) => plot.id);
 
   // get trees with this tag in the plots in the same forest as this tree
-  const treesWithTag = await TreeModel.findAll({
-    where: { tag: { [Op.eq]: tree.tag }, plotId: { [Op.in]: plotIds } },
+  const treesWithTag = await getTrees({
+    tags: [tree.tag],
+    plotIds: plotIds,
   });
   if (treesWithTag.length > 0) {
-    throw Error("There is already a tree with this tag in this forest.");
+    throw new Error("There is already a tree with this tag in this forest.");
   }
+
   return await TreeModel.create(tree);
 };
 
