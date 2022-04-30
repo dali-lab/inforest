@@ -49,8 +49,6 @@ export interface GetTreesParams {
   plotYMin?: number;
   plotYMax?: number;
 
-  tripId?: string;
-
   limit?: number;
   offset?: number;
 }
@@ -69,7 +67,6 @@ const constructQuery = (params: GetTreesParams) => {
     plotYMin,
     plotYMax,
     speciesCodes,
-    tripId,
     limit = 30,
     offset = 0,
   } = params;
@@ -134,11 +131,6 @@ const constructQuery = (params: GetTreesParams) => {
   if (plotYMax) {
     query.where.plotY = {
       [Op.lte]: plotYMax,
-    };
-  }
-  if (tripId) {
-    query.where.tripId = {
-      [Op.eq]: tripId,
     };
   }
   if (limit) {

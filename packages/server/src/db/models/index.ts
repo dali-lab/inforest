@@ -13,7 +13,6 @@ import TreeLabel from "db/models/tree-label";
 import TreeCensusLabel from "db/models/tree-census-label";
 import Forest from "db/models/forest";
 import ForestCensus from "db/models/forest-census";
-import Trip from "db/models/trip";
 
 export {
   Plot,
@@ -31,5 +30,4 @@ export {
   TreeCensusLabel,
   Forest,
   ForestCensus,
-  Trip,
 };

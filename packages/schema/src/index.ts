@@ -18,7 +18,6 @@ import {
 import { TreeCensus } from "./tree-census";
 import { Forest } from "./forest";
 import { ForestCensus } from "./forest-census";
-import { Trip, TripStatuses } from "./trip";
 
 export {
   Plot,
@@ -38,6 +37,4 @@ export {
   MembershipRoles,
   Forest,
   ForestCensus,
-  Trip,
-  TripStatuses,
 };

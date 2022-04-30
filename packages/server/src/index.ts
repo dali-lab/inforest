@@ -15,7 +15,6 @@ import {
   teamRouter,
   forestRouter,
   membershipRouter,
-  tripRouter,
 } from "routes";
 
 const app = express();
@@ -61,4 +60,3 @@ app.use("/users", userRouter);
 app.use("/teams", teamRouter);
 app.use("/forests", forestRouter);
 app.use("/memberships", membershipRouter);
-app.use("/trips", tripRouter);

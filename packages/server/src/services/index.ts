@@ -7,6 +7,5 @@ export * from "services/plot-census-service";
 export * from "services/plot-census-assignment-service";
 export * from "services/forest-service";
 export * from "services/forest-census-service";
-export * from "services/trip-service";
 export * from "services/membership-service";
 export * from "services/tree-photo-service";

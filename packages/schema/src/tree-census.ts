@@ -1,5 +1,4 @@
 import { Tree, TreeLabel, TreePhoto } from "./tree";
-import { Trip } from "./trip";
 import { User } from "./user";
 import { PlotCensus } from "./plot-census";
 
@@ -46,16 +45,6 @@ export interface TreeCensus {
    * Whether this tree has been flagged for review.
    */
   flagged: boolean;
-
-  /**
-   * Trip this entry was collected during
-   */
-  trip?: Trip;
-
-  /**
-   * ID of this entry's trip
-   */
-  tripId: string;
 
   /**
    * Plot census this entry was taken during
