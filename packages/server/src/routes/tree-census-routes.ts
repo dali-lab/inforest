@@ -23,6 +23,7 @@ const parseParams = (query: any) => ({
   treeIds: (query.treeIds as string)?.split(","),
   plotCensusId: query.plotCensusId as string,
   authorId: query.authorId as string,
+  flagged: query.flagged as boolean,
 });
 
 treeCensusRouter.get<{}, any, any>("/", requireAuth, async (req, res) => {

@@ -175,9 +175,17 @@ export const submitForReview = async (args: { plotId: string }) => {
           plotCensusId: { [Op.eq]: census[0].id },
         },
       });
+      if (treeCensuses.length > 1) {
+        throw Error("Error: two censuses on the same tree");
+      }
       if (treeCensuses.length == 0) {
         throw Error(
           "All trees must be censused before plot can be submitted for review"
+        );
+      }
+      if (treeCensuses[0].flagged == true) {
+        throw Error(
+          "Cannot submit plot census for review if flagged trees exist"
         );
       }
     })

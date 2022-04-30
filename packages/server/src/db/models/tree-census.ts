@@ -70,6 +70,9 @@ class TreeCensus
   @HasMany(() => TreePhoto)
   photos: ITreePhoto[];
 
+  @Column(DataTypes.BOOLEAN)
+  flagged: boolean;
+
   @ForeignKey(() => Trip)
   @AllowNull(false)
   @Column(DataTypes.STRING)

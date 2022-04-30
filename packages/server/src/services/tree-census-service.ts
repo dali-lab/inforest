@@ -75,10 +75,11 @@ export interface TreeCensusParams {
   treeIds?: string[];
   plotCensusId?: string;
   authorId?: string;
+  flagged?: boolean;
 }
 
 const constructQuery = (params: TreeCensusParams) => {
-  const { treeIds, plotCensusId, authorId } = params;
+  const { treeIds, plotCensusId, authorId, flagged } = params;
   const query: any = { where: {} };
   if (treeIds) {
     query.where.treeIds = { [Op.in]: treeIds };
@@ -89,6 +90,10 @@ const constructQuery = (params: TreeCensusParams) => {
   if (authorId) {
     query.where.authorId = { [Op.eq]: authorId };
   }
+  if (flagged) {
+    query.where.flagged = { [Op.eq]: flagged };
+  }
+
   return query;
 };
 

@@ -10,7 +10,7 @@ module.exports = {
       await queryInterface.addColumn(
         "plots",
         "id",
-        { type: Sequelize.UUID, default: Sequelize.UUID, unique: true },
+        { type: Sequelize.UUID, defaultValue: Sequelize.UUID, unique: true },
         { transaction }
       );
 

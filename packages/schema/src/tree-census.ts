@@ -43,6 +43,11 @@ export interface TreeCensus {
   photos?: TreePhoto[];
 
   /**
+   * Whether this tree has been flagged for review.
+   */
+  flagged: boolean;
+
+  /**
    * Trip this entry was collected during
    */
   trip?: Trip;
