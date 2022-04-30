@@ -56,6 +56,11 @@ export interface Tree {
   speciesCode?: string;
 
   /**
+   * Object of census conducted on this tree.
+   */
+  censuses?: TreeCensus[];
+
+  /**
    * Date and time when this entry was created.
    */
   createdAt: Date;

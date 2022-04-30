@@ -1,4 +1,5 @@
 import { Tree } from "@ong-forestry/schema";
+import { TreeCensus } from "db/models";
 import TreeModel from "db/models/tree";
 import { Op } from "sequelize";
 import { getPlots } from "./plot-service";
@@ -159,7 +160,10 @@ export const editTrees = async (
 
 export const getTrees = async (params: GetTreesParams) => {
   const query = constructQuery(params);
-  return await TreeModel.findAll(query);
+  return await TreeModel.findAll({
+    ...query,
+    include: TreeCensus,
+  });
 };
 
 export const deleteTrees = async (params: GetTreesParams) => {

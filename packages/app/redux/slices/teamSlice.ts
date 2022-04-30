@@ -1,8 +1,8 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { Team } from "@ong-forestry/schema";
-import SERVER_URL from "../../constants/Url";
+// import SERVER_URL from "../../constants/Url";
 
-const BASE_URL = SERVER_URL + "trees/";
+// const BASE_URL = SERVER_URL + "trees/";
 
 export interface TeamState {
   currentUserTeams: Team[];
