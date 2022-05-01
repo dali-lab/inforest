@@ -23,9 +23,9 @@ module.exports = {
       // create unique id for each tree and store in dictionary as tag:id pair
       const dictionary = {};
       await Promise.all(
-        trees.map(async (tree) => {
+        trees.map((tree) => {
           dictionary[tree.tag] = uuid();
-          await queryInterface.bulkUpdate(
+          return queryInterface.bulkUpdate(
             "trees",
             { id: dictionary[tree.tag] },
             { tag: tree.tag },
@@ -44,8 +44,8 @@ module.exports = {
       );
       // insert values
       await Promise.all(
-        Object.keys(dictionary).map(async (treeTag) => {
-          await queryInterface.bulkUpdate(
+        Object.keys(dictionary).map((treeTag) => {
+          return queryInterface.bulkUpdate(
             "tree_census",
             { treeId: dictionary[treeTag] },
             { treeTag },
@@ -113,8 +113,8 @@ module.exports = {
       );
       // insert values
       await Promise.all(
-        Object.keys(dictionary).map(async (treeId) => {
-          await queryInterface.bulkUpdate(
+        Object.keys(dictionary).map((treeId) => {
+          return queryInterface.bulkUpdate(
             "tree_census",
             { treeTag: dictionary[treeId] },
             { treeId },

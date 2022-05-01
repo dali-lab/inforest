@@ -23,9 +23,9 @@ module.exports = {
       // create unique id for each plot and store in dictionary as number:id pair
       const dictionary = {};
       await Promise.all(
-        plots.map(async (plot) => {
+        plots.map((plot) => {
           dictionary[plot.number] = uuid();
-          await queryInterface.bulkUpdate(
+          return queryInterface.bulkUpdate(
             "plots",
             { id: dictionary[plot.number] },
             { number: plot.number },
@@ -48,8 +48,8 @@ module.exports = {
         { transaction }
       );
       await Promise.all(
-        Object.keys(dictionary).map(async (plotNumber) => {
-          await queryInterface.bulkUpdate(
+        Object.keys(dictionary).map((plotNumber) => {
+          return queryInterface.bulkUpdate(
             "trees",
             { plotId: dictionary[plotNumber] },
             { plotNumber },
@@ -71,8 +71,8 @@ module.exports = {
         { transaction }
       );
       await Promise.all(
-        Object.keys(dictionary).map(async (plotNumber) => {
-          await queryInterface.bulkUpdate(
+        Object.keys(dictionary).map((plotNumber) => {
+          return queryInterface.bulkUpdate(
             "plot_census",
             { plotId: dictionary[plotNumber] },
             { plotNumber },
@@ -142,8 +142,8 @@ module.exports = {
         { transaction }
       );
       await Promise.all(
-        Object.keys(dictionary).map(async (plotId) => {
-          await queryInterface.bulkUpdate(
+        Object.keys(dictionary).map((plotId) => {
+          return queryInterface.bulkUpdate(
             "trees",
             { plotNumber: dictionary[plotId] },
             { plotId },
@@ -165,8 +165,8 @@ module.exports = {
         { transaction }
       );
       await Promise.all(
-        Object.keys(dictionary).map(async (plotId) => {
-          await queryInterface.bulkUpdate(
+        Object.keys(dictionary).map((plotId) => {
+          return queryInterface.bulkUpdate(
             "plot_census",
             { plotNumber: dictionary[plotId] },
             { plotId },

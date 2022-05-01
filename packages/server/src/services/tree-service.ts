@@ -1,8 +1,8 @@
 import { Tree } from "@ong-forestry/schema";
-import { TreeCensus } from "db/models";
+import TreeCensusModel from "db/models/tree-census";
 import TreeModel from "db/models/tree";
 import { Op } from "sequelize";
-import { getPlots } from "./plot-service";
+import { getPlots } from "services";
 
 export const createTree = async (tree: Tree) => {
   // ensure tag unique in this forest
@@ -154,7 +154,7 @@ export const getTrees = async (params: GetTreesParams) => {
   const query = constructQuery(params);
   return await TreeModel.findAll({
     ...query,
-    include: TreeCensus,
+    include: TreeCensusModel,
   });
 };
 

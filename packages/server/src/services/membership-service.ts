@@ -1,8 +1,7 @@
 import { Membership, MembershipRoles } from "@ong-forestry/schema";
 import MembershipModel from "db/models/membership";
 import { Op } from "sequelize";
-import { getUsers } from "./";
-import { createInactiveAccount } from "./user-service";
+import { getUsers, createInactiveAccount } from "services";
 
 const uuid = require("uuid4");
 

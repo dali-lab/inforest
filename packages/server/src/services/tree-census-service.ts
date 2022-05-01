@@ -1,10 +1,12 @@
 import { PlotCensusStatuses, TreeCensus } from "@ong-forestry/schema";
 import TreeCensusModel from "db/models/tree-census";
 import { Op } from "sequelize";
-import { getPlotCensusAssignments } from "./plot-census-assignment-service";
-import { getPlotCensuses } from "./plot-census-service";
-import { getPlots } from "./plot-service";
-import { getTrees } from "./tree-service";
+import {
+  getPlotCensusAssignments,
+  getPlotCensuses,
+  getPlots,
+  getTrees,
+} from "services";
 
 const validatePlotCensus = async (
   treeCensus: Omit<TreeCensus, "plotCensusId">

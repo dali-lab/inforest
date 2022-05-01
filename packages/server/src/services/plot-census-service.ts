@@ -2,9 +2,13 @@ import { PlotCensusStatuses } from "@ong-forestry/schema";
 import PlotCensusModel from "db/models/plot-census";
 import { Op } from "sequelize";
 import { CensusExistsError } from "errors";
-import { getPlots, getForestCensuses, getPlotCensusAssignments } from "./";
-import { getTrees } from "./tree-service";
-import { getTreeCensuses } from "./tree-census-service";
+import {
+  getPlots,
+  getForestCensuses,
+  getPlotCensusAssignments,
+  getTrees,
+  getTreeCensuses,
+} from "services";
 
 const uuid = require("uuid4");
 
@@ -148,29 +152,34 @@ export const submitForReview = async (args: { plotId: string }) => {
   const trees = await getTrees({
     plotIds: [plotId],
   });
+
   // find tree censuses for each tree in this plot census
-  await Promise.all(
+  const treeTreeCensuses = await Promise.all(
     trees.map(async (tree) => {
-      const treeCensuses = await getTreeCensuses({
+      return getTreeCensuses({
         treeIds: [tree.id],
         plotCensusId: census[0].id,
       });
-      if (treeCensuses.length > 1) {
-        throw new Error("Error: more than one census on the same tree");
-      }
-
-      if (treeCensuses.length == 0) {
-        throw new Error(
-          "All trees must be censused before plot can be submitted for review"
-        );
-      }
-      if (treeCensuses[0].flagged == true) {
-        throw new Error(
-          "Cannot submit plot census for review if flagged trees exist"
-        );
-      }
     })
   );
+
+  // check number of tree censuses for each tree
+  treeTreeCensuses.map((treeCensuses) => {
+    if (treeCensuses.length > 1) {
+      throw new Error("Error: more than one census on the same tree");
+    }
+
+    if (treeCensuses.length == 0) {
+      throw new Error(
+        "All trees must be censused before plot can be submitted for review"
+      );
+    }
+    if (treeCensuses[0].flagged == true) {
+      throw new Error(
+        "Cannot submit plot census for review if flagged trees exist"
+      );
+    }
+  });
 
   return await PlotCensusModel.update(
     { status: PlotCensusStatuses.Pending },

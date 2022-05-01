@@ -1,8 +1,7 @@
 import { ForestCensus } from "@ong-forestry/schema";
 import ForestCensusModel from "db/models/forest-census";
 import { Op } from "sequelize";
-import { getPlotCensuses } from "./plot-census-service";
-import { getPlots } from "./plot-service";
+import { getPlotCensuses, getPlots } from "services";
 
 export const createForestCensus = async (forestCensus: ForestCensus) => {
   // check for active census on this forest
@@ -71,21 +70,25 @@ export const closeForestCensus = async (params: { forestId: string }) => {
   // ensure all plots in this forest have approved plot censuses
   // select all plots in the forest
   const plots = await getPlots({ forestId });
+
   // select plot censuses in this forest census for each plot
-  await Promise.all(
-    plots.map(async (plot) => {
-      const plotCensuses = await getPlotCensuses({
+  const plotPlotCensuses = await Promise.all(
+    plots.map((plot) => {
+      return getPlotCensuses({
         plotId: plot.id,
         forestCensusId: activeCensuses[0].id,
       });
-
-      if (plotCensuses.length == 0) {
-        throw new Error(
-          "All plots must be censused before forest census can be closed"
-        );
-      }
     })
   );
+
+  // for each plot ensure length of plot censuses is >0
+  plotPlotCensuses.map((plotCensuses) => {
+    if (plotCensuses.length == 0) {
+      throw new Error(
+        "All plots must be censused before forest census can be closed"
+      );
+    }
+  });
 
   return await ForestCensusModel.update(
     { active: false },

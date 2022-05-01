@@ -65,12 +65,12 @@ module.exports = {
         }
       );
 
-      // insert one trip for each forest and set tree census ids to this id
+      // insert one trip for each forest
       if (forests.length > 0) {
         await Promise.all(
-          forests.map(async (forest) => {
+          forests.map((forest) => {
             const tripId = uuid();
-            await queryInterface.bulkInsert(
+            return queryInterface.bulkInsert(
               "trips",
               [
                 {
@@ -110,8 +110,8 @@ module.exports = {
       // update new column in tree_census
       if (tree_censuses.length > 0) {
         await Promise.all(
-          tree_censuses.map(async (tree_census) => {
-            await queryInterface.bulkUpdate(
+          tree_censuses.map((tree_census) => {
+            return queryInterface.bulkUpdate(
               "tree_census",
               {
                 tripId: tree_census.tripId,
@@ -126,7 +126,6 @@ module.exports = {
       }
 
       // add foreign key constraint
-      // add tripid column to tree_census
       await queryInterface.changeColumn(
         "tree_census",
         "tripId",

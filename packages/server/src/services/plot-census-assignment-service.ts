@@ -1,7 +1,7 @@
 import { PlotCensusStatuses } from "@ong-forestry/schema";
 import PlotCensusAssignmentModel from "db/models/plot-census-assignment";
 import { Op } from "sequelize";
-import { createPlotCensus } from "./plot-census-service";
+import { createPlotCensus } from "services";
 import { CensusExistsError } from "errors";
 
 const uuid = require("uuid4");
