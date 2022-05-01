@@ -88,10 +88,6 @@ export const deleteUsers = async (params: GetUsersParams) => {
 
 export const isValidPassword = async (email: string, password: string) => {
   const users = await getUsers({ email });
-  if (users.length > 1) {
-    throw new Error("Error: more than one user with this email");
-  }
-
   if (users.length == 0) throw new Error("No user exists with this email.");
   return await bcrypt.compare(password, users[0].password);
 };
