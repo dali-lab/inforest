@@ -11,6 +11,7 @@ import AppButton from "../AppButton";
 import { Text, TextVariants } from "../Themed";
 import FormProgress from "./FormProgress";
 import Colors from "../../constants/Colors";
+import TextField from "../DataField/TextField";
 
 //TODO: solidify these
 export type FormStages = "META" | "DATA" | "REVIEW";
@@ -213,7 +214,7 @@ const DataForm: React.FC<FormProps> = ({ updateDraft, selected }) => {
   return (
     <View style={styles.formContainer}>
       <View style={styles.formRow}>
-        <DataField
+        {/* <DataField
           type={"INTEGER"}
           label="DBH"
           value={selected.dbh}
@@ -224,7 +225,17 @@ const DataForm: React.FC<FormProps> = ({ updateDraft, selected }) => {
             updateDraft({ dbh: Number(newValue) });
           }}
           editable
-        />
+        /> */}
+        <DataField>
+          <TextField
+            label="DBH"
+            textType="INTEGER"
+            value={selected.dbh?.toString() || ""}
+            setValue={(newValue) => {
+              updateDraft({ dbh: Number(newValue) });
+            }}
+          />
+        </DataField>
         <DataField
           type={"SELECT"}
           label="Data Codes"
