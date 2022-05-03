@@ -81,7 +81,7 @@ const constructQuery = (params: TreeCensusParams) => {
   const { treeIds, plotCensusId, authorId, flagged } = params;
   const query: any = { where: {} };
   if (treeIds) {
-    query.where.treeIds = { [Op.in]: treeIds };
+    query.where.treeId = { [Op.in]: treeIds };
   }
   if (plotCensusId) {
     query.where.plotCensusId = { [Op.eq]: plotCensusId };

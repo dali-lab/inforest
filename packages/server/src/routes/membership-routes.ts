@@ -10,7 +10,7 @@ import { requireAuth } from "services/auth-service";
 
 const membershipRouter = express.Router();
 
-membershipRouter.post<{}, any, { email: string; teamId: string }>(
+membershipRouter.post<{}, any, Pick<Membership, "teamId"> & { email: string }>(
   "/",
   requireAuth,
   async (req, res) => {

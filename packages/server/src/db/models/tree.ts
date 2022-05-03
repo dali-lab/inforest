@@ -38,7 +38,7 @@ class Tree
   implements Omit<ITree, "createdAt" | "updatedAt">
 {
   @PrimaryKey
-  @Default(DataTypes.UUID)
+  @Default(DataTypes.UUIDV4)
   @Column(DataTypes.UUID)
   id: string;
 

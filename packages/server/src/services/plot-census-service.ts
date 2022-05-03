@@ -174,11 +174,6 @@ export const submitForReview = async (args: { plotId: string }) => {
         "All trees must be censused before plot can be submitted for review"
       );
     }
-    if (treeCensuses[0].flagged == true) {
-      throw new Error(
-        "Cannot submit plot census for review if flagged trees exist"
-      );
-    }
   });
 
   return await PlotCensusModel.update(
