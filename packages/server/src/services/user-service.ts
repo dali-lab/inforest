@@ -3,7 +3,7 @@ import UserModel from "db/models/user";
 import { Op } from "sequelize";
 import bcrypt from "bcrypt";
 
-export const createUser = async (user: User) => {
+export const createUser = async (user: Pick<User, "email" | "password">) => {
   // check for inactive account with this email
   // db-level unique constraint on email; can assume only one user if any
   const inactiveUsers = await getUsers({
@@ -13,7 +13,7 @@ export const createUser = async (user: User) => {
 
   // if no inactive user is found, create a new one
   if (inactiveUsers.length == 0) {
-    return await UserModel.create(user);
+    return await UserModel.create({ ...user, verified: false, active: true });
   }
   // else update this user's information and make them active
   else {
@@ -25,7 +25,12 @@ export const createUser = async (user: User) => {
 };
 
 export const createInactiveAccount = async (email: string) => {
-  return await UserModel.create({ email, password: "", active: false });
+  return await UserModel.create({
+    email,
+    password: "",
+    active: false,
+    verified: false,
+  });
 };
 
 export interface GetUsersParams {
