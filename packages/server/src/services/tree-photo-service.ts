@@ -20,6 +20,8 @@ const constructQuery = (params: GetTreePhotosParams) => {
   const { id, treeId, purposeName, limit, offset } = params;
   const query: any = {
     where: {},
+    limit,
+    offset,
   };
   if (id) {
     query.where.id = {
@@ -35,12 +37,6 @@ const constructQuery = (params: GetTreePhotosParams) => {
     query.where.purposeName = {
       [Op.eq]: purposeName,
     };
-  }
-  if (limit) {
-    query.limit = limit;
-  }
-  if (offset) {
-    query.offset = offset;
   }
   return query;
 };

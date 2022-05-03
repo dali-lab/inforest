@@ -40,6 +40,8 @@ const constructQuery = (params: GetMembershipsParams) => {
   const { id, teamId, userId, role, offset, limit } = params;
   const query: any = {
     where: {},
+    limit,
+    offset,
   };
   if (id) {
     query.where.id = {
@@ -60,12 +62,6 @@ const constructQuery = (params: GetMembershipsParams) => {
     query.where.role = {
       [Op.eq]: role,
     };
-  }
-  if (limit) {
-    query.limit = limit;
-  }
-  if (offset) {
-    query.offset = offset;
   }
   return query;
 };

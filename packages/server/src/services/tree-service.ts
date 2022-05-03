@@ -72,6 +72,8 @@ const constructQuery = (params: GetTreesParams) => {
   } = params;
   const query: any = {
     where: {},
+    limit,
+    offset,
   };
   if (ids) {
     query.where.id = {
@@ -132,12 +134,6 @@ const constructQuery = (params: GetTreesParams) => {
     query.where.plotY = {
       [Op.lte]: plotYMax,
     };
-  }
-  if (limit) {
-    query.limit = limit;
-  }
-  if (offset) {
-    query.offset = offset;
   }
   return query;
 };

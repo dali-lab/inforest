@@ -21,6 +21,8 @@ const constructQuery = (params: GetTreeSpeciesParams) => {
     params;
   const query: any = {
     where: {},
+    limit,
+    offset,
   };
   if (code) {
     query.where.code = {
@@ -56,12 +58,6 @@ const constructQuery = (params: GetTreeSpeciesParams) => {
     query.where.type = {
       [Op.eq]: type,
     };
-  }
-  if (limit) {
-    query.limit = limit;
-  }
-  if (offset) {
-    query.offset = offset;
   }
   return query;
 };

@@ -17,19 +17,14 @@ const constructQuery = (params: TreeLabelParams) => {
   const { code, limit, offset } = params;
   const query: any = {
     where: {},
+    limit,
+    offset,
   };
 
   if (code) {
     query.where.code = {
       [Op.eq]: code,
     };
-  }
-
-  if (limit) {
-    query.limit = limit;
-  }
-  if (offset) {
-    query.offset = offset;
   }
 
   return query;

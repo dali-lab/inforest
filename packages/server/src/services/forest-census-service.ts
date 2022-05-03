@@ -27,6 +27,8 @@ const constructQuery = (params: GetForestCensusesParams) => {
   const { forestId, active, limit, offset } = params;
   const query: any = {
     where: {},
+    limit,
+    offset,
   };
   if (forestId) {
     query.where.forestId = {
@@ -37,12 +39,6 @@ const constructQuery = (params: GetForestCensusesParams) => {
     query.where.active = {
       [Op.eq]: active,
     };
-  }
-  if (limit) {
-    query.limit = limit;
-  }
-  if (offset) {
-    query.offset = offset;
   }
   return query;
 };

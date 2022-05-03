@@ -20,6 +20,8 @@ const constructQuery = (params: GetForestsParams) => {
   const { id, name, teamId, limit, offset } = params;
   const query: any = {
     where: {},
+    limit,
+    offset,
   };
   if (id) {
     query.where.id = {
@@ -35,12 +37,6 @@ const constructQuery = (params: GetForestsParams) => {
     query.where.teamId = {
       [Op.eq]: teamId,
     };
-  }
-  if (limit) {
-    query.limit = limit;
-  }
-  if (offset) {
-    query.offset = offset;
   }
   return query;
 };

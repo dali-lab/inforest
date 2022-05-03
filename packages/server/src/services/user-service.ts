@@ -42,6 +42,8 @@ const constructQuery = (params: GetUsersParams) => {
   const { id, email, active, limit = 30, offset = 0 } = params;
   const query: any = {
     where: {},
+    limit,
+    offset,
     attributes: { exclude: ["password"] },
   };
   if (id) {
@@ -58,12 +60,6 @@ const constructQuery = (params: GetUsersParams) => {
     query.where.active = {
       [Op.eq]: active,
     };
-  }
-  if (limit) {
-    query.limit = limit;
-  }
-  if (offset) {
-    query.offset = offset;
   }
   return query;
 };
