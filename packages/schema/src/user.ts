@@ -33,12 +33,12 @@ export interface User {
   /**
    * True if user has verified their account via email
    */
-  verified?: boolean;
+  verified: boolean;
 
   /**
    * False if this user has been added to a team but has not signed up yet
    */
-  active?: boolean;
+  active: boolean;
 
   /**
    * Teams user is a member/admin of

@@ -53,6 +53,13 @@ module.exports = {
           );
         })
       );
+      // disallow null
+      await queryInterface.changeColumn(
+        "tree_census",
+        "treeId",
+        { type: Sequelize.UUID, allowNull: false },
+        { transaction }
+      );
       // move foreign key constraint to new column
       await queryInterface.sequelize.query(
         'ALTER TABLE tree_census DROP CONSTRAINT "tree_census_treeTag_fkey"; ALTER TABLE tree_census ADD CONSTRAINT "tree_census_treeId_fkey" FOREIGN KEY ("treeId") REFERENCES trees (id)',

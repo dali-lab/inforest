@@ -14,6 +14,7 @@ module.exports = {
         {
           type: Sequelize.BOOLEAN,
           defaultValue: false,
+          allowNull: false,
         },
         { transaction }
       );
