@@ -1,5 +1,6 @@
+import { PlotCensus } from "@ong-forestry/schema";
 import express from "express";
-import { getPlotCensuses, submitForReview } from "services";
+import { approve, getPlotCensuses, submitForReview } from "services";
 import { requireAuth } from "services/auth-service";
 
 const plotCensusRouter = express.Router();
@@ -26,12 +27,27 @@ plotCensusRouter.get<{}, any, any>("/", requireAuth, async (req, res) => {
 });
 
 // mark ready for review
-plotCensusRouter.patch<{}, any, { plotId: string }>(
+plotCensusRouter.patch<{}, any, Pick<PlotCensus, "plotId">>(
   "/submit",
   requireAuth,
   async (req, res) => {
     try {
       await submitForReview(req.body);
+      res.status(200).send("successfully submitted for review");
+    } catch (e: any) {
+      console.error(e);
+      res.status(500).send(e?.message ?? "Unknown error.");
+    }
+  }
+);
+
+// approve plot in review
+plotCensusRouter.patch<{}, any, Pick<PlotCensus, "id">>(
+  "/submit",
+  requireAuth,
+  async (req, res) => {
+    try {
+      await approve(req.body);
       res.status(200).send("successfully submitted for review");
     } catch (e: any) {
       console.error(e);

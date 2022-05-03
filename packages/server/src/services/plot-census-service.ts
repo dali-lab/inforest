@@ -1,4 +1,4 @@
-import { PlotCensusStatuses } from "@ong-forestry/schema";
+import { PlotCensus, PlotCensusStatuses } from "@ong-forestry/schema";
 import PlotCensusModel from "db/models/plot-census";
 import { Op } from "sequelize";
 import { CensusExistsError } from "errors";
@@ -66,6 +66,8 @@ export const createPlotCensus = async (plotId: string) => {
 };
 
 export interface PlotCensusParams {
+  id?: string;
+
   forestCensusId?: string;
   plotId?: string;
 
@@ -77,10 +79,17 @@ export interface PlotCensusParams {
 }
 
 const constructQuery = (params: PlotCensusParams) => {
-  const { forestCensusId, plotId, status } = params;
+  const { id, forestCensusId, plotId, status, limit, offset } = params;
   const query: any = {
     where: {},
+    limit,
+    offset,
   };
+  if (id) {
+    query.where.id = {
+      [Op.eq]: id,
+    };
+  }
   if (forestCensusId) {
     query.where.forestCensusId = {
       [Op.eq]: forestCensusId,
@@ -131,7 +140,7 @@ export const getPlotCensuses = async (params: PlotCensusParams) => {
   return plotCensuses;
 };
 
-export const submitForReview = async (args: { plotId: string }) => {
+export const submitForReview = async (args: Pick<PlotCensus, "plotId">) => {
   const { plotId } = args;
 
   // find in-progress census on this plot
@@ -173,6 +182,56 @@ export const submitForReview = async (args: { plotId: string }) => {
       throw new Error(
         "All trees must be censused before plot can be submitted for review"
       );
+    }
+  });
+
+  return await PlotCensusModel.update(
+    { status: PlotCensusStatuses.Pending },
+    { where: { id: { [Op.eq]: census[0].id } } }
+  );
+};
+
+export const approve = async (args: Pick<PlotCensus, "id">) => {
+  const { id } = args;
+
+  // find census
+  const census = await getPlotCensuses({
+    id: id,
+  });
+  if (census.length == 0) {
+    throw new Error("This census is not awaiting review.");
+  }
+
+  // check that all trees on this plot have been censused
+  // find all trees
+  const trees = await getTrees({
+    plotIds: [census[0].plotId],
+  });
+
+  // find tree censuses for each tree in this plot census
+  const treeTreeCensuses = await Promise.all(
+    trees.map(async (tree) => {
+      return getTreeCensuses({
+        treeIds: [tree.id],
+        plotCensusId: id,
+      });
+    })
+  );
+
+  // make sure no tree censuses are flagged
+  treeTreeCensuses.map((treeCensuses) => {
+    if (treeCensuses.length > 1) {
+      throw new Error("Error: more than one census on the same tree");
+    }
+
+    if (treeCensuses.length == 0) {
+      throw new Error(
+        "All trees must be censused before plot census can be approved"
+      );
+    }
+
+    if (treeCensuses[0].flagged) {
+      throw new Error("Cannot approve plot census if flagged trees exist");
     }
   });
 
