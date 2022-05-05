@@ -47,7 +47,7 @@ export const FieldController: React.FC<FieldControllerProps> = ({
   }, []);
   const formField = useMemo(
     () =>
-      // we use cloneElement here and in modalField in order to give the passed formComponent props
+      // we use cloneElement (which is inefficient) here and in modalField in order to give the passed formComponent props
       // this is needed because we want to pass formComponent as a ReactNode (as opposed to an unrendered functional component),
       // but we also want to link formComponent to the state of FieldController
       React.cloneElement(formComponent, {

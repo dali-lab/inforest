@@ -1,25 +1,16 @@
 import React, { useState, useCallback, useEffect, useMemo } from "react";
-import {
-  FlatList,
-  ListRenderItemInfo,
-  Pressable,
-  View,
-  Image,
-  StyleSheet,
-} from "react-native";
+import { FlatList, Pressable, View, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import {
   ImageInfo,
   ImagePickerOptions,
   launchImageLibraryAsync,
 } from "expo-image-picker";
-import Colors from "../../constants/Colors";
-import useAppSelector from "../../hooks/useAppSelector";
-import { RootState } from "../../redux";
-import { Text, TextVariants } from "../Themed";
-import FieldWrapper from "./FieldWrapper";
-import FieldController from "./FieldController";
-import SelectField from "./SelectField";
+import useAppSelector from "../../../hooks/useAppSelector";
+import { RootState } from "../../../redux";
+import { Text, TextVariants } from "../../Themed";
+import FieldWrapper from "../FieldWrapper";
+import PhotoItem from "./PhotoItem";
 
 const imageLibraryOptions: ImagePickerOptions = {
   base64: true,
@@ -62,7 +53,7 @@ const PhotoField: React.FC<PhotoFieldProps> = ({ onUpdate }) => {
       style={{ flexDirection: "row", alignItems: "center" }}
     >
       <View style={styles.photoUploadContainer}>
-        <Pressable style={styles.PhotoField} onPress={addPhoto}>
+        <Pressable style={styles.photoAdder} onPress={addPhoto}>
           <Ionicons
             name="cloud-upload-outline"
             size={28}
@@ -74,7 +65,6 @@ const PhotoField: React.FC<PhotoFieldProps> = ({ onUpdate }) => {
         </Pressable>
       </View>
       <View style={styles.addedPhotosContainer}>
-        {/* // @ts-ignore */}
         <FlatList
           data={photos}
           renderItem={(item) => (
@@ -93,75 +83,11 @@ const PhotoField: React.FC<PhotoFieldProps> = ({ onUpdate }) => {
   );
 };
 
-interface PhotoItemProps {
-  item: ListRenderItemInfo<ImageInfo>;
-  removePhoto: (url: string) => void;
-  options: { label: string; value: string }[];
-}
-
-const PhotoItem: React.FC<PhotoItemProps> = ({
-  item,
-  removePhoto,
-  options,
-}) => {
-  const [purpose, setPurpose] = useState<string>("");
-  return (
-    <View style={styles.photoWrapper}>
-      <Image
-        style={{
-          width: 120,
-          height: 90,
-          borderTopLeftRadius: 10,
-          borderTopRightRadius: 10,
-        }}
-        source={{
-          uri: item.item.uri,
-        }}
-      />
-      <View
-        style={{
-          flexDirection: "row",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        <FieldController
-          value={purpose}
-          onConfirm={(newValue) => {
-            setPurpose(newValue);
-          }}
-          formComponent={
-            <Text variant={TextVariants.Label} style={{ marginVertical: 4 }}>
-              {purpose || "Add Label"}
-            </Text>
-          }
-          modalComponent={
-            <SelectField label="Photo Labels" pickerOptions={options} />
-          }
-        />
-      </View>
-      <Pressable
-        onPress={() => {
-          removePhoto(item.item.uri);
-        }}
-        style={styles.photoRemove}
-      >
-        <Ionicons name="close-outline" size={24} color="white" />
-      </Pressable>
-    </View>
-  );
-};
-
 const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
     paddingLeft: 8,
-  },
-  PhotoFieldWrapper: {
-    flexDirection: "row",
-    justifyContent: "flex-start",
-    alignItems: "center",
   },
   photoUploadContainer: {
     borderRightWidth: 2,
@@ -174,20 +100,7 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 140,
   },
-  photoWrapper: {
-    width: 120,
-    height: 120,
-    borderRadius: 10,
-    marginHorizontal: 12,
-    backgroundColor: "#EAEAEA",
-    flexDirection: "column",
-    alignItems: "center",
-    shadowColor: "black",
-    shadowRadius: 4,
-    shadowOffset: { width: 4, height: 4 },
-    shadowOpacity: 0.2,
-  },
-  PhotoField: {
+  photoAdder: {
     width: 120,
     height: 120,
     borderRadius: 10,
@@ -198,18 +111,6 @@ const styles = StyleSheet.create({
     borderColor: "#1F3527",
     borderWidth: 2,
     padding: 24,
-  },
-  photoRemove: {
-    backgroundColor: Colors.error,
-    height: 24,
-    width: 24,
-    borderRadius: 12,
-    position: "absolute",
-    top: -8,
-    right: -8,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
   },
 });
 

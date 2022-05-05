@@ -14,7 +14,6 @@ import SelectField from "../../fields/SelectField";
 import PhotoField from "../../fields/PhotoField";
 import LabelPillRow from "./LabelPillRow";
 
-//TODO: solidify these
 export type FormStages = "META" | "DATA" | "REVIEW";
 
 export const StageList: FormStages[] = ["META", "DATA", "REVIEW"];
@@ -217,7 +216,9 @@ const DataForm: React.FC<FormProps> = ({ updateDraft, selected }) => {
           onConfirm={(newValue) => {
             updateDraft({ dbh: Number(newValue) });
           }}
-          formComponent={<TextField label="DBH" textType="INTEGER" />}
+          formComponent={
+            <TextField label="DBH" textType="INTEGER" suffix="cm" />
+          }
         />
         <FieldController
           value={""}
