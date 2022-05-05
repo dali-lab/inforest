@@ -17,7 +17,7 @@ import { Plot, Tree } from "@ong-forestry/schema";
 import { Text, TextVariants } from "../../components/Themed";
 import Colors from "../../constants/Colors";
 import useAppDispatch from "../../hooks/useAppDispatch";
-import { PlotDrawer } from "../../components/PlotDrawer";
+import PlotDrawer from "../../components/PlotDrawer";
 
 import { deselectTree, selectTree } from "../../redux/slices/treeSlice";
 import { getPlotCorners } from "../../constants/plots";

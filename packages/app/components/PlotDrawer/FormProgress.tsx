@@ -69,7 +69,7 @@ const StageBubble: React.FC<StageBubbleProps> = ({
     if (stage == currentStage) return "INPROGRESS";
     if (stage < currentStage) return "COMPLETE";
     return "DISABLED";
-  }, [currentStage]);
+  }, [stage, currentStage]);
   return (
     <View style={styles.stageGroup}>
       <Pressable

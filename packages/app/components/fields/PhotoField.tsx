@@ -17,14 +17,17 @@ import Colors from "../../constants/Colors";
 import useAppSelector from "../../hooks/useAppSelector";
 import { RootState } from "../../redux";
 import { Text, TextVariants } from "../Themed";
+import FieldWrapper from "./FieldWrapper";
+import FieldController from "./FieldController";
+import SelectField from "./SelectField";
 
 const imageLibraryOptions: ImagePickerOptions = {
   base64: true,
 };
 
-interface PhotoFieldProps {
+export type PhotoFieldProps = {
   onUpdate: (newValue: any[]) => void;
-}
+};
 
 const PhotoField: React.FC<PhotoFieldProps> = ({ onUpdate }) => {
   const { all: allPurposes } = useAppSelector(
@@ -43,7 +46,7 @@ const PhotoField: React.FC<PhotoFieldProps> = ({ onUpdate }) => {
   );
   useEffect(() => {
     onUpdate(photos);
-  }, [photos]);
+  }, [onUpdate, photos]);
   const purposesOptions = useMemo(
     () =>
       Object.values(allPurposes).map((purpose) => ({
@@ -54,7 +57,10 @@ const PhotoField: React.FC<PhotoFieldProps> = ({ onUpdate }) => {
   );
 
   return (
-    <View style={styles.PhotoFieldWrapper}>
+    <FieldWrapper
+      label="Upload Photos"
+      style={{ flexDirection: "row", alignItems: "center" }}
+    >
       <View style={styles.photoUploadContainer}>
         <Pressable style={styles.PhotoField} onPress={addPhoto}>
           <Ionicons
@@ -72,24 +78,33 @@ const PhotoField: React.FC<PhotoFieldProps> = ({ onUpdate }) => {
         <FlatList
           data={photos}
           renderItem={(item) => (
-            <PhotoItem item={item} removePhoto={removePhoto} />
+            <PhotoItem
+              item={item}
+              removePhoto={removePhoto}
+              options={purposesOptions}
+            />
           )}
           horizontal={true}
           keyExtractor={(_item, i) => i.toString()}
           style={{ paddingVertical: 12 }}
         ></FlatList>
       </View>
-      {/* <Text variant={TextVariants.Label}>{title}</Text> */}
-    </View>
+    </FieldWrapper>
   );
 };
 
 interface PhotoItemProps {
   item: ListRenderItemInfo<ImageInfo>;
   removePhoto: (url: string) => void;
+  options: { label: string; value: string }[];
 }
 
-const PhotoItem: React.FC<PhotoItemProps> = ({ item, removePhoto }) => {
+const PhotoItem: React.FC<PhotoItemProps> = ({
+  item,
+  removePhoto,
+  options,
+}) => {
+  const [purpose, setPurpose] = useState<string>("");
   return (
     <View style={styles.photoWrapper}>
       <Image
@@ -110,21 +125,20 @@ const PhotoItem: React.FC<PhotoItemProps> = ({ item, removePhoto }) => {
           alignItems: "center",
         }}
       >
-        {/* <DataField
-              type={"SELECT"}
-              label="Photo Label"
-              style={{ flex: 1 }}
-              placeholder="Select data codes here"
-              moreInfo="A series of data codes describing specific aspects of the tree"
-              onUpdate={(newValue) => {}}
-              modalOnly
-              pickerOptions={purposesOptions}
-              editable
-              noLabel
-            /> */}
-        <Text variant={TextVariants.Label} style={{ marginVertical: 4 }}>
-          Label
-        </Text>
+        <FieldController
+          value={purpose}
+          onConfirm={(newValue) => {
+            setPurpose(newValue);
+          }}
+          formComponent={
+            <Text variant={TextVariants.Label} style={{ marginVertical: 4 }}>
+              {purpose || "Add Label"}
+            </Text>
+          }
+          modalComponent={
+            <SelectField label="Photo Labels" pickerOptions={options} />
+          }
+        />
       </View>
       <Pressable
         onPress={() => {
@@ -158,6 +172,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     flex: 1,
+    height: 140,
   },
   photoWrapper: {
     width: 120,

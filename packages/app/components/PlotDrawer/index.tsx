@@ -48,7 +48,7 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
     return function cleanup() {
       setDrawerHeight && setDrawerHeight(0);
     };
-  }, []);
+  }, [setDrawerHeight]);
   const dispatch = useAppDispatch();
 
   const {
@@ -226,6 +226,8 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
     </Animated.View>
   );
 };
+
+export default PlotDrawer;
 
 const styles = StyleSheet.create({
   container: {

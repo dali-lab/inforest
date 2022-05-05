@@ -1,17 +1,18 @@
 import { Tree, TreeCensus, TreeLabel } from "@ong-forestry/schema";
-import { ReactNode, useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { View, StyleSheet, ScrollView } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import useAppDispatch from "../../hooks/useAppDispatch";
-import useAppSelector from "../../hooks/useAppSelector";
-import { RootState } from "../../redux";
-import { locallyUpdateTree } from "../../redux/slices/treeSlice";
-import { DataField } from "../DataField";
-import AppButton from "../AppButton";
-import { Text, TextVariants } from "../Themed";
-import FormProgress from "./FormProgress";
-import Colors from "../../constants/Colors";
-import TextField from "../DataField/TextField";
+import useAppDispatch from "../../../hooks/useAppDispatch";
+import useAppSelector from "../../../hooks/useAppSelector";
+import { RootState } from "../../../redux";
+import { locallyUpdateTree } from "../../../redux/slices/treeSlice";
+import AppButton from "../../AppButton";
+import { Text, TextVariants } from "../../Themed";
+import FormProgress from "../FormProgress";
+import TextField from "../../fields/TextField";
+import FieldController from "../../fields/FieldController";
+import SelectField from "../../fields/SelectField";
+import PhotoField from "../../fields/PhotoField";
+import LabelPillRow from "./LabelPillRow";
 
 //TODO: solidify these
 export type FormStages = "META" | "DATA" | "REVIEW";
@@ -24,7 +25,6 @@ interface DataEntryFormProps {
 }
 
 const DataEntryForm: React.FC<DataEntryFormProps & View["props"]> = ({
-  cancel,
   finish,
   style,
 }) => {
@@ -34,20 +34,22 @@ const DataEntryForm: React.FC<DataEntryFormProps & View["props"]> = ({
   );
   const selected = selectedTreeTag ? all[selectedTreeTag] : undefined;
   const [stage, setStage] = useState<number>(0);
+
+  const updateDraft = useCallback(
+    (updatedFields) => {
+      selected &&
+        dispatch(
+          locallyUpdateTree({
+            tag: selected.tag,
+            updates: { ...selected, ...updatedFields },
+          })
+        );
+    },
+    [dispatch, selected]
+  );
   if (!selected) {
     return null;
   }
-  const updateDraft = useCallback(
-    (updatedFields) => {
-      dispatch(
-        locallyUpdateTree({
-          tag: selected.tag,
-          updates: { ...selected, ...updatedFields },
-        })
-      );
-    },
-    [dispatch, locallyUpdateTree, selected]
-  );
   return (
     <>
       <View style={[style, styles.container]}>
@@ -113,63 +115,59 @@ const MetaDataForm: React.FC<FormProps> = ({ selected, updateDraft }) => {
   );
   const speciesOptions = useMemo(
     () =>
-      Object.values(allSpecies).map((species) => ({
-        label: species.commonName,
-        value: species.code,
+      Object.values(allSpecies).map(({ name, genus, code }) => ({
+        label: `${genus} ${name}`,
+        value: code,
       })),
     [allSpecies]
   );
   return (
     <View style={styles.formContainer}>
       <View style={styles.formRow}>
-        <DataField
-          type={"SHORT_TEXT"}
-          label="Tree Tag"
-          style={{ flex: 1, marginRight: 8 }}
-          value={selected.tag}
-          placeholder="Enter tag here"
-          moreInfo="The tree's identifying tree tag"
-          onUpdate={(newValue) => {}}
-        />
-        <DataField
-          type="SELECT"
-          label="Species Code"
-          style={{ marginHorizontal: 8, width: "30%" }}
-          value={selected.speciesCode}
-          placeholder=""
-          moreInfo="The code representing the tree's species"
-          onUpdate={(newValue) => {
-            updateDraft({ speciesCode: newValue.toString() });
+        <FieldController
+          value={selected?.tag || "0"}
+          style={{ marginRight: 12 }}
+          onConfirm={async (newValue) => {
+            // updateDraft({ tag: newValue });
           }}
-          editable
-          modalOnly
-          pickerOptions={speciesOptions}
+          formComponent={<TextField label="Tree Tag" textType="SHORT_TEXT" />}
         />
-        <DataField
-          type="DECIMAL"
-          label="X Within Plot"
-          style={{ flex: 1, marginHorizontal: 8 }}
-          value={selected.plotX}
-          placeholder=""
-          moreInfo="The tree's x position within the plot, in meters"
-          onUpdate={(newValue) => {
+        <FieldController
+          value={selected?.speciesCode || ""}
+          onConfirm={(newValue) => {
+            updateDraft({ speciesCode: newValue });
+          }}
+          style={{ flex: 1, marginRight: 12 }}
+          formComponent={
+            <TextField
+              label="Species Code"
+              textType="SHORT_TEXT"
+              placeholder="Select code here"
+              disabled
+            />
+          }
+          modalComponent={
+            <SelectField label="Tree Species" pickerOptions={speciesOptions} />
+          }
+        />
+        <FieldController
+          value={selected?.plotX?.toString() || "0"}
+          style={{ marginRight: 12 }}
+          onConfirm={(newValue) => {
             updateDraft({ plotX: Number(newValue) });
           }}
-          editable
-          suffix="m"
+          formComponent={
+            <TextField label="X Within Plot" textType="DECIMAL" suffix="m" />
+          }
         />
-        <DataField
-          type="DECIMAL"
-          label="Y Within Plot"
-          style={{ flex: 1, marginLeft: 8 }}
-          value={selected.plotY}
-          placeholder=""
-          moreInfo="The tree's y position within the plot, in meters"
-          onUpdate={(newValue) => {
+        <FieldController
+          value={selected?.plotY?.toString() || "0"}
+          onConfirm={(newValue) => {
             updateDraft({ plotY: Number(newValue) });
           }}
-          editable
-          suffix="m"
+          formComponent={
+            <TextField label="Y Within Plot" textType="DECIMAL" suffix="m" />
+          }
         />
       </View>
     </View>
@@ -183,9 +181,9 @@ const DataForm: React.FC<FormProps> = ({ updateDraft, selected }) => {
   const [pills, setPills] = useState<TreeLabel[]>([]);
   const labelsOptions = useMemo(
     () =>
-      Object.values(allLabels).map((label) => ({
-        label: label.code,
-        value: label.code,
+      Object.values(allLabels).map(({ code, description }) => ({
+        label: `${code} - ${description}`,
+        value: code,
       })),
     [allLabels]
   );
@@ -214,118 +212,51 @@ const DataForm: React.FC<FormProps> = ({ updateDraft, selected }) => {
   return (
     <View style={styles.formContainer}>
       <View style={styles.formRow}>
-        {/* <DataField
-          type={"INTEGER"}
-          label="DBH"
-          value={selected.dbh}
-          style={{ flex: 0, marginRight: 12 }}
-          placeholder=""
-          moreInfo="The diameter of the tree at around breast height"
-          onUpdate={(newValue) => {
+        <FieldController
+          value={selected?.dbh?.toString() || "0"}
+          onConfirm={(newValue) => {
             updateDraft({ dbh: Number(newValue) });
           }}
-          editable
-        /> */}
-        <DataField>
-          <TextField
-            label="DBH"
-            textType="INTEGER"
-            value={selected.dbh?.toString() || ""}
-            setValue={(newValue) => {
-              updateDraft({ dbh: Number(newValue) });
-            }}
-          />
-        </DataField>
-        <DataField
-          type={"SELECT"}
-          label="Data Codes"
-          style={{ flex: 1 }}
-          placeholder="Select data codes here"
-          moreInfo="A series of data codes describing specific aspects of the tree"
-          prefixComponent={
-            <LabelPillRow
-              // pills={selected?.labels?.map((label) => label.code) || []}
-              pills={pills.map((label) => label.code)}
-              removePill={removeLabel}
-            />
-          }
-          onUpdate={(newValue) => {
+          formComponent={<TextField label="DBH" textType="INTEGER" />}
+        />
+        <FieldController
+          value={""}
+          style={{ marginLeft: 12, flex: 1 }}
+          onConfirm={(newValue) => {
             addLabel(newValue.toString());
           }}
-          modalOnly
-          pickerOptions={labelsOptions}
-          editable
+          modalSize="large"
+          formComponent={
+            <TextField
+              label="Data Codes"
+              textType="SHORT_TEXT"
+              placeholder="Insert labels for the tree"
+              disabled
+              prefixComponent={
+                <LabelPillRow
+                  // pills={selected?.labels?.map((label) => label.code) || []}
+                  pills={pills.map((label) => label.code)}
+                  removePill={removeLabel}
+                />
+              }
+            />
+          }
+          modalComponent={
+            <SelectField label="Tree Labels" pickerOptions={labelsOptions} />
+          }
         />
       </View>
       <View style={{ marginTop: 12 }}>
-        <DataField
-          type="PHOTOS"
-          label="Upload Photos"
-          moreInfo="Add photos of the tree to aid identification or provide additional info"
-          onUpdate={() => {}}
-        />
+        <PhotoField onUpdate={() => {}} />
       </View>
       <View style={styles.formRow}>
-        <DataField
-          type={"LONG_TEXT"}
-          label="Notes"
-          value={undefined}
-          placeholder="Jot down field notes here"
-          moreInfo="Field notes about this tree."
-          style={{ flex: 5, height: 120 }}
-          onUpdate={() => {}}
-        ></DataField>
-      </View>
-    </View>
-  );
-};
-
-interface LabelPillRowProps {
-  pills: string[];
-  removePill: (code: string) => void;
-}
-
-const LabelPillRow: React.FC<LabelPillRowProps> = ({ pills, removePill }) => {
-  return (
-    <View style={{ flexDirection: "row" }}>
-      {pills.map((labelCode, i) => (
-        <LabelPill
-          key={labelCode}
-          label={labelCode}
-          onRemove={() => {
-            removePill(labelCode);
-          }}
+        <FieldController
+          value={""}
+          onConfirm={() => {}}
+          style={{ flex: 1 }}
+          formComponent={<TextField label="Notes" textType="LONG_TEXT" />}
         />
-      ))}
-    </View>
-  );
-};
-
-interface LabelPillProps {
-  label: string;
-  onRemove: () => void;
-}
-
-const LabelPill: React.FC<LabelPillProps> = ({ label, onRemove }) => {
-  return (
-    <View
-      style={{
-        flexDirection: "row",
-        borderRadius: 10,
-        backgroundColor: Colors.secondary.light,
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        alignItems: "center",
-        marginRight: 4,
-      }}
-    >
-      <Text>{label}</Text>
-      <Ionicons
-        name="close-outline"
-        size={16}
-        onPress={onRemove}
-        style={{ marginHorizontal: 4 }}
-      />
+      </View>
     </View>
   );
 };
@@ -354,7 +285,7 @@ const ReviewForm: React.FC<FormProps> = ({ selected }) => {
           <ReviewEntry
             key={title}
             field={title}
-            value={selected[field]?.toString() || ""}
+            value={selected[field]?.toString() || "Not set"}
           />
         ))}
       </ScrollView>

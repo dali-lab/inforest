@@ -1,19 +1,29 @@
-import React, { ReactNode, useState } from "react";
+import React, { ReactNode, useMemo } from "react";
 import { Modal, Pressable, StyleSheet, View } from "react-native";
+import { Text, TextVariants } from "../Themed";
+
+export type ModalSizes = "small" | "medium" | "large";
 
 interface FieldModalProps {
-  modalWidth?: number;
+  modalSize?: ModalSizes;
   children: ReactNode;
   visible: boolean;
   setVisible: (newVis: boolean) => void;
+  title?: string;
 }
 
 const FieldModal: React.FC<FieldModalProps> = ({
-  modalWidth = 300,
+  modalSize = "medium",
   children,
   visible,
   setVisible,
+  title,
 }) => {
+  const modalWidth = useMemo(() => {
+    if (modalSize === "small") return 200;
+    if (modalSize === "medium") return 400;
+    if (modalSize === "large") return 600;
+  }, [modalSize]);
   return (
     <Modal
       visible={visible}
@@ -29,7 +39,16 @@ const FieldModal: React.FC<FieldModalProps> = ({
       >
         <View style={[styles.modal, styles.container, { width: modalWidth }]}>
           {/* this pressable prevents propagation of click from centeredView */}
-          <Pressable>{children}</Pressable>
+          <Pressable>
+            <View>
+              {title && (
+                <View style={styles.header}>
+                  <Text variant={TextVariants.H3}>{title}</Text>
+                </View>
+              )}
+              {children}
+            </View>
+          </Pressable>
         </View>
       </Pressable>
     </Modal>
@@ -37,6 +56,10 @@ const FieldModal: React.FC<FieldModalProps> = ({
 };
 
 const styles = StyleSheet.create({
+  header: {
+    paddingHorizontal: 12,
+    paddingTop: 8,
+  },
   container: {
     backgroundColor: "white",
     padding: 12,

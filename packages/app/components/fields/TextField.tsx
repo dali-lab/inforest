@@ -1,41 +1,40 @@
-import { ReactNode, useMemo, useState } from "react";
-import { View, KeyboardTypeOptions, TextInput } from "react-native";
+import { ReactNode, useEffect, useMemo } from "react";
+import { View, KeyboardTypeOptions, TextInput, Keyboard } from "react-native";
 import Colors from "../../constants/Colors";
 import { Text, TextVariants } from "../Themed";
 import FieldWrapper from "./FieldWrapper";
+import { CommonFieldProps } from "./FieldController";
 
-type TextFieldProps = {
-  value: string;
-  setValue: (newValue: string) => void;
+export type TextFieldProps = CommonFieldProps & {
   prefixComponent?: ReactNode;
   textType: "SHORT_TEXT" | "LONG_TEXT" | "INTEGER" | "DECIMAL";
   suffix?: string;
-  disabled?: boolean;
   placeholder?: string;
 } & (
-  | {
-      wrapperDisabled: true;
-      label: undefined;
-    }
-  | {
-      wrapperDisabled?: false;
-      label: string;
-    }
-);
+    | {
+        wrapperDisabled: true;
+        label: undefined;
+      }
+    | {
+        wrapperDisabled?: false;
+        label: string;
+      }
+  );
 
 const TextField: React.FC<TextFieldProps> = ({
+  wrapperStyle,
   prefixComponent,
-  value,
-  setValue,
+  value = "",
+  setValue = () => {},
   textType,
   suffix,
   disabled,
   placeholder,
   wrapperDisabled,
   label,
+  editing,
+  setEditing = () => {},
 }) => {
-  const [currValue, setCurrValue] = useState<string>(value);
-  const [editing, setEditing] = useState<boolean>(false);
   const keyboardType = useMemo<KeyboardTypeOptions>(() => {
     let keyboardType: KeyboardTypeOptions = "default";
     switch (textType) {
@@ -48,9 +47,20 @@ const TextField: React.FC<TextFieldProps> = ({
     }
     return keyboardType;
   }, [textType]);
-
+  useEffect(() => {
+    const subscription = Keyboard.addListener("keyboardWillHide", () => {
+      setEditing(false);
+    });
+    return () => {
+      subscription.remove();
+    };
+  }, [setEditing]);
   return (
-    <FieldWrapper label={label} disabled={wrapperDisabled}>
+    <FieldWrapper
+      label={label}
+      disabled={wrapperDisabled}
+      wrapperStyle={wrapperStyle}
+    >
       <View
         style={{
           flexDirection: "row",
@@ -59,7 +69,7 @@ const TextField: React.FC<TextFieldProps> = ({
         }}
       >
         {prefixComponent}
-        {editing ? (
+        {editing && !disabled ? (
           <TextInput
             style={{
               fontFamily: "Open Sans Regular",
@@ -71,10 +81,11 @@ const TextField: React.FC<TextFieldProps> = ({
               setValue(e.nativeEvent.text);
             }}
             onChange={(e) => {
-              setCurrValue && setCurrValue(e.nativeEvent.text);
+              setValue(e.nativeEvent.text);
             }}
             multiline={textType === "LONG_TEXT"}
             returnKeyType="done"
+            placeholder={placeholder}
           >
             {value}
           </TextInput>
@@ -87,7 +98,7 @@ const TextField: React.FC<TextFieldProps> = ({
               height: textType === "LONG_TEXT" ? 128 : undefined,
             }}
           >
-            {value ?? placeholder}
+            {value && value !== "" ? value : placeholder}
           </Text>
         )}
         {suffix && <Text style={{ textAlign: "right" }}>{suffix}</Text>}
