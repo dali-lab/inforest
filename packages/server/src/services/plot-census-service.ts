@@ -82,8 +82,6 @@ const constructQuery = (params: PlotCensusParams) => {
   const { id, forestCensusId, plotId, status, limit, offset } = params;
   const query: any = {
     where: {},
-    limit,
-    offset,
   };
   if (id) {
     query.where.id = {
@@ -104,6 +102,12 @@ const constructQuery = (params: PlotCensusParams) => {
     query.where.status = {
       [Op.eq]: status,
     };
+  }
+  if (limit) {
+    query.limit = limit;
+  }
+  if (offset) {
+    query.offset = offset;
   }
   return query;
 };

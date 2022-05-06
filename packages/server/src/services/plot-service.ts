@@ -38,8 +38,6 @@ const constructQuery = (params: GetPlotsParams) => {
   } = params;
   const query: any = {
     where: {},
-    limit,
-    offset,
   };
   if (id) {
     query.where.id = {
@@ -80,6 +78,12 @@ const constructQuery = (params: GetPlotsParams) => {
     query.where.long = {
       [Op.lte]: longMax,
     };
+  }
+  if (limit) {
+    query.limit = limit;
+  }
+  if (offset) {
+    query.offset = offset;
   }
   return query;
 };
