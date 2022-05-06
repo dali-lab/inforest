@@ -12,7 +12,9 @@ import {
 
 const uuid = require("uuid4");
 
-export const createPlotCensus = async (plotId: string) => {
+export const createPlotCensus = async (params: Pick<PlotCensus, "plotId">) => {
+  const { plotId } = params;
+
   if (plotId == null) {
     throw new Error("You must specify a plot.");
   }
@@ -148,8 +150,8 @@ export const getPlotCensuses = async (params: PlotCensusParams) => {
   return plotCensuses;
 };
 
-export const submitForReview = async (args: Pick<PlotCensus, "plotId">) => {
-  const { plotId } = args;
+export const submitForReview = async (params: Pick<PlotCensus, "plotId">) => {
+  const { plotId } = params;
 
   // ensure plot exists
   if (plotId == null) {
@@ -208,8 +210,8 @@ export const submitForReview = async (args: Pick<PlotCensus, "plotId">) => {
   );
 };
 
-export const approve = async (args: Pick<PlotCensus, "id">) => {
-  const { id } = args;
+export const approve = async (params: Pick<PlotCensus, "id">) => {
+  const { id } = params;
 
   if (id == null) {
     throw new Error("Must specify an id");

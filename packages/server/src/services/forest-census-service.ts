@@ -53,7 +53,9 @@ export const getForestCensuses = async (params: GetForestCensusesParams) => {
   return await ForestCensusModel.findAll(query);
 };
 
-export const closeForestCensus = async (params: { forestId: string }) => {
+export const closeForestCensus = async (
+  params: Pick<ForestCensus, "forestId">
+) => {
   const { forestId } = params;
 
   if (forestId == null) {

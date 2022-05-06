@@ -6,12 +6,12 @@ import { CensusExistsError } from "errors";
 
 const uuid = require("uuid4");
 
-export const createAssignment = async (plotAssignment: {
+export const createAssignment = async (plotCensusAssignment: {
   plotId: string;
   userId: string;
 }) => {
   // want to assign this user to this plot
-  const { plotId, userId } = plotAssignment;
+  const { plotId, userId } = plotCensusAssignment;
 
   if (plotId == null) {
     throw new Error("You must specify a plot.");
@@ -34,7 +34,7 @@ export const createAssignment = async (plotAssignment: {
 
   // try to create a new census on this plot or get existing one
   try {
-    plotCensus = await createPlotCensus(plotId);
+    plotCensus = await createPlotCensus({ plotId });
   } catch (e) {
     if (e instanceof CensusExistsError) {
       // get the census
