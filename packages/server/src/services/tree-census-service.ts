@@ -28,7 +28,7 @@ const validatePlotCensus = async (
 
   const plotCensuses = await getPlotCensuses({
     plotId: plots[0].id,
-    status: PlotCensusStatuses.InProgress,
+    statuses: [PlotCensusStatuses.InProgress],
   });
   if (plotCensuses.length > 1) {
     throw new Error("Error: more than one active census on this plot");
@@ -42,7 +42,7 @@ const validatePlotCensus = async (
     plotCensusId: plotCensuses[0].id,
     userId: treeCensus.authorId,
   });
-  if (assignment == null) {
+  if (assignment.length == 0) {
     throw new Error("You are not assigned to this plot.");
   }
 

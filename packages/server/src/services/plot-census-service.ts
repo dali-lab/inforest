@@ -22,7 +22,7 @@ export const createPlotCensus = async (plotId: string) => {
   // check for existing ongoing censuses
   const existingCensuses = await getPlotCensuses({
     plotId,
-    status: PlotCensusStatuses.Approved,
+    statuses: [PlotCensusStatuses.InProgress, PlotCensusStatuses.Pending],
   });
   if (existingCensuses.length > 1) {
     throw new Error("Error: more than one open census on this plot");
@@ -50,7 +50,7 @@ export const createPlotCensus = async (plotId: string) => {
   const approvedCensus = await getPlotCensuses({
     plotId,
     forestCensusId: forestCensus[0].id,
-    status: PlotCensusStatuses.Approved,
+    statuses: [PlotCensusStatuses.Approved],
   });
   if (approvedCensus.length > 0) {
     throw new Error("This plot has already been censused.");
@@ -72,14 +72,14 @@ export interface PlotCensusParams {
   plotId?: string;
 
   userId?: string;
-  status?: string;
+  statuses?: string[];
 
   limit?: number;
   offset?: number;
 }
 
 const constructQuery = (params: PlotCensusParams) => {
-  const { id, forestCensusId, plotId, status, limit, offset } = params;
+  const { id, forestCensusId, plotId, statuses, limit, offset } = params;
   const query: any = {
     where: {},
   };
@@ -98,9 +98,9 @@ const constructQuery = (params: PlotCensusParams) => {
       [Op.eq]: plotId,
     };
   }
-  if (status) {
+  if (statuses) {
     query.where.status = {
-      [Op.eq]: status,
+      [Op.in]: statuses,
     };
   }
   if (limit) {
@@ -147,10 +147,18 @@ export const getPlotCensuses = async (params: PlotCensusParams) => {
 export const submitForReview = async (args: Pick<PlotCensus, "plotId">) => {
   const { plotId } = args;
 
+  // ensure plot exists
+  const plot = await getPlots({
+    id: plotId,
+  });
+  if (plot.length == 0) {
+    throw new Error("This plot does not exist");
+  }
+
   // find in-progress census on this plot
   const census = await getPlotCensuses({
     plotId: plotId,
-    status: PlotCensusStatuses.InProgress,
+    statuses: [PlotCensusStatuses.InProgress],
   });
   if (census.length > 1) {
     throw new Error("Error: more than one open census on this plot");
@@ -198,11 +206,15 @@ export const submitForReview = async (args: Pick<PlotCensus, "plotId">) => {
 export const approve = async (args: Pick<PlotCensus, "id">) => {
   const { id } = args;
 
+  if (id == null) {
+    throw new Error("Must specify an id");
+  }
+
   // find census
   const census = await getPlotCensuses({
     id: id,
   });
-  if (census.length == 0) {
+  if (census.length == 0 || census[0].status != PlotCensusStatuses.Pending) {
     throw new Error("This census is not awaiting review.");
   }
 
@@ -240,7 +252,7 @@ export const approve = async (args: Pick<PlotCensus, "id">) => {
   });
 
   return await PlotCensusModel.update(
-    { status: PlotCensusStatuses.Pending },
+    { status: PlotCensusStatuses.Approved },
     { where: { id: { [Op.eq]: census[0].id } } }
   );
 };

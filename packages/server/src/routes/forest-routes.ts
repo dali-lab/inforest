@@ -54,6 +54,6 @@ forestRouter.delete<{}, any, Forest>("/", requireAuth, async (req, res) => {
   }
 });
 
-forestRouter.use("/forest_census", forestCensusRouter);
+forestRouter.use("/census", forestCensusRouter);
 
 export { forestRouter };

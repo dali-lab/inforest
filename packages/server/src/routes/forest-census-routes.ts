@@ -43,8 +43,8 @@ forestCensusRouter.patch<{}, any, ForestCensus>(
   requireAuth,
   async (req, res) => {
     try {
-      const forests = await closeForestCensus(parseParams(req.query));
-      res.status(200).json(forests);
+      await closeForestCensus(parseParams(req.query));
+      res.status(200).send("Successfully closed forest census.");
     } catch (e: any) {
       console.error(e);
       res.status(500).send(e?.message ?? "Unknown error.");
