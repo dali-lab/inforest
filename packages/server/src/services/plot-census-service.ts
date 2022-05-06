@@ -13,6 +13,10 @@ import {
 const uuid = require("uuid4");
 
 export const createPlotCensus = async (plotId: string) => {
+  if (plotId == null) {
+    throw new Error("You must specify a plot.");
+  }
+
   // get this plot
   const plots = await getPlots({ id: plotId });
   if (plots.length == 0) {
@@ -148,9 +152,10 @@ export const submitForReview = async (args: Pick<PlotCensus, "plotId">) => {
   const { plotId } = args;
 
   // ensure plot exists
-  const plot = await getPlots({
-    id: plotId,
-  });
+  if (plotId == null) {
+    throw new Error("You must specify a plot.");
+  }
+  const plot = await getPlots({ id: plotId });
   if (plot.length == 0) {
     throw new Error("This plot does not exist");
   }

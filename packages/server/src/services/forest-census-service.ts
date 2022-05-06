@@ -2,6 +2,7 @@ import { ForestCensus, PlotCensusStatuses } from "@ong-forestry/schema";
 import ForestCensusModel from "db/models/forest-census";
 import { Op } from "sequelize";
 import { getPlotCensuses, getPlots } from "services";
+import { getForests } from "./forest-service";
 
 export const createForestCensus = async (forestCensus: ForestCensus) => {
   // check for active census on this forest
@@ -58,6 +59,10 @@ export const closeForestCensus = async (params: { forestId: string }) => {
   if (forestId == null) {
     throw new Error("You must specify a forest.");
   }
+  const forest = await getForests({ id: forestId });
+  if (forest.length == 0) {
+    throw new Error("This forest does not exist.");
+  }
 
   // find active forest census
   const activeCensuses = await getForestCensuses({
@@ -67,7 +72,7 @@ export const closeForestCensus = async (params: { forestId: string }) => {
   if (activeCensuses.length > 1) {
     throw new Error("Error: more than one active census");
   }
-  if (activeCensuses.length < 1) {
+  if (activeCensuses.length == 0) {
     throw new Error("There is no active forest census.");
   }
 

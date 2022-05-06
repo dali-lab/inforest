@@ -1,7 +1,7 @@
 import { PlotCensusStatuses } from "@ong-forestry/schema";
 import PlotCensusAssignmentModel from "db/models/plot-census-assignment";
 import { Op } from "sequelize";
-import { createPlotCensus } from "services";
+import { createPlotCensus, getPlots, getUsers } from "services";
 import { CensusExistsError } from "errors";
 
 const uuid = require("uuid4");
@@ -12,6 +12,22 @@ export const createAssignment = async (plotAssignment: {
 }) => {
   // want to assign this user to this plot
   const { plotId, userId } = plotAssignment;
+
+  if (plotId == null) {
+    throw new Error("You must specify a plot.");
+  }
+  const plot = await getPlots({ id: plotId });
+  if (plot.length == 0) {
+    throw new Error("This plot does not exist.");
+  }
+
+  if (userId == null) {
+    throw new Error("You must specify a user.");
+  }
+  const user = await getUsers({ id: userId });
+  if (user.length == 0) {
+    throw new Error("This user does not exist.");
+  }
 
   // need it to live in this scope
   var plotCensus;
