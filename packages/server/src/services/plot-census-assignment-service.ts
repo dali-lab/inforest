@@ -1,4 +1,4 @@
-import { PlotCensusStatuses } from "@ong-forestry/schema";
+import { PlotCensusAssignment, PlotCensusStatuses } from "@ong-forestry/schema";
 import PlotCensusAssignmentModel from "db/models/plot-census-assignment";
 import { Op } from "sequelize";
 import { createPlotCensus, getPlots, getUsers } from "services";
@@ -6,10 +6,11 @@ import { CensusExistsError } from "errors";
 
 const uuid = require("uuid4");
 
-export const createAssignment = async (plotCensusAssignment: {
-  plotId: string;
-  userId: string;
-}) => {
+export const createAssignment = async (
+  plotCensusAssignment: Pick<PlotCensusAssignment, "userId"> & {
+    plotId: string;
+  }
+) => {
   // want to assign this user to this plot
   const { plotId, userId } = plotCensusAssignment;
 
