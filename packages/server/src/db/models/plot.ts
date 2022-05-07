@@ -14,9 +14,11 @@ import {
   Forest as IForest,
   Plot as IPlot,
   PlotCensus as IPlotCensus,
+  Tree as ITree,
 } from "@ong-forestry/schema";
 import Forest from "./forest";
 import PlotCensus from "./plot-census";
+import Tree from "./tree";
 
 @Table({
   tableName: "plots",
@@ -47,6 +49,9 @@ class Plot extends Model<IPlot> implements IPlot {
 
   @Column(DataTypes.FLOAT)
   width: number;
+
+  @HasMany(() => Tree)
+  trees: ITree[];
 
   @ForeignKey(() => Forest)
   @Column(DataTypes.UUID)

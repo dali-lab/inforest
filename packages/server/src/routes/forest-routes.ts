@@ -1,13 +1,8 @@
 import { Forest } from "@ong-forestry/schema";
 import express from "express";
-import {
-  createForest,
-  deleteForests,
-  editForests,
-  getForests,
-  GetForestsParams,
-} from "services";
-import { requireAuth } from "middleware";
+import { createForest, deleteForests, editForests, getForests } from "services";
+import { requireAuth } from "services/auth-service";
+import { forestCensusRouter } from "./forest-census-routes";
 
 const forestRouter = express.Router();
 
@@ -32,7 +27,7 @@ const parseParams = (query: any) => ({
 forestRouter.patch<{}, any, Forest>("/", requireAuth, async (req, res) => {
   try {
     const forests = await editForests(req.body, parseParams(req.query));
-    res.status(201).json(forests);
+    res.status(200).json(forests);
   } catch (e: any) {
     console.error(e);
     res.status(500).send(e?.message ?? "Unknown error.");
@@ -42,7 +37,7 @@ forestRouter.patch<{}, any, Forest>("/", requireAuth, async (req, res) => {
 forestRouter.get<{}, any, Forest>("/", requireAuth, async (req, res) => {
   try {
     const forests = await getForests(parseParams(req.query));
-    res.status(201).json(forests);
+    res.status(200).json(forests);
   } catch (e: any) {
     console.error(e);
     res.status(500).send(e?.message ?? "Unknown error.");
@@ -52,11 +47,13 @@ forestRouter.get<{}, any, Forest>("/", requireAuth, async (req, res) => {
 forestRouter.delete<{}, any, Forest>("/", requireAuth, async (req, res) => {
   try {
     await deleteForests(parseParams(req.query));
-    res.status(201).send("Forests successfully deleted.");
+    res.status(200).send("Forests successfully deleted.");
   } catch (e: any) {
     console.error(e);
     res.status(500).send(e?.message ?? "Unknown error.");
   }
 });
+
+forestRouter.use("/census", forestCensusRouter);
 
 export { forestRouter };

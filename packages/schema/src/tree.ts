@@ -6,6 +6,11 @@ import { TreeCensus } from "./tree-census";
  */
 export interface Tree {
   /**
+   * Tree id.
+   */
+  id: string;
+
+  /**
    * Tree tag.
    */
   tag: string;

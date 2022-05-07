@@ -16,19 +16,13 @@ const upload = multer({
 
 const treePhotoRouter = express.Router();
 
-treePhotoRouter.post<{}, any, TreePhoto>(
-  "/",
-  // the second input of upload.array() is the max number of images uploaded at a time
-  // this route only handles single images being sent at a time, so we set it to 1
-  [upload.array("images", 1), imageResize],
-  async (req: any, res: any) => {
-    try {
-      const photo = await createTreePhoto(req);
-      res.status(201).json(photo);
-    } catch (e: any) {
-      console.error(e);
-      res.status(500).send(e?.message ?? "Unknown error.");
-    }
+treePhotoRouter.post<{}, any, TreePhoto>("/", requireAuth, async (req, res) => {
+  try {
+    const photo = await createTreePhoto(req.body);
+    res.status(201).json(photo);
+  } catch (e: any) {
+    console.error(e);
+    res.status(500).send(e?.message ?? "Unknown error.");
   }
 );
 

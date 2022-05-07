@@ -1,5 +1,4 @@
 import { Tree, TreeLabel, TreePhoto } from "./tree";
-import { Trip } from "./trip";
 import { User } from "./user";
 import { PlotCensus } from "./plot-census";
 
@@ -13,9 +12,9 @@ export interface TreeCensus {
   id: string;
 
   /**
-   * Tag of the tree being censused.
+   * Id of the tree being censused.
    */
-  treeTag: string;
+  treeId: string;
 
   /**
    * Object of the tree being censused.
@@ -43,14 +42,9 @@ export interface TreeCensus {
   photos?: TreePhoto[];
 
   /**
-   * Trip this entry was collected during
+   * Whether this tree has been flagged for review.
    */
-  trip?: Trip;
-
-  /**
-   * ID of this entry's trip
-   */
-  tripId: string;
+  flagged: boolean;
 
   /**
    * Plot census this entry was taken during

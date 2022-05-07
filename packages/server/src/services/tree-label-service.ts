@@ -24,7 +24,6 @@ const constructQuery = (params: TreeLabelParams) => {
       [Op.eq]: code,
     };
   }
-
   if (limit) {
     query.limit = limit;
   }

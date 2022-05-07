@@ -15,7 +15,6 @@ import Tree from "db/models/tree";
 import TreePhoto from "db/models/tree-photo";
 import TreeLabel from "db/models/tree-label";
 import TreeCensusLabel from "db/models/tree-census-label";
-import Trip from "db/models/trip";
 import User from "db/models/user";
 import PlotCensus from "db/models/plot-census";
 import {
@@ -24,7 +23,6 @@ import {
   PlotCensus as IPlotCensus,
   TreePhoto as ITreePhoto,
   TreeLabel as ITreeLabel,
-  Trip as ITrip,
   User as IUser,
 } from "@ong-forestry/schema";
 
@@ -53,7 +51,7 @@ class TreeCensus
   @ForeignKey(() => Tree)
   @AllowNull(false)
   @Column(DataTypes.STRING)
-  treeTag: string;
+  treeId: string;
 
   @BelongsTo(() => Tree)
   tree: ITree;
@@ -70,13 +68,8 @@ class TreeCensus
   @HasMany(() => TreePhoto)
   photos: ITreePhoto[];
 
-  @ForeignKey(() => Trip)
-  @AllowNull(false)
-  @Column(DataTypes.UUID)
-  tripId: string;
-
-  @BelongsTo(() => Trip)
-  trip: ITrip;
+  @Column(DataTypes.BOOLEAN)
+  flagged: boolean;
 
   @ForeignKey(() => User)
   @AllowNull(false)

@@ -1,69 +1,97 @@
 import { PlotCensusAssignment, PlotCensusStatuses } from "@ong-forestry/schema";
 import PlotCensusAssignmentModel from "db/models/plot-census-assignment";
-import PlotCensusModel from "db/models/plot-census";
 import { Op } from "sequelize";
-import { createPlotCensus } from "./plot-census-service";
+import { createPlotCensus, getPlots, getUsers } from "services";
+import { CensusExistsError } from "errors";
 
 const uuid = require("uuid4");
 
-export const createAssignment = async (plotAssignment: {
-  plotId: string;
-  userId: string;
-}) => {
+export const createAssignment = async (
+  plotCensusAssignment: Pick<PlotCensusAssignment, "userId"> & {
+    plotId: string;
+  }
+) => {
   // want to assign this user to this plot
-  const { plotId, userId } = plotAssignment;
+  const { plotId, userId } = plotCensusAssignment;
 
-  // does this plot already have an open census?
-  const existingCensus: any = await PlotCensusModel.findAll({
-    where: {
-      plotId: { [Op.eq]: plotId },
-      status: { [Op.not]: PlotCensusStatuses.Approved },
-    },
+  if (plotId == null) {
+    throw new Error("You must specify a plot.");
+  }
+  const plot = await getPlots({ id: plotId });
+  if (plot.length == 0) {
+    throw new Error("This plot does not exist.");
+  }
+
+  if (userId == null) {
+    throw new Error("You must specify a user.");
+  }
+  const user = await getUsers({ id: userId });
+  if (user.length == 0) {
+    throw new Error("This user does not exist.");
+  }
+
+  // need it to live in this scope
+  var plotCensus;
+
+  // try to create a new census on this plot or get existing one
+  try {
+    plotCensus = await createPlotCensus({ plotId });
+  } catch (e) {
+    if (e instanceof CensusExistsError) {
+      // get the census
+      plotCensus = e.existingCensus;
+    } else {
+      throw e;
+    }
+  }
+
+  // if pending / something else?, cannot assign self to census
+  if (plotCensus.status != PlotCensusStatuses.InProgress) {
+    throw new Error("You cannot assign yourself to a pending plot.");
+  }
+
+  // check whether user is already assigned
+  const existingAssignments = await getPlotCensusAssignments({
+    userId,
+    plotCensusId: plotCensus.id,
   });
 
-  // there should only be one un-approved census per plot
-  // this should never happen
-  if (existingCensus.length > 1) {
-    throw Error(
-      "Fatal error: more than one open census on this plot. Ask an administrator for assistance"
-    );
+  // if assignment exists, throw an error
+  if (existingAssignments.length > 0) {
+    throw new Error("You are already assigned to this plot.");
   }
 
-  if (existingCensus.length > 0) {
-    // if one open census, check whether it is pending or in progress
-    if (existingCensus[0].status == PlotCensusStatuses.InProgress) {
-      // if in progress, check whether user is already assigned
-      const existingAssignments: any = await PlotCensusAssignmentModel.findAll({
-        where: {
-          userId: { [Op.eq]: userId },
-          plotCensusId: { [Op.eq]: existingCensus[0].id },
-        },
-      });
+  //finally, assign user to this plot census
+  return await PlotCensusAssignmentModel.create({
+    id: uuid(),
+    plotCensusId: plotCensus.id,
+    userId,
+  });
+};
 
-      // if assignment exists, throw an error
-      if (existingAssignments.length > 0) {
-        throw Error("You are already assigned to this plot.");
-      } else {
-        // if not, assign user to this plot census
-        return await PlotCensusAssignmentModel.create({
-          id: uuid(),
-          plotCensusId: existingCensus[0].id,
-          userId,
-        });
-      }
-    } else {
-      // if pending / something else?, cannot assign self to census
-      throw Error("You cannot assign yourself to a pending plot.");
-    }
-  } else {
-    // if not, create a new census for this plot
-    const plotCensus = await createPlotCensus(plotId);
+interface PlotCensusAssignmentParams {
+  plotCensusId?: string;
+  userId?: string;
+}
 
-    // assign user to this new census
-    return await PlotCensusAssignmentModel.create({
-      id: uuid(),
-      plotCensusId: plotCensus.id,
-      userId,
-    });
+const constructQuery = (params: PlotCensusAssignmentParams) => {
+  const { plotCensusId, userId } = params;
+  const query: any = { where: {} };
+  if (plotCensusId) {
+    query.where.plotCensusId = {
+      [Op.eq]: plotCensusId,
+    };
   }
+  if (userId) {
+    query.where.userId = {
+      [Op.eq]: userId,
+    };
+  }
+  return query;
+};
+
+export const getPlotCensusAssignments = async (
+  params: PlotCensusAssignmentParams
+) => {
+  return await PlotCensusAssignmentModel.findAll(constructQuery(params));
 };

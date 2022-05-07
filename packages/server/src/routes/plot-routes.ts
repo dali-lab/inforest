@@ -1,13 +1,8 @@
 import { Plot } from "@ong-forestry/schema";
 import express from "express";
-import {
-  createPlot,
-  deletePlots,
-  editPlots,
-  getPlots,
-  GetPlotsParams,
-} from "services";
-import { requireAuth } from "middleware/auth";
+import { createPlot, deletePlots, editPlots, getPlots } from "services";
+import { requireAuth } from "services/auth-service";
+import { plotCensusRouter } from "./plot-census-routes";
 
 const plotRouter = express.Router();
 
@@ -36,7 +31,7 @@ const parseParams = (query: any) => ({
 plotRouter.patch<{}, any, Plot>("/", requireAuth, async (req, res) => {
   try {
     const plots = await editPlots(req.body, parseParams(req.query));
-    res.status(201).send(plots);
+    res.status(200).send(plots);
   } catch (e: any) {
     console.error(e);
     res.status(500).send(e?.message ?? "Unknown error.");
@@ -46,7 +41,7 @@ plotRouter.patch<{}, any, Plot>("/", requireAuth, async (req, res) => {
 plotRouter.get<{}, any, Plot>("/", requireAuth, async (req, res) => {
   try {
     const plots = await getPlots(parseParams(req.query));
-    res.status(201).send(plots);
+    res.status(200).send(plots);
   } catch (e: any) {
     console.error(e);
     res.status(500).send(e?.message ?? "Unknown error.");
@@ -56,11 +51,13 @@ plotRouter.get<{}, any, Plot>("/", requireAuth, async (req, res) => {
 plotRouter.delete<{}, any, Plot>("/", requireAuth, async (req, res) => {
   try {
     await deletePlots(parseParams(req.query));
-    res.status(201).send("Plots successfully deleted.");
+    res.status(200).send("Plots successfully deleted.");
   } catch (e: any) {
     console.error(e);
     res.status(500).send(e?.message ?? "Unknown error.");
   }
 });
+
+plotRouter.use("/census", plotCensusRouter);
 
 export { plotRouter };
