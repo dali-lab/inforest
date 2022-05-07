@@ -17,7 +17,6 @@ import {
   TreeSpecies as ITreeSpecies,
   TreeCensus as ITreeCensus,
   Plot as IPlot,
-  TreeCensus as ITreeCensus,
 } from "@ong-forestry/schema";
 
 @Table({
