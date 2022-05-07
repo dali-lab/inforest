@@ -15,6 +15,7 @@ import TreeCensus from "db/models/tree-census";
 import {
   Tree as ITree,
   TreeSpecies as ITreeSpecies,
+  TreeCensus as ITreeCensus,
   Plot as IPlot,
   TreeCensus as ITreeCensus,
 } from "@ong-forestry/schema";
