@@ -1,7 +1,7 @@
 import { Forest } from "@ong-forestry/schema";
 import express from "express";
 import { createForest, deleteForests, editForests, getForests } from "services";
-import { requireAuth } from "services/auth-service";
+import { requireAuth } from "util/auth";
 import { forestCensusRouter } from "./forest-census-routes";
 
 const forestRouter = express.Router();

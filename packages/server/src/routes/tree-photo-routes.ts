@@ -24,7 +24,7 @@ treePhotoRouter.post<{}, any, TreePhoto>("/", requireAuth, async (req, res) => {
     console.error(e);
     res.status(500).send(e?.message ?? "Unknown error.");
   }
-);
+});
 
 const parseParams = (query: any) => ({
   id: query.id as string,

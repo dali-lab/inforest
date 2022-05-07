@@ -1,7 +1,7 @@
 import { PlotCensus } from "@ong-forestry/schema";
 import express from "express";
 import { approve, getPlotCensuses, submitForReview } from "services";
-import { requireAuth } from "services/auth-service";
+import { requireAuth } from "util/auth";
 
 const plotCensusRouter = express.Router();
 

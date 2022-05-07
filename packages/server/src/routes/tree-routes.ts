@@ -1,7 +1,7 @@
 import { Tree } from "@ong-forestry/schema";
 import express from "express";
 import { createTree, getTrees, editTrees, deleteTrees } from "services";
-import { requireAuth } from "services/auth-service";
+import { requireAuth } from "util/auth";
 import { treePhotoRouter } from "./tree-photo-routes";
 import { treeSpeciesRouter } from "./tree-species-routes";
 import { treeLabelRouter } from "./tree-label-routes";
