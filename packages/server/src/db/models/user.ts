@@ -53,6 +53,11 @@ class User extends Model<IUser> implements IUser {
   @Column(DataTypes.BOOLEAN)
   verified: boolean;
 
+  @Default(true)
+  @AllowNull(false)
+  @Column(DataTypes.BOOLEAN)
+  active: boolean;
+
   @BelongsToMany(() => Team, () => Membership)
   teams: ITeam[];
 

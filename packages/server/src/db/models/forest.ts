@@ -12,14 +12,12 @@ import {
 } from "sequelize-typescript";
 import Team from "./team";
 import Plot from "./plot";
-import Trip from "./trip";
 import ForestCensus from "./forest-census";
 import {
   Forest as IForest,
   ForestCensus as IForestCensus,
   Plot as IPlot,
   Team as ITeam,
-  Trip as ITrip,
 } from "@ong-forestry/schema";
 
 @Table({
@@ -48,9 +46,6 @@ class Forest extends Model<IForest> implements IForest {
 
   @BelongsTo(() => Team)
   team: ITeam;
-
-  @HasMany(() => Trip)
-  trips: ITrip[];
 
   @HasMany(() => ForestCensus)
   censuses: IForestCensus[];

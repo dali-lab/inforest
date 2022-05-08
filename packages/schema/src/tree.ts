@@ -6,14 +6,19 @@ import { TreeCensus } from "./tree-census";
  */
 export interface Tree {
   /**
+   * Tree id.
+   */
+  id: string;
+
+  /**
    * Tree tag.
    */
   tag: string;
 
   /**
-   * Number of the plot where the tree is located.
+   * ID of the plot where the tree is located.
    */
-  plotNumber: string;
+  plotId: string;
 
   /**
    * Object of the plot where the tree is located.

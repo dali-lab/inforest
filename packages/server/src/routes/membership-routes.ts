@@ -5,13 +5,12 @@ import {
   deleteMemberships,
   editMemberships,
   getMemberships,
-  GetMembershipsParams,
 } from "services";
 import { requireAuth } from "services/auth-service";
 
 const membershipRouter = express.Router();
 
-membershipRouter.post<{}, any, Membership>(
+membershipRouter.post<{}, any, Pick<Membership, "teamId"> & { email: string }>(
   "/",
   requireAuth,
   async (req, res) => {
@@ -43,7 +42,7 @@ membershipRouter.patch<{}, any, Membership>(
         req.body,
         parseParams(req.query)
       );
-      res.status(201).json(memberships);
+      res.status(200).json(memberships);
     } catch (e: any) {
       console.error(e);
       res.status(500).send(e?.message ?? "Unknown error.");
@@ -57,7 +56,7 @@ membershipRouter.get<{}, any, Membership>(
   async (req, res) => {
     try {
       const memberships = await getMemberships(parseParams(req.query));
-      res.status(201).json(memberships);
+      res.status(200).json(memberships);
     } catch (e: any) {
       console.error(e);
       res.status(500).send(e?.message ?? "Unknown error.");
@@ -71,7 +70,7 @@ membershipRouter.delete<{}, any, Membership>(
   async (req, res) => {
     try {
       await deleteMemberships(parseParams(req.query));
-      res.status(201).send("Memberships successfully deleted.");
+      res.status(200).send("Memberships successfully deleted.");
     } catch (e: any) {
       console.error(e);
       res.status(500).send(e?.message ?? "Unknown error.");

@@ -8,14 +8,17 @@ import {
   ForeignKey,
   BelongsTo,
   HasMany,
+  Default,
 } from "sequelize-typescript";
 import {
   Forest as IForest,
   Plot as IPlot,
   PlotCensus as IPlotCensus,
+  Tree as ITree,
 } from "@ong-forestry/schema";
 import Forest from "./forest";
 import PlotCensus from "./plot-census";
+import Tree from "./tree";
 
 @Table({
   tableName: "plots",
@@ -28,6 +31,10 @@ import PlotCensus from "./plot-census";
 })
 class Plot extends Model<IPlot> implements IPlot {
   @PrimaryKey
+  @Default(DataTypes.UUIDV4)
+  @Column({ type: DataTypes.UUID })
+  id: string;
+
   @AutoIncrement
   @Column(DataTypes.STRING)
   number: string;
@@ -43,6 +50,9 @@ class Plot extends Model<IPlot> implements IPlot {
 
   @Column(DataTypes.FLOAT)
   width: number;
+
+  @HasMany(() => Tree)
+  trees: ITree[];
 
   @ForeignKey(() => Forest)
   @Column(DataTypes.STRING)

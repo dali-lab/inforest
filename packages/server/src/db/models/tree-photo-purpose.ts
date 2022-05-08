@@ -6,7 +6,6 @@ import {
   PrimaryKey,
   HasMany,
 } from "sequelize-typescript";
-import Tree from "db/models/tree";
 import {
   TreePhoto as ITreePhoto,
   TreePhotoPurpose as ITreePhotoPurpose,

@@ -1,22 +1,17 @@
 import { Tree } from "@ong-forestry/schema";
 import express from "express";
-import {
-  createTrees,
-  getTrees,
-  GetTreesParams,
-  editTrees,
-  deleteTrees,
-} from "services";
+import { createTree, getTrees, editTrees, deleteTrees } from "services";
 import { requireAuth } from "services/auth-service";
 import { treePhotoRouter } from "./tree-photo-routes";
 import { treeSpeciesRouter } from "./tree-species-routes";
 import { treeLabelRouter } from "./tree-label-routes";
+import { treeCensusRouter } from "./tree-census-routes";
 
 const treeRouter = express.Router();
 
 treeRouter.post<{}, any, Tree>("/", requireAuth, async (req, res) => {
   try {
-    const tree = await createTrees(req.body);
+    const tree = await createTree(req.body);
     res.status(201).json(tree);
   } catch (e: any) {
     console.error(e);
@@ -25,12 +20,10 @@ treeRouter.post<{}, any, Tree>("/", requireAuth, async (req, res) => {
 });
 
 const parseParams = (query: any) => ({
+  ids: (query.ids as string)?.split(","),
   tags: (query.tags as string)?.split(","),
-  plotNumbers: (query.plotNumbers as string)
-    ?.split(",")
-    .map((plotNumber) => parseInt(plotNumber)),
+  plotIds: (query.plotIds as string)?.split(","),
   speciesCodes: (query.speciesCodes as string)?.split(","),
-  statusNames: (query.statusNames as string)?.split(","),
   latMin: parseFloat(query.latMin as string),
   latMax: parseFloat(query.latMax as string),
   longMin: parseFloat(query.longMin as string),
@@ -39,12 +32,6 @@ const parseParams = (query: any) => ({
   plotXMax: parseFloat(query.plotXMax as string),
   plotYMin: parseFloat(query.plotYMin as string),
   plotYMax: parseFloat(query.plotYMax as string),
-  dbhMin: parseFloat(query.dbhMin as string),
-  dbhMax: parseFloat(query.dbhMax as string),
-  heightMin: parseFloat(query.heightMin as string),
-  heightMax: parseFloat(query.heightMax as string),
-  tripId: query.tripId as string,
-  authorId: query.authorId as string,
   limit: parseInt(query.limit as string),
   offset: parseInt(query.offset as string),
 });
@@ -72,7 +59,7 @@ treeRouter.get<{}, any, Tree>("/", requireAuth, async (req, res) => {
 treeRouter.delete<{}, any, Tree>("/", requireAuth, async (req, res) => {
   try {
     await deleteTrees(parseParams(req.query));
-    res.status(201).send("Trees deleted successfully.");
+    res.status(200).send("Trees deleted successfully.");
   } catch (e: any) {
     console.error(e);
     res.status(500).send(e?.message ?? "Unknown error.");
@@ -82,5 +69,6 @@ treeRouter.delete<{}, any, Tree>("/", requireAuth, async (req, res) => {
 treeRouter.use("/photos", treePhotoRouter);
 treeRouter.use("/species", treeSpeciesRouter);
 treeRouter.use("/labels", treeLabelRouter);
+treeRouter.use("/census", treeCensusRouter);
 
 export { treeRouter };

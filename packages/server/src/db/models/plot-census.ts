@@ -21,6 +21,7 @@ import {
   TreeCensus as ITreeCensus,
   Plot as IPlot,
   User as IUser,
+  PlotCensusStatuses,
 } from "@ong-forestry/schema";
 import PlotCensusAssignment from "./plot-census-assignment";
 
@@ -34,8 +35,8 @@ class PlotCensus extends Model<IPlotCensus> implements IPlotCensus {
   id: string;
 
   @Default(false)
-  @Column(DataTypes.BOOLEAN)
-  approved: boolean;
+  @Column(DataTypes.ENUM({ values: Object.values(PlotCensusStatuses) }))
+  status: PlotCensusStatuses;
 
   @BelongsTo(() => Plot)
   plot: IPlot;
@@ -43,7 +44,7 @@ class PlotCensus extends Model<IPlotCensus> implements IPlotCensus {
   @ForeignKey(() => Plot)
   @AllowNull(false)
   @Column(DataTypes.STRING)
-  plotNumber: string;
+  plotId: string;
 
   @BelongsTo(() => ForestCensus)
   forestCensus: IForestCensus;

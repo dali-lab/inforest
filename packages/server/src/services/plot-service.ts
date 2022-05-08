@@ -7,6 +7,8 @@ export const createPlot = async (plot: Plot) => {
 };
 
 export interface GetPlotsParams {
+  id?: string;
+
   number?: number;
   name?: string;
 
@@ -23,6 +25,7 @@ export interface GetPlotsParams {
 
 const constructQuery = (params: GetPlotsParams) => {
   const {
+    id,
     number,
     name,
     forestId,
@@ -36,6 +39,11 @@ const constructQuery = (params: GetPlotsParams) => {
   const query: any = {
     where: {},
   };
+  if (id) {
+    query.where.id = {
+      [Op.eq]: id,
+    };
+  }
   if (number) {
     query.where.number = {
       [Op.eq]: number,
