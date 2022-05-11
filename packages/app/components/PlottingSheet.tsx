@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, View } from "react-native";
 import * as utm from "utm";
 import DashedLine from "react-native-dashed-line";
 import { getRandomBytes } from "expo-random";
-import { Plot } from "@ong-forestry/schema";
+import { Plot, PlotCensus } from "@ong-forestry/schema";
 import Colors from "../constants/Colors";
 import { Text, TextVariants } from "./Themed";
 import { DEFAULT_DBH, FOLIAGE_MAGNIFICATION } from "../constants";
@@ -16,6 +16,7 @@ import {
   deselectTree,
   createTree,
   selectTree,
+  locallyDraftNewTree,
 } from "../redux/slices/treeSlice";
 import useAppDispatch from "../hooks/useAppDispatch";
 import { AUTHOR_ID, TRIP_ID } from "../constants/dev";
@@ -25,6 +26,7 @@ const SMALL_OFFSET = 8;
 
 interface PlottingSheetProps {
   plot: Plot;
+  plotCensus: PlotCensus | undefined;
   stakeNames: string[];
   mapWidth: number;
   expandDrawer: () => void;
@@ -36,6 +38,7 @@ const STAKE_LABEL_WIDTH = 36 + 16;
 
 export const PlottingSheet: React.FC<PlottingSheetProps> = ({
   plot,
+  plotCensus,
   stakeNames,
   mapWidth,
   expandDrawer,
@@ -77,7 +80,13 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
     ),
     new Set([plot.id])
   );
-
+  const {
+    indices: { byPlotCensuses },
+  } = useAppSelector((state) => state.treeCensuses);
+  const inProgressCensuses = useMemo(
+    () => Object.keys(byPlotCensuses),
+    [byPlotCensuses]
+  );
   return (
     <Pressable
       style={{ ...styles.container, width: sheetSize, height: sheetSize }}
@@ -176,13 +185,8 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
                   plotY,
                   latitude,
                   longitude,
-                  tripId: TRIP_ID,
-                  authorId: AUTHOR_ID,
-                  photos: [],
-                  createdAt: new Date(),
-                  updatedAt: new Date(),
                 };
-                dispatch(createTree(newTree));
+                dispatch(locallyDraftNewTree(newTree));
                 setMarkerPos(undefined);
                 dispatch(selectTree(tag));
                 expandDrawer();
@@ -241,6 +245,7 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
           .filter((tree) => tree.plotId === plot.id)
           .map((tree) => {
             const isDraft = drafts.has(tree.tag);
+            const isCensusing = tree.tag in inProgressCensuses;
             const { plotX, plotY } = tree;
             if (!!plotX && !!plotY) {
               const treePixelSize =
@@ -270,7 +275,11 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
                 >
                   <TreeMarker
                     color={
-                      isDraft ? Colors.primary.normal : Colors.primary.light
+                      isDraft
+                        ? Colors.primary.normal
+                        : isCensusing
+                        ? "yellow"
+                        : Colors.primary.light
                     }
                     size={treePixelSize}
                     selected={selected?.tag === tree.tag}

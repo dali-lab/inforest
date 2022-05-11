@@ -1,9 +1,9 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Animated, Dimensions, StyleSheet, View } from "react-native";
 import { Queue, Stack } from "react-native-spacing-system";
 import { BlurView } from "expo-blur";
 import dateformat from "dateformat";
-import { Forest, Plot } from "@ong-forestry/schema";
+import { Forest, Plot, PlotCensus, TreeCensus } from "@ong-forestry/schema";
 import { Ionicons } from "@expo/vector-icons";
 import { MapScreenModes, DrawerStates } from "../../constants";
 import useAppSelector from "../../hooks/useAppSelector";
@@ -14,9 +14,20 @@ import useAppDispatch from "../../hooks/useAppDispatch";
 import DataEntryForm from "./DataEntryForm";
 import FlagIcon from "../../assets/icons/flag-icon.svg";
 
+const blankTreeCensus: Omit<
+  TreeCensus,
+  "id" | "treeId" | "plotCensusId" | "authorId"
+> = {
+  dbh: 0,
+  labels: [],
+  photos: [],
+  flagged: false,
+};
+
 type PlotDrawerProps = {
   drawerState: DrawerStates;
   plot?: Plot;
+  plotCensus: PlotCensus | undefined;
   forest?: Forest;
   expandDrawer: () => void;
   minimizeDrawer: () => void;
@@ -39,6 +50,7 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
   mode,
   drawerState,
   plot,
+  plotCensus,
   setDrawerHeight,
   beginPlotting,
   expandDrawer,
@@ -50,14 +62,16 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
     };
   }, [setDrawerHeight]);
   const dispatch = useAppDispatch();
-
   const {
     all,
     selected: selectedTreeTag,
     indices: { byPlots },
   } = useAppSelector((state) => state.trees);
+  const {
+    drafts,
+    indices: { byPlotCensuses },
+  } = useAppSelector((state) => state.treeCensuses);
   const selected = selectedTreeTag ? all[selectedTreeTag] : undefined;
-
   const setStyle = useCallback(() => {
     switch (drawerState) {
       case DrawerStates.Closed:
@@ -75,7 +89,7 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
       let latestCensus: Date | undefined;
       for (const treeTag of plotTrees) {
         const { updatedAt } = all[treeTag];
-        if (!latestCensus || updatedAt > latestCensus) {
+        if (updatedAt && (!latestCensus || updatedAt > latestCensus)) {
           latestCensus = updatedAt;
         }
       }
@@ -84,11 +98,18 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
     [byPlots, all]
   );
 
-  const [flagged, setFlagged] = useState<boolean>(false);
+  const [flagged, setFlagged] = useState<boolean>(
+    (plotCensus &&
+      selected &&
+      byPlotCensuses?.[plotCensus?.id]?.[selected.tag]?.flagged) ||
+      false
+  );
 
   const toggleFlagged = useCallback(() => {
     setFlagged((prev) => !prev);
   }, [setFlagged]);
+
+  const inProgressCensuses = useMemo(() => Object.keys(drafts), [drafts]);
 
   if (drawerState === DrawerStates.Closed) {
     return null;
@@ -162,7 +183,11 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
                       )}
                     </Text>
                   </View>
-                  <AppButton onPress={expandDrawer}>Edit</AppButton>
+                  <AppButton onPress={expandDrawer}>
+                    {selected.tag in inProgressCensuses
+                      ? "Edit Census"
+                      : "Add Census"}
+                  </AppButton>
                 </>
               )}
               {drawerState === "EXPANDED" && !!selected && (
@@ -208,15 +233,28 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
               <>
                 <Stack size={24}></Stack>
                 <View>
-                  <DataEntryForm
-                    cancel={() => {
-                      dispatch(locallyDeleteTree(selected.tag));
-                      dispatch(deselectTree());
-                      minimizeDrawer();
-                    }}
-                    finish={minimizeDrawer}
-                    style={{ flex: 1 }}
-                  />
+                  {plotCensus && (
+                    <DataEntryForm
+                      treeCensus={
+                        byPlotCensuses?.[plotCensus?.id]?.[selected.tag] || {
+                          ...blankTreeCensus,
+                          plotCensusId: plotCensus.id,
+                          treeId: selected.id,
+                          authorId: "",
+                          flagged: flagged,
+                          id: "",
+                        }
+                      }
+                      flagged={flagged}
+                      cancel={() => {
+                        dispatch(locallyDeleteTree(selected.tag));
+                        dispatch(deselectTree());
+                        minimizeDrawer();
+                      }}
+                      finish={minimizeDrawer}
+                      style={{ flex: 1 }}
+                    />
+                  )}
                 </View>
               </>
             )}

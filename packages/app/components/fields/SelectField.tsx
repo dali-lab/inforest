@@ -26,6 +26,7 @@ const SelectField: React.FC<SelectFieldProps> = ({
         selectedValue={value}
         onValueChange={(itemValue, _itemIndex) => {
           setValue(itemValue);
+          console.log(itemValue);
         }}
       >
         {sortedPickerOptions.map(({ label, value }) => (

@@ -1,5 +1,6 @@
 import { PlotCensusStatuses, TreeCensus } from "@ong-forestry/schema";
 import TreeCensusModel from "db/models/tree-census";
+import TreeModel from "db/models/tree";
 import { Op } from "sequelize";
 import {
   getPlotCensusAssignments,
@@ -97,7 +98,11 @@ const constructQuery = (params: TreeCensusParams) => {
 };
 
 export const getTreeCensuses = async (params: TreeCensusParams) => {
-  return await TreeCensusModel.findAll(constructQuery(params));
+  const query = constructQuery(params);
+  return await TreeCensusModel.findAll({
+    ...query,
+    include: [{ model: TreeModel, as: "treeId" }],
+  });
 };
 
 export const editTreeCensuses = async (

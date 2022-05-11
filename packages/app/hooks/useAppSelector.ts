@@ -47,7 +47,7 @@ export const useTreesByDensity = createSelector(
 export const useTreesInPlots = createSelector(
   [(trees: Tree[]) => trees, (_: Tree[], plots: Set<string>) => plots],
   (trees: Tree[], plots: Set<string>) => {
-    return trees.filter((tree) => plots.has(tree.plotId));
+    return trees.filter((tree) => plots.has(tree?.plotId));
   }
 );
 

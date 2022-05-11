@@ -72,8 +72,16 @@ class Tree
   @BelongsTo(() => TreeSpecies)
   species: ITreeSpecies;
 
-  @HasMany(() => TreeCensus)
+  @HasMany(() => TreeCensus, "treeId")
   censuses: ITreeCensus[];
+
+  @ForeignKey(() => TreeCensus)
+  @AllowNull(true)
+  @Column(DataTypes.UUID)
+  initCensusId: string;
+
+  @BelongsTo(() => TreeCensus)
+  initCensus: ITreeCensus | null;
 }
 
 export default Tree;

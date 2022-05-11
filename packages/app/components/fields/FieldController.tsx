@@ -94,7 +94,7 @@ export const FieldController: React.FC<FieldControllerProps> = ({
           style={{ marginTop: 12 }}
           type="COLOR"
         >
-          Submit
+          Set
         </AppButton>
       </FieldModal>
     </>

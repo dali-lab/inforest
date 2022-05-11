@@ -11,7 +11,8 @@ import { getAllTreeSpecies } from "../../redux/slices/treeSpeciesSlice";
 import { getAllTreeLabels } from "../../redux/slices/treeLabelSlice";
 import PlotView from "./PlotView";
 import ExploreView from "./ExploreView";
-import { getAllTreePhotoPurposes } from "../../redux/slices/treePhotoPurpose";
+import { getAllTreePhotoPurposes } from "../../redux/slices/treePhotoPurposeSlice";
+import { getForestForestCensuses } from "../../redux/slices/forestCensusSlice";
 
 export default function MapScreen() {
   const dispatch = useAppDispatch();
@@ -26,25 +27,29 @@ export default function MapScreen() {
     dispatch(getAllTreeSpecies());
     dispatch(getAllTreeLabels());
     dispatch(getAllTreePhotoPurposes());
+    dispatch(getForestForestCensuses({ forestId: FOREST_ID }));
   }, [dispatch]);
 
   const [mode, setMode] = useState<MapScreenModes>(MapScreenModes.Explore);
 
   const [selectedPlot, setSelectedPlot] = useState<Plot>();
 
-  const selectPlot = useCallback((plot: Plot) => {
-    setSelectedPlot(plot);
-    setMode(MapScreenModes.Select);
-  }, []);
+  const selectPlot = useCallback(
+    (plot: Plot) => {
+      setSelectedPlot(plot);
+      setMode(MapScreenModes.Select);
+    },
+    [setSelectedPlot, setMode]
+  );
 
   const deselectPlot = useCallback(() => {
     setSelectedPlot(undefined);
     setMode(MapScreenModes.Explore);
-  }, []);
+  }, [setSelectedPlot, setMode]);
 
   const beginPlotting = useCallback(() => {
     setMode(MapScreenModes.Plot);
-  }, []);
+  }, [setMode]);
 
   const endPlotting = useCallback(() => {
     dispatch(deselectTree());
@@ -55,6 +60,7 @@ export default function MapScreen() {
     <View style={styles.container}>
       {mode !== "PLOT" && (
         <ExploreView
+          // selectedForestCensus={}
           selectedPlot={selectedPlot}
           selectPlot={selectPlot}
           deselectPlot={deselectPlot}

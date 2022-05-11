@@ -12,19 +12,21 @@ import SelectField from "../SelectField";
 import Colors from "../../../constants/Colors";
 import { Text, TextVariants } from "../../Themed";
 import { Ionicons } from "@expo/vector-icons";
+import { TreePhoto, TreePhotoPurpose } from "@ong-forestry/schema";
 
 interface PhotoItemProps {
-  item: ListRenderItemInfo<ImageInfo>;
+  item: ListRenderItemInfo<TreePhoto>;
   removePhoto: (url: string) => void;
   options: { label: string; value: string }[];
+  setPurpose: (newValue: string) => void;
 }
 
 const PhotoItem: React.FC<PhotoItemProps> = ({
-  item,
+  item: { item },
   removePhoto,
   options,
+  setPurpose,
 }) => {
-  const [purpose, setPurpose] = useState<string>("");
   return (
     <View style={styles.photoWrapper}>
       <Image
@@ -35,7 +37,7 @@ const PhotoItem: React.FC<PhotoItemProps> = ({
           borderTopRightRadius: 10,
         }}
         source={{
-          uri: item.item.uri,
+          uri: item.fullUrl,
         }}
       />
       <View
@@ -46,13 +48,13 @@ const PhotoItem: React.FC<PhotoItemProps> = ({
         }}
       >
         <FieldController
-          value={purpose}
+          value={item.purposeName}
           onConfirm={(newValue) => {
             setPurpose(newValue);
           }}
           formComponent={
             <Text variant={TextVariants.Label} style={{ marginVertical: 4 }}>
-              {purpose || "Add Label"}
+              {item.purposeName || "Add Label +"}
             </Text>
           }
           modalComponent={
@@ -62,7 +64,7 @@ const PhotoItem: React.FC<PhotoItemProps> = ({
       </View>
       <Pressable
         onPress={() => {
-          removePhoto(item.item.uri);
+          removePhoto(item.fullUrl);
         }}
         style={styles.photoRemove}
       >

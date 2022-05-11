@@ -11,33 +11,67 @@ import { RootState } from "../../../redux";
 import { Text, TextVariants } from "../../Themed";
 import FieldWrapper from "../FieldWrapper";
 import PhotoItem from "./PhotoItem";
+import { TreeCensus, TreePhoto, TreePhotoPurpose } from "@ong-forestry/schema";
 
 const imageLibraryOptions: ImagePickerOptions = {
   base64: true,
 };
 
 export type PhotoFieldProps = {
-  onUpdate: (newValue: any[]) => void;
+  onUpdate: (newValue: TreePhoto[]) => void;
+  census: TreeCensus;
 };
 
-const PhotoField: React.FC<PhotoFieldProps> = ({ onUpdate }) => {
+const PhotoField: React.FC<PhotoFieldProps> = ({ onUpdate, census }) => {
   const { all: allPurposes } = useAppSelector(
     (state: RootState) => state.treePhotoPurposes
   );
-  const [photos, setPhotos] = useState<ImageInfo[]>([]);
+  const [photos, setPhotos] = useState<Record<string, TreePhoto>>(
+    census?.photos?.reduce(
+      (prev, photo) => ({ ...prev, [photo.fullUrl]: photo }),
+      {}
+    ) || {}
+  );
+  const addedUrls = useMemo(() => Object.keys(photos), [photos]);
   const addPhoto = useCallback(async () => {
     const photo = await launchImageLibraryAsync(imageLibraryOptions);
-    if (!photo.cancelled) setPhotos((prev) => [...prev, photo]);
-  }, [setPhotos]);
+    if (!photo?.cancelled) {
+      if (photo.uri in addedUrls) {
+        alert("This photo has already been uploaded.");
+        return;
+      }
+      const parsedPhoto: TreePhoto = {
+        id: "",
+        thumbUrl: "",
+        fullUrl: photo?.uri,
+        treeCensusId: census.id,
+        purposeName: "",
+      };
+      setPhotos((prev) => ({ ...prev, [photo.uri]: parsedPhoto }));
+    }
+  }, [addedUrls, setPhotos]);
   const removePhoto = useCallback(
     async (url: string) => {
-      setPhotos((prev) => prev.filter((photo) => photo.uri !== url));
+      setPhotos((prev) => {
+        const { [url]: removedPhoto, ...remainingPhotos } = prev;
+        return remainingPhotos;
+      });
     },
     [setPhotos]
   );
+  const setPhotoPurpose = useCallback(
+    async (url: string, purpose: string) => {
+      setPhotos((prev) => ({
+        ...prev,
+        [url]: { ...prev[url], purposeName: purpose },
+      }));
+    },
+    [setPhotos]
+  );
+  const photoList = useMemo(() => Object.values(photos), [photos]);
   useEffect(() => {
-    onUpdate(photos);
-  }, [onUpdate, photos]);
+    onUpdate(photoList);
+  }, [photoList]);
   const purposesOptions = useMemo(
     () =>
       Object.values(allPurposes).map((purpose) => ({
@@ -66,12 +100,15 @@ const PhotoField: React.FC<PhotoFieldProps> = ({ onUpdate }) => {
       </View>
       <View style={styles.addedPhotosContainer}>
         <FlatList
-          data={photos}
+          data={photoList}
           renderItem={(item) => (
             <PhotoItem
               item={item}
               removePhoto={removePhoto}
               options={purposesOptions}
+              setPurpose={(newValue) => {
+                setPhotoPurpose(item.item.fullUrl, newValue);
+              }}
             />
           )}
           horizontal={true}

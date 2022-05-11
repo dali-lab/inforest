@@ -5,8 +5,10 @@ import teamReducer from "./teamSlice";
 import treeReducer from "./treeSlice";
 import treeLabelReducer from "./treeLabelSlice";
 import treeSpeciesReducer from "./treeSpeciesSlice";
-import tripReducer from "./tripSlice";
-import treePhotoPurposeReducer from "./treePhotoPurpose";
+import treePhotoPurposeReducer from "./treePhotoPurposeSlice";
+import forestCensusReducer from "./forestCensusSlice";
+import plotCensusReducer from "./plotCensusSlice";
+import treeCensusReducer from "./treeCensusSlice";
 
 export {
   userReducer,
@@ -16,6 +18,8 @@ export {
   treeReducer,
   treeLabelReducer,
   treeSpeciesReducer,
-  tripReducer,
   treePhotoPurposeReducer,
+  forestCensusReducer,
+  plotCensusReducer,
+  treeCensusReducer,
 };

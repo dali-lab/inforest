@@ -12,7 +12,7 @@ import { PermissionStatus } from "expo-modules-core";
 import * as geolib from "geolib";
 import { Ionicons } from "@expo/vector-icons";
 import * as utm from "utm";
-import { Plot, Tree } from "@ong-forestry/schema";
+import { Plot, PlotCensusStatuses, Tree } from "@ong-forestry/schema";
 
 import { Text, TextVariants } from "../../components/Themed";
 import Colors from "../../constants/Colors";
@@ -20,6 +20,7 @@ import useAppDispatch from "../../hooks/useAppDispatch";
 import PlotDrawer from "../../components/PlotDrawer";
 
 import { deselectTree, selectTree } from "../../redux/slices/treeSlice";
+import { selectForestCensus } from "../../redux/slices/forestCensusSlice";
 import { getPlotCorners } from "../../constants/plots";
 import VisualizationModal from "../../components/VisualizationModal";
 import SearchModal from "../../components/SearchModal";
@@ -38,12 +39,19 @@ import {
   MapScreenModes,
   VisualizationConfigType,
 } from "../../constants";
+import { getForestCensusPlotCensuses } from "../../redux/slices/plotCensusSlice";
 
 const O_FARM_LAT = 43.7348569458618;
 const O_FARM_LNG = -72.2519099587406;
 const MIN_REGION_DELTA = 0.0000005;
 const FOLIAGE_MAGNIFICATION = 3;
 const NUM_OF_SPECIES = 8;
+
+const plotCensusColorMap: { [key in PlotCensusStatuses]?: string } = {
+  IN_PROGRESS: "rgba(255, 240, 0, 0.3)",
+  PENDING: "rgba(0,0,250,0.3)",
+  APPROVED: "rgba(0,250,0,0.3)",
+};
 
 interface ExploreViewProps {
   selectedPlot?: Plot;
@@ -86,10 +94,23 @@ const ExploreView: React.FC<ExploreViewProps> = (props) => {
   const reduxState = useAppSelector((state: RootState) => state);
   const { all: allTrees, selected: selectedTree } = reduxState.trees;
   const { all: allPlots } = reduxState.plots;
+  const { all: allForestCensuses, selected: selectedForestCensus } =
+    reduxState.forestCensuses;
+  const {
+    indices: { byPlots: plotCensusesByPlot },
+  } = reduxState.plotCensuses;
   const { colorMap } = reduxState.treeSpecies;
+  useEffect(() => {
+    for (const census of Object.values(allForestCensuses)) {
+      if (census.active) {
+        dispatch(selectForestCensus(census.id));
+        dispatch(getForestCensusPlotCensuses({ forestCensusId: census.id }));
+        break;
+      }
+    }
+  }, [allForestCensuses]);
 
   const plots = usePlotsInRegion(usePlots(reduxState), regionSnapshot);
-
   const density = useMemo(() => {
     if (plots.length <= Math.pow(5, 2)) {
       return 1;
@@ -214,6 +235,20 @@ const ExploreView: React.FC<ExploreViewProps> = (props) => {
     selectedTree,
   ]);
 
+  const plotIdColorMap = useCallback(
+    (id: string) => {
+      if (
+        selectedForestCensus?.id &&
+        plotCensusesByPlot?.[id]?.[selectedForestCensus?.id]
+      ) {
+        const status = plotCensusesByPlot[id][selectedForestCensus.id]?.status;
+        return status ? plotCensusColorMap[status] : "rgba(255, 255, 255, 0.3)";
+      }
+      return "rgba(255, 255, 255, 0.3)";
+    },
+    [allForestCensuses, selectedForestCensus, plotCensusesByPlot]
+  );
+
   useEffect(() => {
     (async () => {
       const { status } = await Location.getForegroundPermissionsAsync();
@@ -333,10 +368,10 @@ const ExploreView: React.FC<ExploreViewProps> = (props) => {
               coordinates={[...getPlotCorners(plot), getPlotCorners(plot)[0]]}
               strokeWidth={2}
               strokeColor="rgba(255, 255, 255, 0.6)"
-              fillColor="rgba(255, 255, 255, 0.3)"
+              fillColor={plotIdColorMap(plot.id)}
               tappable={true}
               onPress={() => {
-                selectPlot(plot);
+                plot && selectPlot(plot);
               }}
             />
           );
@@ -427,6 +462,14 @@ const ExploreView: React.FC<ExploreViewProps> = (props) => {
         drawerState={drawerState}
         setDrawerHeight={setDrawerHeight}
         plot={selectedPlot}
+        plotCensus={
+          (selectedPlot &&
+            selectedForestCensus &&
+            plotCensusesByPlot?.[selectedPlot?.id]?.[
+              selectedForestCensus?.id
+            ]) ||
+          undefined
+        }
         beginPlotting={() => {
           if (selectedPlot) {
             const { easting, northing, zoneNum, zoneLetter } = utm.fromLatLon(

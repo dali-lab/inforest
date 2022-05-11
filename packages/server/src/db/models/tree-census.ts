@@ -10,6 +10,7 @@ import {
   AllowNull,
   BelongsToMany,
   Default,
+  HasOne,
 } from "sequelize-typescript";
 import Tree from "db/models/tree";
 import TreePhoto from "db/models/tree-photo";
@@ -86,6 +87,9 @@ class TreeCensus
 
   @BelongsTo(() => PlotCensus)
   plotCensus: IPlotCensus;
+
+  @HasOne(() => Tree)
+  initTree: ITree;
 }
 
 export default TreeCensus;

@@ -1,5 +1,5 @@
 import { Dimensions, View, StyleSheet } from "react-native";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { Plot } from "@ong-forestry/schema";
 import { PlottingSheet } from "../../components/PlottingSheet";
@@ -24,7 +24,24 @@ const PlotView: React.FC<PlotViewProps> = (props) => {
   );
 
   const reduxState = useAppSelector((state: RootState) => state);
+  const { all: allForestCensuses, selected: selectedForestCensus } =
+    reduxState.forestCensuses;
+  const {
+    indices: { byPlots: plotCensusesByPlot },
+  } = reduxState.plotCensuses;
+  const {
+    indices: { byPlotCensuses },
+  } = reduxState.treeCensuses;
   const { all: allPlots } = reduxState.plots;
+
+  const selectedPlotCensus = useMemo(
+    () =>
+      (selectedPlot &&
+        selectedForestCensus &&
+        plotCensusesByPlot?.[selectedPlot?.id]?.[selectedForestCensus?.id]) ||
+      undefined,
+    [selectedForestCensus, plotCensusesByPlot, selectedPlot]
+  );
 
   return (
     <>
@@ -35,6 +52,7 @@ const PlotView: React.FC<PlotViewProps> = (props) => {
         {!!selectedPlot && (
           <PlottingSheet
             plot={selectedPlot}
+            plotCensus={selectedPlotCensus}
             stakeNames={(() => {
               const { i, j } = parsePlotNumber(selectedPlot.number);
               const stakeNames = [];
@@ -66,6 +84,7 @@ const PlotView: React.FC<PlotViewProps> = (props) => {
         mode={MapScreenModes.Plot}
         drawerState={drawerState}
         plot={selectedPlot}
+        plotCensus={selectedPlotCensus}
         endPlotting={endPlotting}
         expandDrawer={() => setDrawerState(DrawerStates.Expanded)}
         minimizeDrawer={() => setDrawerState(DrawerStates.Minimized)}

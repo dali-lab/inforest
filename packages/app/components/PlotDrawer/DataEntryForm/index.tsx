@@ -1,5 +1,5 @@
 import { Tree, TreeCensus, TreeLabel } from "@ong-forestry/schema";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { View, StyleSheet, ScrollView } from "react-native";
 import useAppDispatch from "../../../hooks/useAppDispatch";
 import useAppSelector from "../../../hooks/useAppSelector";
@@ -13,6 +13,10 @@ import FieldController from "../../fields/FieldController";
 import SelectField from "../../fields/SelectField";
 import PhotoField from "../../fields/PhotoField";
 import LabelPillRow from "./LabelPillRow";
+import {
+  locallyDraftNewTreeCensus,
+  locallyUpdateTreeCensus,
+} from "../../../redux/slices/treeCensusSlice";
 
 export type FormStages = "META" | "DATA" | "REVIEW";
 
@@ -21,32 +25,93 @@ export const StageList: FormStages[] = ["META", "DATA", "REVIEW"];
 interface DataEntryFormProps {
   cancel: () => void;
   finish: () => void;
+  treeCensus: TreeCensus;
+  flagged: boolean;
 }
 
 const DataEntryForm: React.FC<DataEntryFormProps & View["props"]> = ({
   finish,
   style,
+  treeCensus,
+  flagged,
 }) => {
   const dispatch = useAppDispatch();
   const { all, selected: selectedTreeTag } = useAppSelector(
     (state) => state.trees
   );
-  const selected = selectedTreeTag ? all[selectedTreeTag] : undefined;
-  const [stage, setStage] = useState<number>(0);
+  const { drafts } = useAppSelector((state) => state.treeCensuses);
 
-  const updateDraft = useCallback(
+  const selectedTree = useMemo(
+    () => (selectedTreeTag ? all[selectedTreeTag] : undefined),
+    [selectedTreeTag, all]
+  );
+
+  const [stage, setStage] = useState<number>(0);
+  const onFinish = useCallback(() => {
+    finish();
+  }, [finish]);
+
+  const updateTreeDraft = useCallback(
     (updatedFields) => {
-      selected &&
+      if (selectedTree) {
+        try {
+          dispatch(
+            locallyUpdateTree({
+              tag: selectedTree.tag,
+              updates: { ...selectedTree, ...updatedFields },
+            })
+          );
+        } catch (err: any) {
+          alert(err?.message || "An unknown error occurred.");
+        }
+      }
+    },
+    [dispatch, selectedTree]
+  );
+
+  const updateCensusDraft = useCallback(
+    async (updatedFields) => {
+      if (selectedTree?.tag && drafts?.[selectedTree.tag]) {
+        try {
+          dispatch(
+            locallyUpdateTreeCensus({
+              censusTreeTag: selectedTree.tag,
+              updates: { ...treeCensus, ...updatedFields },
+            })
+          );
+        } catch (err: any) {
+          alert(err?.message || "An unknown error occurred.");
+        }
+      }
+    },
+    [dispatch, selectedTree, treeCensus, drafts]
+  );
+  useEffect(() => {
+    if (selectedTree?.tag && drafts?.[selectedTree.tag]) {
+      dispatch(
+        locallyUpdateTreeCensus({
+          censusTreeTag: selectedTree.tag,
+          updates: { ...treeCensus, flagged },
+        })
+      );
+    }
+  }, [flagged, selectedTree]);
+
+  useEffect(() => {
+    if (selectedTree?.tag && !drafts?.[selectedTree.tag]) {
+      try {
         dispatch(
-          locallyUpdateTree({
-            tag: selected.tag,
-            updates: { ...selected, ...updatedFields },
+          locallyDraftNewTreeCensus({
+            censusTreeTag: selectedTree.tag,
+            newCensus: treeCensus,
           })
         );
-    },
-    [dispatch, selected]
-  );
-  if (!selected) {
+      } catch (err: any) {
+        alert(err?.message || "An unknown error occurred.");
+      }
+    }
+  }, [selectedTree, drafts]);
+  if (!selectedTree) {
     return null;
   }
   return (
@@ -58,13 +123,22 @@ const DataEntryForm: React.FC<DataEntryFormProps & View["props"]> = ({
           </View>
           <View>
             {StageList[stage] == "META" && (
-              <MetaDataForm selected={selected} updateDraft={updateDraft} />
+              <MetaDataForm
+                selectedTree={selectedTree}
+                updateTreeDraft={updateTreeDraft}
+              />
             )}
             {StageList[stage] == "DATA" && (
-              <DataForm selected={selected} updateDraft={updateDraft} />
+              <DataForm
+                selectedCensus={treeCensus}
+                updateCensusDraft={updateCensusDraft}
+              />
             )}
             {StageList[stage] == "REVIEW" && (
-              <ReviewForm selected={selected} updateDraft={updateDraft} />
+              <ReviewForm
+                selectedTree={selectedTree}
+                selectedCensus={treeCensus}
+              />
             )}
           </View>
           <View style={styles.formRow}>
@@ -90,7 +164,7 @@ const DataEntryForm: React.FC<DataEntryFormProps & View["props"]> = ({
             )}
             {stage == StageList.length - 1 && (
               <AppButton
-                onPress={finish}
+                onPress={onFinish}
                 style={[styles.navButton, { marginLeft: "auto" }]}
               >
                 Save
@@ -103,12 +177,15 @@ const DataEntryForm: React.FC<DataEntryFormProps & View["props"]> = ({
   );
 };
 
-interface FormProps {
-  selected: Tree & Partial<TreeCensus>;
-  updateDraft: (changes: Partial<Tree> & Partial<TreeCensus>) => void;
+interface MetaFormProps {
+  selectedTree: Tree;
+  updateTreeDraft: (changes: Partial<Tree>) => void;
 }
 
-const MetaDataForm: React.FC<FormProps> = ({ selected, updateDraft }) => {
+const MetaDataForm: React.FC<MetaFormProps> = ({
+  selectedTree,
+  updateTreeDraft,
+}) => {
   const { all: allSpecies } = useAppSelector(
     (state: RootState) => state.treeSpecies
   );
@@ -124,17 +201,17 @@ const MetaDataForm: React.FC<FormProps> = ({ selected, updateDraft }) => {
     <View style={styles.formContainer}>
       <View style={styles.formRow}>
         <FieldController
-          value={selected?.tag || "0"}
+          value={selectedTree?.tag || "0"}
           style={{ marginRight: 12 }}
           onConfirm={async (newValue) => {
-            // updateDraft({ tag: newValue });
+            updateTreeDraft({ tag: newValue });
           }}
           formComponent={<TextField label="Tree Tag" textType="SHORT_TEXT" />}
         />
         <FieldController
-          value={selected?.speciesCode || ""}
+          value={selectedTree?.speciesCode || ""}
           onConfirm={(newValue) => {
-            updateDraft({ speciesCode: newValue });
+            updateTreeDraft({ speciesCode: newValue });
           }}
           style={{ flex: 1, marginRight: 12 }}
           formComponent={
@@ -150,19 +227,19 @@ const MetaDataForm: React.FC<FormProps> = ({ selected, updateDraft }) => {
           }
         />
         <FieldController
-          value={selected?.plotX?.toString() || "0"}
+          value={selectedTree?.plotX?.toString() || "0"}
           style={{ marginRight: 12 }}
           onConfirm={(newValue) => {
-            updateDraft({ plotX: Number(newValue) });
+            updateTreeDraft({ plotX: Number(newValue) });
           }}
           formComponent={
             <TextField label="X Within Plot" textType="DECIMAL" suffix="m" />
           }
         />
         <FieldController
-          value={selected?.plotY?.toString() || "0"}
+          value={selectedTree?.plotY?.toString() || "0"}
           onConfirm={(newValue) => {
-            updateDraft({ plotY: Number(newValue) });
+            updateTreeDraft({ plotY: Number(newValue) });
           }}
           formComponent={
             <TextField label="Y Within Plot" textType="DECIMAL" suffix="m" />
@@ -173,11 +250,19 @@ const MetaDataForm: React.FC<FormProps> = ({ selected, updateDraft }) => {
   );
 };
 
-const DataForm: React.FC<FormProps> = ({ updateDraft, selected }) => {
+interface DataFormProps {
+  selectedCensus: TreeCensus;
+  updateCensusDraft: (changes: Partial<TreeCensus>) => void;
+}
+
+const DataForm: React.FC<DataFormProps> = ({
+  updateCensusDraft,
+  selectedCensus,
+}) => {
   const { all: allLabels } = useAppSelector(
     (state: RootState) => state.treeLabels
   );
-  const [pills, setPills] = useState<TreeLabel[]>([]);
+  const [pills, setPills] = useState<TreeLabel[]>(selectedCensus?.labels || []);
   const labelsOptions = useMemo(
     () =>
       Object.values(allLabels).map(({ code, description }) => ({
@@ -188,33 +273,29 @@ const DataForm: React.FC<FormProps> = ({ updateDraft, selected }) => {
   );
   const addLabel = useCallback(
     (code: string) => {
-      if (!(code in pills.map((label) => label.code)))
+      console.log(pills.map((label) => label?.code));
+      if (!(code in pills.map((label) => label?.code)))
         setPills((prev) => [...prev, allLabels[code]]);
-
-      // if (
-      //   selected?.labels &&
-      //   !(code in selected?.labels?.map((label) => label.code))
-      // )
-      //   updateDraft({ labels: [...(selected?.labels || []), allLabels[code]] });
     },
-    [updateDraft, selected, allLabels, pills, setPills]
+    [allLabels, pills, setPills]
   );
   const removeLabel = useCallback(
     (code: string) => {
-      setPills((prev) => prev.filter((label) => label.code !== code));
-      // updateDraft({
-      //   labels: selected?.labels?.filter((label) => label.code !== code) || [],
-      // });
+      setPills((prev) => prev.filter((label) => label?.code !== code));
     },
-    [updateDraft, selected, pills, setPills]
+    [pills, setPills]
   );
+
+  useEffect(() => {
+    updateCensusDraft({ labels: pills });
+  }, [pills]);
   return (
     <View style={styles.formContainer}>
       <View style={styles.formRow}>
         <FieldController
-          value={selected?.dbh?.toString() || "0"}
+          value={selectedCensus?.dbh?.toString() || "0"}
           onConfirm={(newValue) => {
-            updateDraft({ dbh: Number(newValue) });
+            updateCensusDraft({ dbh: Number(newValue) });
           }}
           formComponent={
             <TextField label="DBH" textType="INTEGER" suffix="cm" />
@@ -235,8 +316,9 @@ const DataForm: React.FC<FormProps> = ({ updateDraft, selected }) => {
               disabled
               prefixComponent={
                 <LabelPillRow
-                  // pills={selected?.labels?.map((label) => label.code) || []}
-                  pills={pills.map((label) => label.code)}
+                  pills={
+                    selectedCensus?.labels?.map((label) => label?.code) || []
+                  }
                   removePill={removeLabel}
                 />
               }
@@ -248,7 +330,12 @@ const DataForm: React.FC<FormProps> = ({ updateDraft, selected }) => {
         />
       </View>
       <View style={{ marginTop: 12 }}>
-        <PhotoField onUpdate={() => {}} />
+        <PhotoField
+          census={selectedCensus}
+          onUpdate={(photos) => {
+            updateCensusDraft({ photos });
+          }}
+        />
       </View>
       <View style={styles.formRow}>
         <FieldController
@@ -262,19 +349,34 @@ const DataForm: React.FC<FormProps> = ({ updateDraft, selected }) => {
   );
 };
 
-const ReviewableFieldMap: { [key in keyof (Tree & TreeCensus)]?: string } = {
+const ReviewableTreeFieldMap: { [key in keyof Tree]?: string } = {
   tag: "Tree Tag Number",
   speciesCode: "Species Code",
   plotX: "X coordinate within plot (meters)",
   plotY: "Y coordinate within plot (meters)",
+};
+
+const ReviewableCensusFieldMap: { [key in keyof TreeCensus]?: string } = {
   dbh: "DBH",
 };
-const ReviewableFieldMapEntries = Object.entries(ReviewableFieldMap) as [
-  keyof Tree,
-  string
-][];
 
-const ReviewForm: React.FC<FormProps> = ({ selected }) => {
+const ReviewableTreeFieldMapEntries = Object.entries(
+  ReviewableTreeFieldMap
+) as [keyof Tree, string][];
+
+const ReviewableCensusFieldMapEntries = Object.entries(
+  ReviewableCensusFieldMap
+) as [keyof TreeCensus, string][];
+
+interface ReviewFormProps {
+  selectedCensus: TreeCensus;
+  selectedTree: Tree;
+}
+
+const ReviewForm: React.FC<ReviewFormProps> = ({
+  selectedCensus,
+  selectedTree,
+}) => {
   return (
     <View style={styles.formContainer}>
       <ScrollView
@@ -282,11 +384,18 @@ const ReviewForm: React.FC<FormProps> = ({ selected }) => {
         showsVerticalScrollIndicator={true}
         persistentScrollbar={true}
       >
-        {ReviewableFieldMapEntries.map(([field, title]) => (
+        {ReviewableTreeFieldMapEntries.map(([field, title]) => (
           <ReviewEntry
             key={title}
             field={title}
-            value={selected[field]?.toString() || "Not set"}
+            value={selectedTree?.[field]?.toString() || "Not set"}
+          />
+        ))}
+        {ReviewableCensusFieldMapEntries.map(([field, title]) => (
+          <ReviewEntry
+            key={title}
+            field={title}
+            value={selectedCensus?.[field]?.toString() || "Not set"}
           />
         ))}
       </ScrollView>

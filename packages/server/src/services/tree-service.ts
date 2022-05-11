@@ -29,7 +29,6 @@ export const createTree = async (tree: Tree) => {
   if (treesWithTag.length > 0) {
     throw new Error("There is already a tree with this tag in this forest.");
   }
-
   return await TreeModel.create(tree);
 };
 
@@ -154,7 +153,7 @@ export const getTrees = async (params: GetTreesParams) => {
   const query = constructQuery(params);
   return await TreeModel.findAll({
     ...query,
-    include: TreeCensusModel,
+    include: [{ model: TreeCensusModel, as: "censuses" }],
   });
 };
 
