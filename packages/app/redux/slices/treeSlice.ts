@@ -1,7 +1,7 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { Tree } from "@ong-forestry/schema";
 import axios from "axios";
-import { v4 as uuidv4 } from "uuid";
+import uuid from "react-native-uuid";
 import SERVER_URL from "../../constants/Url";
 
 const BASE_URL = SERVER_URL + "trees";
@@ -85,7 +85,7 @@ export const treeSlice = createSlice({
   reducers: {
     locallyDraftNewTree: (state, action) => {
       const newTree = action.payload;
-      newTree.id = uuidv4();
+      newTree.id = uuid.v4();
       state.all[newTree.id] = newTree;
       // add to drafts
       state.drafts.add(newTree.id);
