@@ -19,7 +19,8 @@ const initialState: TreePhotoPurposeState = {
 
 export const getAllTreePhotoPurposes = createAsyncThunk(
   "treePhotoPurpose/getAllTreePhotoPurposes",
-  async () => {
+  async (params?: GetTreePhotoPurposeParams) => {
+    //TODO: add back limit
     return await axios
       .get<TreePhotoPurpose[]>(`${BASE_URL}`)
       .then((response) => {

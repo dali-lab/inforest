@@ -13,10 +13,7 @@ import FieldController from "../../fields/FieldController";
 import SelectField from "../../fields/SelectField";
 import PhotoField from "../../fields/PhotoField";
 import LabelPillRow from "./LabelPillRow";
-import {
-  locallyDraftNewTreeCensus,
-  locallyUpdateTreeCensus,
-} from "../../../redux/slices/treeCensusSlice";
+import { locallyUpdateTreeCensus } from "../../../redux/slices/treeCensusSlice";
 
 export type FormStages = "META" | "DATA" | "REVIEW";
 
@@ -56,7 +53,7 @@ const DataEntryForm: React.FC<DataEntryFormProps & View["props"]> = ({
         }
       }
     },
-    [dispatch, selectedTree, selectedTreeCensus]
+    [dispatch, selectedTree]
   );
 
   const updateCensusDraft = useCallback(
