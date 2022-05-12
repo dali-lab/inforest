@@ -55,25 +55,34 @@ export const forestCensusSlice = createSlice({
   name: "forestCensus",
   initialState,
   reducers: {
+    createForestCensus: (state, action) => {
+      const census = action.payload;
+      state.all[census.id] = census;
+      // add to plot index under forestCensus key
+      if (!(census.forestId in state.indices.byForests)) {
+        state.indices.byForests[census.forestId] = new Set([]);
+      }
+      state.indices.byForests[census.forestId].add(census.id);
+    },
     selectForestCensus: (state, action) => {
       state.selected = action.payload;
       return state;
     },
-    deselectForestCensus: (state, action) => {
+    deselectForestCensus: (state, _action) => {
       state.selected = undefined;
       return state;
     },
   },
   extraReducers: (builder) => {
-    builder.addCase(getForestCensus.fulfilled, (state, action) => {});
+    builder.addCase(getForestCensus.fulfilled, (state, action) => {
+      forestCensusSlice.caseReducers.createForestCensus(state, action);
+    });
     builder.addCase(getForestForestCensuses.fulfilled, (state, action) => {
       action.payload.forEach((census) => {
-        state.all[census.id] = census;
-        // add to plot index under forestCensus key
-        if (!(census.forestId in state.indices.byForests)) {
-          state.indices.byForests[census.forestId] = new Set([]);
-        }
-        state.indices.byForests[census.forestId].add(census.id);
+        forestCensusSlice.caseReducers.createForestCensus(state, {
+          payload: census,
+          type: "forestCensus/createForestCensus",
+        });
       });
     });
   },

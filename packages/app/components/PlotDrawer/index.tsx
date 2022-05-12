@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo } from "react";
 import { Animated, Dimensions, StyleSheet, View } from "react-native";
 import { Queue, Stack } from "react-native-spacing-system";
 import { BlurView } from "expo-blur";
@@ -131,6 +131,7 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
   const startCensus = useCallback(() => {
     if (plot && selectedForestCensus) {
       dispatch(createPlotCensus(plot.id));
+      // dispatch(deselectPlotCensus());
     }
   }, [dispatch, selectedForestCensus, plot]);
 
@@ -145,7 +146,7 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
         })
       );
     }
-  }, [dispatch, locallyUpdateTreeCensus, selectedTreeCensus]);
+  }, [dispatch, selectedTreeCensus]);
 
   useEffect(() => {
     if (
@@ -220,7 +221,7 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
             </View>
           </View>
         )}
-        {mode === MapScreenModes.Plot && !!plot && (
+        {mode === MapScreenModes.Plot && plot && (
           <>
             <View style={styles.header}>
               {drawerState === "MINIMIZED" && !selectedTree && (
@@ -252,7 +253,7 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
                   </AppButton>
                 </>
               )}
-              {drawerState === "EXPANDED" && !!selectedTree && (
+              {drawerState === "EXPANDED" && !!selectedTree && plot && (
                 <View
                   style={{
                     flexDirection: "row",

@@ -54,7 +54,7 @@ const FOLIAGE_MAGNIFICATION = 3;
 const NUM_OF_SPECIES = 8;
 
 const plotCensusColorMap: { [key in PlotCensusStatuses]?: string } = {
-  IN_PROGRESS: "rgba(255, 240, 0, 0.3)",
+  IN_PROGRESS: "rgba(255, 240, 0, 0.5)",
   PENDING: "rgba(0,0,250,0.3)",
   APPROVED: "rgba(0,250,0,0.3)",
 };
@@ -356,7 +356,7 @@ const ExploreView: React.FC<ExploreViewProps> = (props) => {
             });
         }}
       >
-        {!!selectedPlot && (
+        {selectedPlot && (
           <>
             <Marker
               coordinate={(() => {
@@ -402,7 +402,7 @@ const ExploreView: React.FC<ExploreViewProps> = (props) => {
               tappable={true}
               onPress={() => {
                 deselectPlotAndCensus();
-                plot && selectPlotAndCensus(plot.id);
+                plot?.id && selectPlotAndCensus(plot.id);
               }}
             />
           );

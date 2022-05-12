@@ -76,7 +76,6 @@ const PhotoField: React.FC<PhotoFieldProps> = ({ onUpdate, census }) => {
       })),
     [allPurposes]
   );
-
   return (
     <FieldWrapper
       label="Upload Photos"
