@@ -23,14 +23,14 @@ export const getPlotCensusTreeCensuses = createAsyncThunk(
 
 export const createTreeCensus = createAsyncThunk(
   "treeCensus/createTreeCensus",
-  async (newCensus: Omit<TreeCensus, "id">, thunkApi) => {
+  async (newCensus: Omit<TreeCensus, "id">) => {
     return await axios.post(`${BASE_URL}`, newCensus);
   }
 );
 
 export const updateTreeCensus = createAsyncThunk(
   "treeCensus/updateTreeCensus",
-  async (censusUpdates: Partial<TreeCensus>, thunkApi) => {
+  async (censusUpdates: Partial<TreeCensus>) => {
     return await axios.patch(
       `${BASE_URL}?ids=${censusUpdates.id}`,
       censusUpdates
@@ -38,12 +38,12 @@ export const updateTreeCensus = createAsyncThunk(
   }
 );
 
-export const uploadTreeCensusDrafts = createAsyncThunk(
-  "treeCensus/uploadTreeCensusDrafts",
-  async (censuses: TreeCensus[], thunkApi) => {
-    // return await axios.post()
-  }
-);
+// export const uploadTreeCensusDrafts = createAsyncThunk(
+//   "treeCensus/uploadTreeCensusDrafts",
+//   async (censuses: TreeCensus[], thunkApi) => {
+//     // return await axios.post()
+//   }
+// );
 
 export interface TreeCensusState {
   all: Record<string, TreeCensus>;

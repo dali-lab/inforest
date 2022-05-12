@@ -19,7 +19,8 @@ const initialState: TreeLabelState = {
 
 export const getAllTreeLabels = createAsyncThunk(
   "treeLabel/getAllTreeSpecies",
-  async () => {
+  async (params?: GetTreeLabelsParams) => {
+    //TODO: add back limit param
     return await axios.get<TreeLabel[]>(`${BASE_URL}`).then((response) => {
       return response.data;
     });
