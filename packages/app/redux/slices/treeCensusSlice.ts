@@ -2,7 +2,7 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { TreeCensus } from "@ong-forestry/schema";
 import SERVER_URL from "../../constants/Url";
 import axios from "axios";
-import { v4 as uuidv4 } from "uuid";
+import uuid from "react-native-uuid";
 
 const BASE_URL = SERVER_URL + "trees/census";
 
@@ -63,7 +63,7 @@ export const treeCensusSlice = createSlice({
   reducers: {
     locallyDraftNewTreeCensus: (state, action) => {
       const { censusTreeTag, newCensus } = action.payload;
-      newCensus.id = uuidv4();
+      newCensus.id = uuid.v4();
       state.all[newCensus.id] = newCensus;
       // add to drafts
       state.drafts.add(newCensus.id);
