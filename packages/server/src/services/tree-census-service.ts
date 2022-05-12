@@ -8,6 +8,7 @@ import {
   getPlots,
   getTrees,
 } from "services";
+import { PlotCensus } from "db/models";
 
 const validatePlotCensus = async (
   treeCensus: Omit<TreeCensus, "plotCensusId">
@@ -101,7 +102,15 @@ export const getTreeCensuses = async (params: TreeCensusParams) => {
   const query = constructQuery(params);
   return await TreeCensusModel.findAll({
     ...query,
-    include: [{ model: TreeModel, as: "treeId" }],
+    // include: [{ model: TreeModel, as: "treeId" }],
+    include: [
+      {
+        model: PlotCensus,
+        through: {
+          attributes: ["status"],
+        },
+      },
+    ],
   });
 };
 

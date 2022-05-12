@@ -39,7 +39,10 @@ const DataEntryForm: React.FC<DataEntryFormProps & View["props"]> = ({
   const { all, selected: selectedTreeTag } = useAppSelector(
     (state) => state.trees
   );
-  const { drafts } = useAppSelector((state) => state.treeCensuses);
+  const {
+    drafts,
+    indices: { byTreeActive },
+  } = useAppSelector((state) => state.treeCensuses);
 
   const selectedTree = useMemo(
     () => (selectedTreeTag ? all[selectedTreeTag] : undefined),
@@ -71,7 +74,7 @@ const DataEntryForm: React.FC<DataEntryFormProps & View["props"]> = ({
 
   const updateCensusDraft = useCallback(
     async (updatedFields) => {
-      if (selectedTree?.tag && drafts?.[selectedTree.tag]) {
+      if (selectedTree?.tag && drafts.has(selectedTree.tag)) {
         try {
           dispatch(
             locallyUpdateTreeCensus({
@@ -87,10 +90,9 @@ const DataEntryForm: React.FC<DataEntryFormProps & View["props"]> = ({
     [dispatch, selectedTree, treeCensus, drafts]
   );
   useEffect(() => {
-    if (selectedTree?.tag && drafts?.[selectedTree.tag]) {
+    if (selectedTree?.id && byTreeActive?.[selectedTree.id]) {
       dispatch(
         locallyUpdateTreeCensus({
-          censusTreeTag: selectedTree.tag,
           updates: { ...treeCensus, flagged },
         })
       );
@@ -98,7 +100,7 @@ const DataEntryForm: React.FC<DataEntryFormProps & View["props"]> = ({
   }, [flagged, selectedTree]);
 
   useEffect(() => {
-    if (selectedTree?.tag && !drafts?.[selectedTree.tag]) {
+    if (selectedTree) {
       try {
         dispatch(
           locallyDraftNewTreeCensus({

@@ -38,10 +38,19 @@ export const updateTreeCensus = createAsyncThunk(
   }
 );
 
+export const uploadTreeCensusDrafts = createAsyncThunk(
+  "treeCensus/uploadTreeCensusDrafts",
+  async (censuses: TreeCensus[], thunkApi) => {
+    // return await axios.post()
+  }
+);
+
 export interface TreeCensusState {
   all: Record<string, TreeCensus>;
   indices: {
     byPlotCensuses: Record<string, Set<string>>;
+    byTrees: Record<string, Set<string>>;
+    byTreeActive: Record<string, string>;
   };
   drafts: Set<string>;
   selected?: string;
@@ -52,6 +61,8 @@ const initialState: TreeCensusState = {
   all: {},
   indices: {
     byPlotCensuses: {},
+    byTrees: {},
+    byTreeActive: {},
   },
   drafts: new Set(),
   selected: undefined,
@@ -62,7 +73,7 @@ export const treeCensusSlice = createSlice({
   initialState,
   reducers: {
     locallyDraftNewTreeCensus: (state, action) => {
-      const { censusTreeTag, newCensus } = action.payload;
+      const { newCensus } = action.payload;
       newCensus.id = uuidv4();
       state.all[newCensus.id] = newCensus;
       // add to drafts
@@ -71,6 +82,11 @@ export const treeCensusSlice = createSlice({
         state.indices.byPlotCensuses[newCensus.plotCensusId] = new Set();
       }
       state.indices.byPlotCensuses[newCensus.plotCensusId].add(newCensus.id);
+      if (!(newCensus.treeId in state.indices.byTrees)) {
+        state.indices.byTrees[newCensus.treeId] = new Set();
+      }
+      state.indices.byTrees[newCensus.treeId].add(newCensus.id);
+      state.indices.byTreeActive[newCensus.treeId] = newCensus.id;
       return state;
     },
     locallyDeleteTreeCensus: (state, action) => {
@@ -79,6 +95,7 @@ export const treeCensusSlice = createSlice({
       delete state.all[censusId];
       state.drafts.delete(censusId);
       state.indices.byPlotCensuses[plotCensusId].delete(censusId);
+      state.indices.byTrees[plotCensusId].delete(censusId);
       return state;
     },
     locallyUpdateTreeCensus: (state, action) => {
@@ -99,13 +116,23 @@ export const treeCensusSlice = createSlice({
   extraReducers: (builder) => {
     builder.addCase(getPlotCensusTreeCensuses.fulfilled, (state, action) => {
       action.payload.forEach((census: TreeCensus) => {
-        state.all[census.id] = census;
-        // initialize plot census index key if needed
-        if (!(census.plotCensusId in state.indices.byPlotCensuses)) {
-          state.indices.byPlotCensuses[census.plotCensusId] = new Set();
+        const { id, plotCensusId, plotCensus, treeId } = census;
+        state.all[id] = census;
+        if (!(plotCensusId in state.indices.byPlotCensuses)) {
+          state.indices.byPlotCensuses[plotCensusId] = new Set();
         }
-        // add to plots census index
-        state.indices.byPlotCensuses[census.plotCensusId].add(census.id);
+        state.indices.byPlotCensuses[plotCensusId].add(id);
+        if (!(treeId in state.indices.byTrees)) {
+          state.indices.byTrees[treeId] = new Set();
+        }
+        state.indices.byTrees[treeId].add(id);
+        // This only works if there is only one active census on a plot at any given time, which should hold true
+        if (
+          plotCensus?.status === "PENDING" ||
+          plotCensus?.status === "IN_PROGRESS"
+        ) {
+          state.indices.byTreeActive[treeId] = id;
+        }
       });
       return state;
     });

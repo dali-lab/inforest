@@ -68,10 +68,22 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
     indices: { byPlots },
   } = useAppSelector((state) => state.trees);
   const {
+    all: allTreeCensuses,
     drafts,
-    indices: { byPlotCensuses },
+    indices: { byPlotCensuses, byTreeActive },
   } = useAppSelector((state) => state.treeCensuses);
-  const selected = selectedTreeTag ? all[selectedTreeTag] : undefined;
+  const selectedTree = useMemo(
+    () => (selectedTreeTag ? all[selectedTreeTag] : undefined),
+    [all, selectedTreeTag]
+  );
+  const selectedTreeCensus = useMemo(
+    () =>
+      (selectedTree &&
+        byTreeActive[selectedTree.id] &&
+        allTreeCensuses[byTreeActive[selectedTree.id]]) ||
+      undefined,
+    [selectedTree, allTreeCensuses, byTreeActive]
+  );
   const setStyle = useCallback(() => {
     switch (drawerState) {
       case DrawerStates.Closed:
@@ -100,16 +112,14 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
 
   const [flagged, setFlagged] = useState<boolean>(
     (plotCensus &&
-      selected &&
-      byPlotCensuses?.[plotCensus?.id]?.[selected.tag]?.flagged) ||
+      selectedTree &&
+      allTreeCensuses[byTreeActive?.[selectedTree.id]].flagged) ||
       false
   );
 
   const toggleFlagged = useCallback(() => {
     setFlagged((prev) => !prev);
   }, [setFlagged]);
-
-  const inProgressCensuses = useMemo(() => Object.keys(drafts), [drafts]);
 
   if (drawerState === DrawerStates.Closed) {
     return null;
@@ -161,7 +171,7 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
         {mode === MapScreenModes.Plot && !!plot && (
           <>
             <View style={styles.header}>
-              {drawerState === "MINIMIZED" && !selected && (
+              {drawerState === "MINIMIZED" && !selectedTree && (
                 <View style={{ flexDirection: "row", alignItems: "center" }}>
                   <Text variant={TextVariants.H2}>Plot #{plot.number}</Text>
                   <Queue size={36}></Queue>
@@ -170,27 +180,27 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
                   </Text>
                 </View>
               )}
-              {drawerState === "MINIMIZED" && !!selected && (
+              {drawerState === "MINIMIZED" && !!selectedTree && (
                 <>
                   <View style={{ flexDirection: "row", alignItems: "center" }}>
-                    <Text variant={TextVariants.H2}>Tree #{selected.tag}</Text>
+                    <Text variant={TextVariants.H2}>
+                      Tree #{selectedTree.tag}
+                    </Text>
                     <Queue size={36}></Queue>
                     <Text variant={TextVariants.Body}>
                       Last census on{" "}
                       {dateformat(
-                        selected.updatedAt,
+                        selectedTree.updatedAt,
                         'mmm dS, yyyy "at" h:MM TT'
                       )}
                     </Text>
                   </View>
                   <AppButton onPress={expandDrawer}>
-                    {selected.tag in inProgressCensuses
-                      ? "Edit Census"
-                      : "Add Census"}
+                    {selectedTreeCensus ? "Edit Census" : "Add Census"}
                   </AppButton>
                 </>
               )}
-              {drawerState === "EXPANDED" && !!selected && (
+              {drawerState === "EXPANDED" && !!selectedTree && (
                 <View
                   style={{
                     flexDirection: "row",
@@ -229,17 +239,17 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
               )}
             </View>
 
-            {drawerState === "EXPANDED" && !!selected && (
+            {drawerState === "EXPANDED" && !!selectedTree && (
               <>
                 <Stack size={24}></Stack>
                 <View>
                   {plotCensus && (
                     <DataEntryForm
                       treeCensus={
-                        byPlotCensuses?.[plotCensus?.id]?.[selected.tag] || {
+                        selectedTreeCensus || {
                           ...blankTreeCensus,
                           plotCensusId: plotCensus.id,
-                          treeId: selected.id,
+                          treeId: selectedTree.id,
                           authorId: "",
                           flagged: flagged,
                           id: "",
@@ -247,7 +257,7 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
                       }
                       flagged={flagged}
                       cancel={() => {
-                        dispatch(locallyDeleteTree(selected.tag));
+                        dispatch(locallyDeleteTree(selectedTree.tag));
                         dispatch(deselectTree());
                         minimizeDrawer();
                       }}

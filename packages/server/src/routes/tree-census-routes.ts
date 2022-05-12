@@ -19,6 +19,12 @@ treeCensusRouter.post<{}, any, Omit<TreeCensus, "plotCensusId">>(
   }
 );
 
+treeCensusRouter.post<{}, any, Omit<TreeCensus, "plotCensusId">[]>(
+  "/many",
+  requireAuth,
+  async (req, res) => {}
+);
+
 const parseParams = (query: any) => ({
   treeIds: (query.treeIds as string)?.split(","),
   plotCensusId: query.plotCensusId as string,
