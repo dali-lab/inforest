@@ -400,6 +400,9 @@ module.exports = {
         transaction,
       });
       await queryInterface.bulkDelete("tree_census", null, { transaction });
+      await queryInterface.bulkDelete("plot_census_assignment", null, {
+        transaction,
+      });
       await queryInterface.bulkDelete("plot_census", null, { transaction });
       await queryInterface.bulkDelete("forest_census", null, { transaction });
       await queryInterface.bulkDelete("trees", null, { transaction });

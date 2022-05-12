@@ -185,7 +185,6 @@ const MetaDataForm: React.FC<MetaFormProps> = ({
               label="Species Code"
               textType="SHORT_TEXT"
               placeholder="Select code here"
-              disabled
             />
           }
           modalComponent={
