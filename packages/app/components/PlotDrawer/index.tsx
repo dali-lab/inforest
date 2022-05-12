@@ -7,7 +7,11 @@ import { Forest, Plot, PlotCensus, TreeCensus } from "@ong-forestry/schema";
 import { Ionicons } from "@expo/vector-icons";
 import { MapScreenModes, DrawerStates } from "../../constants";
 import useAppSelector from "../../hooks/useAppSelector";
-import { locallyDeleteTree, deselectTree } from "../../redux/slices/treeSlice";
+import {
+  locallyDeleteTree,
+  deselectTree,
+  createTree,
+} from "../../redux/slices/treeSlice";
 import AppButton from "../AppButton";
 import { Text, TextVariants } from "../Themed";
 import useAppDispatch from "../../hooks/useAppDispatch";
@@ -303,7 +307,9 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
                         minimizeDrawer();
                       }}
                       finish={(newTreeCensus) => {
-                        dispatch(createTreeCensus(newTreeCensus));
+                        dispatch(createTree(selectedTree));
+                        dispatch(createTreeCensus(selectedTreeCensus));
+                        console.log("selectedTree", selectedTree);
                         console.log("newTreeCensus", newTreeCensus);
                         minimizeDrawer();
                       }}
