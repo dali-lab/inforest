@@ -4876,6 +4876,13 @@ expo-random@~12.1.1:
   dependencies:
     base64-js "^1.3.0"
 
+expo-screen-orientation@^4.1.2:
+  version "4.1.2"
+  resolved "https://registry.yarnpkg.com/expo-screen-orientation/-/expo-screen-orientation-4.1.2.tgz#52b0799adf2bf7c275bfca308a97797731fa9f53"
+  integrity sha512-ZK9JnIuys3bL0IPIkBazBwc6dZambm2xxu0TEV7HYtowb769XLTFOJgVttrpeNDMXEt/22+dhCE4ZFaPNu6JlA==
+  dependencies:
+    "@expo/config-plugins" "^4.0.2"
+
 expo-splash-screen@~0.14.0:
   version "0.14.2"
   resolved "https://registry.npmjs.org/expo-splash-screen/-/expo-splash-screen-0.14.2.tgz"

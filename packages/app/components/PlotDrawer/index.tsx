@@ -14,6 +14,7 @@ import useAppDispatch from "../../hooks/useAppDispatch";
 import DataEntryForm from "./DataEntryForm";
 import FlagIcon from "../../assets/icons/flag-icon.svg";
 import {
+  createTreeCensus,
   deselectTreeCensus,
   locallyDraftNewTreeCensus,
   locallyUpdateTreeCensus,
@@ -301,7 +302,11 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
                         dispatch(deselectTree());
                         minimizeDrawer();
                       }}
-                      finish={minimizeDrawer}
+                      finish={(newTreeCensus) => {
+                        dispatch(createTreeCensus(newTreeCensus));
+                        console.log("newTreeCensus", newTreeCensus);
+                        minimizeDrawer();
+                      }}
                       style={{ flex: 1 }}
                     />
                   )}

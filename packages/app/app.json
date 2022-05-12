@@ -18,7 +18,9 @@
     "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.inforest.app"
+      "isTabletOnly": true,
+      "bundleIdentifier": "com.inforest.app",
+      "requireFullScreen": true
     },
     "android": {
       "adaptiveIcon": {
