@@ -35,7 +35,6 @@ const DataEntryForm: React.FC<DataEntryFormProps & View["props"]> = ({
   selectedTree,
   selectedTreeCensus,
 }) => {
-  console.log(selectedTreeCensus);
   const dispatch = useAppDispatch();
 
   const [stage, setStage] = useState<number>(0);

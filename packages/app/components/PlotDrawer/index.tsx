@@ -62,7 +62,6 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
   expandDrawer,
   minimizeDrawer,
 }) => {
-  console.log(plot, plotCensus);
   useEffect(() => {
     return function cleanup() {
       setDrawerHeight && setDrawerHeight(0);

@@ -55,7 +55,6 @@ export const plotCensusSlice = createSlice({
   reducers: {
     addPlotCensus: (state, action) => {
       const newCensus = action.payload;
-      console.log(action.payload);
       state.all[newCensus.id] = newCensus;
       if (!(newCensus.forestCensusId in state.indices.byForestCensuses)) {
         state.indices.byForestCensuses[newCensus.forestCensusId] = new Set();
