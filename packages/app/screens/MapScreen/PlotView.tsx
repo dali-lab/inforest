@@ -1,7 +1,6 @@
 import { Dimensions, View, StyleSheet } from "react-native";
 import { useMemo, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
-import { Plot } from "@ong-forestry/schema";
 import { PlottingSheet } from "../../components/PlottingSheet";
 import { PlotDrawer } from "../../components/PlotDrawer";
 import { DrawerStates, MapScreenModes } from "../../constants";
@@ -11,36 +10,36 @@ import { RootState } from "../../redux";
 import Colors from "../../constants/Colors";
 
 interface PlotViewProps {
-  selectedPlot: Plot;
   onExit: () => void;
   endPlotting: () => void;
 }
 
 const PlotView: React.FC<PlotViewProps> = (props) => {
-  const { selectedPlot, onExit, endPlotting } = props;
+  const { onExit, endPlotting } = props;
 
   const [drawerState, setDrawerState] = useState<DrawerStates>(
     DrawerStates.Minimized
   );
 
   const reduxState = useAppSelector((state: RootState) => state);
-  const { all: allForestCensuses, selected: selectedForestCensus } =
-    reduxState.forestCensuses;
-  const {
-    indices: { byPlots: plotCensusesByPlot },
-  } = reduxState.plotCensuses;
-  const {
-    indices: { byPlotCensuses },
-  } = reduxState.treeCensuses;
-  const { all: allPlots } = reduxState.plots;
+  const { all: allPlotCensuses, selected: selectedPlotCensusId } =
+    reduxState.plotCensuses;
+  const { all: allPlots, selected: selectedPlotId } = reduxState.plots;
+
+  const selectedPlot = useMemo(
+    () =>
+      (selectedPlotId &&
+        allPlots?.[selectedPlotId] &&
+        allPlots[selectedPlotId]) ||
+      undefined,
+    [allPlots, selectedPlotId]
+  );
 
   const selectedPlotCensus = useMemo(
     () =>
-      (selectedPlot &&
-        selectedForestCensus &&
-        plotCensusesByPlot?.[selectedPlot?.id]?.[selectedForestCensus?.id]) ||
+      (selectedPlotCensusId && allPlotCensuses?.[selectedPlotCensusId]) ||
       undefined,
-    [selectedForestCensus, plotCensusesByPlot, selectedPlot]
+    [selectedPlotCensusId, allPlotCensuses]
   );
 
   return (

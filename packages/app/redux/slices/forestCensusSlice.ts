@@ -37,7 +37,7 @@ export const getForestForestCensuses = createAsyncThunk(
 
 export interface ForestCensusState {
   all: Record<string, ForestCensus>;
-  selected: ForestCensus | null;
+  selected: string | undefined;
   indices: {
     byForests: Record<string, Set<string>>;
   };
@@ -45,7 +45,7 @@ export interface ForestCensusState {
 
 const initialState: ForestCensusState = {
   all: {},
-  selected: null,
+  selected: undefined,
   indices: {
     byForests: {},
   },
@@ -56,11 +56,11 @@ export const forestCensusSlice = createSlice({
   initialState,
   reducers: {
     selectForestCensus: (state, action) => {
-      state.selected = state.all[action.payload];
+      state.selected = action.payload;
       return state;
     },
     deselectForestCensus: (state, action) => {
-      state.selected = null;
+      state.selected = undefined;
       return state;
     },
   },

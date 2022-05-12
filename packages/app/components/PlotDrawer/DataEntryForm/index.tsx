@@ -23,31 +23,20 @@ export type FormStages = "META" | "DATA" | "REVIEW";
 export const StageList: FormStages[] = ["META", "DATA", "REVIEW"];
 
 interface DataEntryFormProps {
+  selectedTree: Tree | undefined;
+  selectedTreeCensus: TreeCensus | undefined;
   cancel: () => void;
   finish: () => void;
-  treeCensus: TreeCensus;
-  flagged: boolean;
 }
 
 const DataEntryForm: React.FC<DataEntryFormProps & View["props"]> = ({
   finish,
   style,
-  treeCensus,
-  flagged,
+  selectedTree,
+  selectedTreeCensus,
 }) => {
+  console.log(selectedTreeCensus);
   const dispatch = useAppDispatch();
-  const { all, selected: selectedTreeTag } = useAppSelector(
-    (state) => state.trees
-  );
-  const {
-    drafts,
-    indices: { byTreeActive },
-  } = useAppSelector((state) => state.treeCensuses);
-
-  const selectedTree = useMemo(
-    () => (selectedTreeTag ? all[selectedTreeTag] : undefined),
-    [selectedTreeTag, all]
-  );
 
   const [stage, setStage] = useState<number>(0);
   const onFinish = useCallback(() => {
@@ -60,8 +49,7 @@ const DataEntryForm: React.FC<DataEntryFormProps & View["props"]> = ({
         try {
           dispatch(
             locallyUpdateTree({
-              tag: selectedTree.tag,
-              updates: { ...selectedTree, ...updatedFields },
+              updated: { ...selectedTree, ...updatedFields },
             })
           );
         } catch (err: any) {
@@ -69,17 +57,16 @@ const DataEntryForm: React.FC<DataEntryFormProps & View["props"]> = ({
         }
       }
     },
-    [dispatch, selectedTree]
+    [dispatch, selectedTree, selectedTreeCensus]
   );
 
   const updateCensusDraft = useCallback(
     async (updatedFields) => {
-      if (selectedTree?.tag && drafts.has(selectedTree.tag)) {
+      if (selectedTreeCensus?.id) {
         try {
           dispatch(
             locallyUpdateTreeCensus({
-              censusTreeTag: selectedTree.tag,
-              updates: { ...treeCensus, ...updatedFields },
+              updated: { ...selectedTreeCensus, ...updatedFields },
             })
           );
         } catch (err: any) {
@@ -87,33 +74,10 @@ const DataEntryForm: React.FC<DataEntryFormProps & View["props"]> = ({
         }
       }
     },
-    [dispatch, selectedTree, treeCensus, drafts]
+    [dispatch, selectedTreeCensus]
   );
-  useEffect(() => {
-    if (selectedTree?.id && byTreeActive?.[selectedTree.id]) {
-      dispatch(
-        locallyUpdateTreeCensus({
-          updates: { ...treeCensus, flagged },
-        })
-      );
-    }
-  }, [flagged, selectedTree]);
 
-  useEffect(() => {
-    if (selectedTree) {
-      try {
-        dispatch(
-          locallyDraftNewTreeCensus({
-            censusTreeTag: selectedTree.tag,
-            newCensus: treeCensus,
-          })
-        );
-      } catch (err: any) {
-        alert(err?.message || "An unknown error occurred.");
-      }
-    }
-  }, [selectedTree, drafts]);
-  if (!selectedTree) {
+  if (!selectedTree || !selectedTreeCensus) {
     return null;
   }
   return (
@@ -132,14 +96,14 @@ const DataEntryForm: React.FC<DataEntryFormProps & View["props"]> = ({
             )}
             {StageList[stage] == "DATA" && (
               <DataForm
-                selectedCensus={treeCensus}
+                selectedCensus={selectedTreeCensus}
                 updateCensusDraft={updateCensusDraft}
               />
             )}
             {StageList[stage] == "REVIEW" && (
               <ReviewForm
                 selectedTree={selectedTree}
-                selectedCensus={treeCensus}
+                selectedCensus={selectedTreeCensus}
               />
             )}
           </View>
@@ -275,7 +239,6 @@ const DataForm: React.FC<DataFormProps> = ({
   );
   const addLabel = useCallback(
     (code: string) => {
-      console.log(pills.map((label) => label?.code));
       if (!(code in pills.map((label) => label?.code)))
         setPills((prev) => [...prev, allLabels[code]]);
     },
@@ -285,7 +248,7 @@ const DataForm: React.FC<DataFormProps> = ({
     (code: string) => {
       setPills((prev) => prev.filter((label) => label?.code !== code));
     },
-    [pills, setPills]
+    [setPills]
   );
 
   useEffect(() => {

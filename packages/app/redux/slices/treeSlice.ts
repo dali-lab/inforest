@@ -110,6 +110,7 @@ export const treeSlice = createSlice({
         });
         state.indices.byLongitude.sort(treeNumericalIndexComparator);
       }
+      state.selected = newTree.id;
       return state;
     },
     locallyDeleteTree: (state, action) => {
@@ -129,9 +130,8 @@ export const treeSlice = createSlice({
       return state;
     },
     locallyUpdateTree: (state, action) => {
-      const { treeId, updates } = action.payload;
-      const oldTree = state.all[treeId];
-      state.all[updates.tag] = { ...oldTree, ...updates };
+      const { updated } = action.payload;
+      state.all[updated.id] = updated;
       return state;
     },
     selectTree: (state, action) => {
@@ -174,7 +174,7 @@ export const treeSlice = createSlice({
           state.indices.bySpecies[tree.speciesCode] = new Set();
         }
         if (tree.speciesCode)
-          state.indices.bySpecies[tree.speciesCode].add(tree.tag);
+          state.indices.bySpecies[tree.speciesCode].add(tree.id);
       });
       // sort indices
       state.indices.byLatitude.sort(treeNumericalIndexComparator);

@@ -27,7 +27,7 @@ type PlotNumericalIndex = {
 
 export interface PlotState {
   all: Record<string, Plot>;
-  current: Plot | null;
+  selected: string | undefined;
   indices: {
     latitude: PlotNumericalIndex;
     longitude: PlotNumericalIndex;
@@ -36,7 +36,7 @@ export interface PlotState {
 
 const initialState: PlotState = {
   all: {},
-  current: null,
+  selected: undefined,
   indices: {
     latitude: [],
     longitude: [],
@@ -46,7 +46,16 @@ const initialState: PlotState = {
 export const plotSlice = createSlice({
   name: "plot",
   initialState,
-  reducers: {},
+  reducers: {
+    selectPlot: (state, action) => {
+      state.selected = action.payload;
+      return state;
+    },
+    deselectPlot: (state) => {
+      state.selected = undefined;
+      return state;
+    },
+  },
   extraReducers: (builder) => {
     builder.addCase(getForestPlots.fulfilled, (state, action) => {
       action.payload.forEach((plot) => {
@@ -68,5 +77,7 @@ export const plotSlice = createSlice({
     });
   },
 });
+
+export const { selectPlot, deselectPlot } = plotSlice.actions;
 
 export default plotSlice.reducer;

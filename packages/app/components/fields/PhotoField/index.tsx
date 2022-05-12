@@ -1,17 +1,13 @@
 import React, { useState, useCallback, useEffect, useMemo } from "react";
 import { FlatList, Pressable, View, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import {
-  ImageInfo,
-  ImagePickerOptions,
-  launchImageLibraryAsync,
-} from "expo-image-picker";
+import { ImagePickerOptions, launchImageLibraryAsync } from "expo-image-picker";
 import useAppSelector from "../../../hooks/useAppSelector";
 import { RootState } from "../../../redux";
 import { Text, TextVariants } from "../../Themed";
 import FieldWrapper from "../FieldWrapper";
 import PhotoItem from "./PhotoItem";
-import { TreeCensus, TreePhoto, TreePhotoPurpose } from "@ong-forestry/schema";
+import { TreeCensus, TreePhoto } from "@ong-forestry/schema";
 
 const imageLibraryOptions: ImagePickerOptions = {
   base64: true,
@@ -49,11 +45,11 @@ const PhotoField: React.FC<PhotoFieldProps> = ({ onUpdate, census }) => {
       };
       setPhotos((prev) => ({ ...prev, [photo.uri]: parsedPhoto }));
     }
-  }, [addedUrls, setPhotos]);
+  }, [addedUrls, setPhotos, census.id]);
   const removePhoto = useCallback(
     async (url: string) => {
       setPhotos((prev) => {
-        const { [url]: removedPhoto, ...remainingPhotos } = prev;
+        const { [url]: _removedPhoto, ...remainingPhotos } = prev;
         return remainingPhotos;
       });
     },

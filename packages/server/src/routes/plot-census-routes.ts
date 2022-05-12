@@ -1,9 +1,28 @@
 import { PlotCensus } from "@ong-forestry/schema";
 import express from "express";
-import { approve, getPlotCensuses, submitForReview } from "services";
+import {
+  approve,
+  createPlotCensus,
+  getPlotCensuses,
+  submitForReview,
+} from "services";
 import { requireAuth } from "util/auth";
 
 const plotCensusRouter = express.Router();
+
+plotCensusRouter.post<{ plotId: string }, any, PlotCensus>(
+  "/:plotId",
+  requireAuth,
+  async (req, res) => {
+    try {
+      const plotCensus = await createPlotCensus(req.params.plotId);
+      res.status(201).send(plotCensus);
+    } catch (e: any) {
+      console.error(e);
+      res.status(500).send(e?.message ?? "Unknown error.");
+    }
+  }
+);
 
 const parseParams = (query: any) => ({
   id: query.id as string,

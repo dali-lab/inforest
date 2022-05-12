@@ -20,38 +20,87 @@ export const getForestCensusPlotCensuses = createAsyncThunk(
   }
 );
 
-export interface PlotState {
+export const createPlotCensus = createAsyncThunk(
+  "plotCensus/createPlotCensus",
+  async (plotId: string) => {
+    return await axios.post(`${BASE_URL}/${plotId}`).then((response) => {
+      return response.data;
+    });
+  }
+);
+
+export interface PlotCensusState {
   all: Record<string, PlotCensus>;
-  current: PlotCensus | null;
+  selected: string | undefined;
   indices: {
-    byPlots: Record<string, Record<string, PlotCensus>>;
+    byForestCensuses: Record<string, Set<string>>;
+    byPlots: Record<string, Set<string>>;
+    byPlotActive: Record<string, string>;
   };
 }
 
-const initialState: PlotState = {
+const initialState: PlotCensusState = {
   all: {},
-  current: null,
+  selected: undefined,
   indices: {
+    byForestCensuses: {},
     byPlots: {},
+    byPlotActive: {},
   },
 };
 
 export const plotCensusSlice = createSlice({
   name: "plotCensus",
   initialState,
-  reducers: {},
+  reducers: {
+    addPlotCensus: (state, action) => {
+      const newCensus = action.payload;
+      console.log(action.payload);
+      state.all[newCensus.id] = newCensus;
+      if (!(newCensus.forestCensusId in state.indices.byForestCensuses)) {
+        state.indices.byForestCensuses[newCensus.forestCensusId] = new Set();
+      }
+      state.indices.byForestCensuses[newCensus.forestCensusId].add(
+        newCensus.id
+      );
+      if (!(newCensus.plotId in state.indices.byPlots)) {
+        state.indices.byPlots[newCensus.plotId] = new Set();
+      }
+      state.indices.byPlots[newCensus.plotId].add(newCensus.id);
+      if (newCensus.status != "APPROVED")
+        state.indices.byPlotActive[newCensus.plotId] = newCensus.id;
+    },
+    selectPlotCensus: (state, action) => {
+      state.selected = action.payload;
+      return state;
+    },
+    deselectPlotCensus: (state) => {
+      state.selected = undefined;
+      return state;
+    },
+  },
   extraReducers: (builder) => {
     builder.addCase(getForestCensusPlotCensuses.fulfilled, (state, action) => {
       action.payload.forEach((census) => {
         state.all[census.id] = census;
-        // add to plot index under forestCensus key
-        if (!(census.plotId in state.indices.byPlots)) {
-          state.indices.byPlots[census.plotId] = {};
+        if (!(census.forestCensusId in state.indices.byForestCensuses)) {
+          state.indices.byForestCensuses[census.forestCensusId] = new Set();
         }
-        state.indices.byPlots[census.plotId][census.forestCensusId] = census;
+        state.indices.byForestCensuses[census.forestCensusId].add(census.id);
+        if (!(census.plotId in state.indices.byPlots)) {
+          state.indices.byPlots[census.plotId] = new Set();
+        }
+        state.indices.byPlots[census.plotId].add(census.id);
+        if (census.status != "APPROVED")
+          state.indices.byPlotActive[census.plotId] = census.id;
       });
+    });
+    builder.addCase(createPlotCensus.fulfilled, (state, action) => {
+      plotCensusSlice.caseReducers.addPlotCensus(state, action);
     });
   },
 });
+
+export const { selectPlotCensus, deselectPlotCensus } = plotCensusSlice.actions;
 
 export default plotCensusSlice.reducer;

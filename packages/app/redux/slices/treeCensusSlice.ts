@@ -53,7 +53,7 @@ export interface TreeCensusState {
     byTreeActive: Record<string, string>;
   };
   drafts: Set<string>;
-  selected?: string;
+  selected: string | undefined;
 }
 
 const initialState: TreeCensusState = {
@@ -87,6 +87,7 @@ export const treeCensusSlice = createSlice({
       }
       state.indices.byTrees[newCensus.treeId].add(newCensus.id);
       state.indices.byTreeActive[newCensus.treeId] = newCensus.id;
+      state.selected = newCensus.id;
       return state;
     },
     locallyDeleteTreeCensus: (state, action) => {
@@ -99,9 +100,8 @@ export const treeCensusSlice = createSlice({
       return state;
     },
     locallyUpdateTreeCensus: (state, action) => {
-      const { censusId, updates } = action.payload;
-      const oldTreeCensus = state.all[censusId];
-      state.all[censusId] = { ...oldTreeCensus, ...updates };
+      const { updated } = action.payload;
+      state.all[updated.id] = updated;
       return state;
     },
     selectTreeCensus: (state, action) => {

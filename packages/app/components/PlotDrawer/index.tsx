@@ -13,6 +13,12 @@ import { Text, TextVariants } from "../Themed";
 import useAppDispatch from "../../hooks/useAppDispatch";
 import DataEntryForm from "./DataEntryForm";
 import FlagIcon from "../../assets/icons/flag-icon.svg";
+import {
+  deselectTreeCensus,
+  locallyDraftNewTreeCensus,
+  locallyUpdateTreeCensus,
+} from "../../redux/slices/treeCensusSlice";
+import { createPlotCensus } from "../../redux/slices/plotCensusSlice";
 
 const blankTreeCensus: Omit<
   TreeCensus,
@@ -56,6 +62,7 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
   expandDrawer,
   minimizeDrawer,
 }) => {
+  console.log(plot, plotCensus);
   useEffect(() => {
     return function cleanup() {
       setDrawerHeight && setDrawerHeight(0);
@@ -64,26 +71,33 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
   const dispatch = useAppDispatch();
   const {
     all,
-    selected: selectedTreeTag,
+    selected: selectedTreeId,
     indices: { byPlots },
   } = useAppSelector((state) => state.trees);
   const {
     all: allTreeCensuses,
-    drafts,
-    indices: { byPlotCensuses, byTreeActive },
+    selected: selectedTreeCensusId,
+    indices: { byTreeActive },
   } = useAppSelector((state) => state.treeCensuses);
+  const { all: allForestCensuses, selected: selectedForestCensusId } =
+    useAppSelector((state) => state.forestCensuses);
   const selectedTree = useMemo(
-    () => (selectedTreeTag ? all[selectedTreeTag] : undefined),
-    [all, selectedTreeTag]
+    () => (selectedTreeId ? all[selectedTreeId] : undefined),
+    [all, selectedTreeId]
   );
   const selectedTreeCensus = useMemo(
     () =>
-      (selectedTree &&
-        byTreeActive[selectedTree.id] &&
-        allTreeCensuses[byTreeActive[selectedTree.id]]) ||
+      (selectedTreeCensusId && allTreeCensuses?.[selectedTreeCensusId]) ||
       undefined,
-    [selectedTree, allTreeCensuses, byTreeActive]
+    [selectedTreeCensusId, allTreeCensuses]
   );
+  const selectedForestCensus = useMemo(
+    () =>
+      (selectedForestCensusId && allForestCensuses?.[selectedForestCensusId]) ||
+      undefined,
+    [selectedForestCensusId, allForestCensuses]
+  );
+
   const setStyle = useCallback(() => {
     switch (drawerState) {
       case DrawerStates.Closed:
@@ -110,16 +124,47 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
     [byPlots, all]
   );
 
-  const [flagged, setFlagged] = useState<boolean>(
-    (plotCensus &&
-      selectedTree &&
-      allTreeCensuses[byTreeActive?.[selectedTree.id]].flagged) ||
-      false
-  );
+  const startCensus = useCallback(() => {
+    if (plot && selectedForestCensus) {
+      dispatch(createPlotCensus(plot.id));
+    }
+  }, [dispatch, selectedForestCensus, plot]);
 
   const toggleFlagged = useCallback(() => {
-    setFlagged((prev) => !prev);
-  }, [setFlagged]);
+    if (selectedTreeCensus?.id) {
+      dispatch(
+        locallyUpdateTreeCensus({
+          updated: {
+            ...selectedTreeCensus,
+            flagged: !selectedTreeCensus?.flagged,
+          },
+        })
+      );
+    }
+  }, [dispatch, locallyUpdateTreeCensus, selectedTreeCensus]);
+
+  useEffect(() => {
+    if (
+      selectedTree?.plotId &&
+      selectedTree?.id &&
+      plotCensus?.id &&
+      !byTreeActive[selectedTree.id]
+    ) {
+      try {
+        dispatch(
+          locallyDraftNewTreeCensus({
+            newCensus: {
+              ...blankTreeCensus,
+              treeId: selectedTree?.id,
+              plotCensusId: plotCensus.id,
+            },
+          })
+        );
+      } catch (err: any) {
+        alert(err?.message || "An unknown error occurred.");
+      }
+    }
+  }, [selectedTree, plotCensus, dispatch, byTreeActive]);
 
   if (drawerState === DrawerStates.Closed) {
     return null;
@@ -154,9 +199,12 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
                 })()}
               </>
             </View>
-            {drawerState === "MINIMIZED" && (
-              <AppButton onPress={beginPlotting}>Add Trees</AppButton>
-            )}
+            {drawerState === "MINIMIZED" &&
+              (plotCensus ? (
+                <AppButton onPress={beginPlotting}>Add Trees</AppButton>
+              ) : (
+                <AppButton onPress={startCensus}>Begin Censusing</AppButton>
+              ))}
           </View>
         )}
         {mode === MapScreenModes.Explore && (
@@ -221,18 +269,19 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
                   <AppButton
                     style={{ marginHorizontal: 12 }}
                     onPress={toggleFlagged}
-                    type={flagged ? "RED" : "PLAIN"}
+                    type={selectedTreeCensus?.flagged ? "RED" : "PLAIN"}
                     icon={
                       <FlagIcon
                         height={16}
                         width={16}
                         style={{ marginRight: 12 }}
                         strokeWidth={4}
-                        stroke={flagged ? "white" : "black"}
+                        stroke={selectedTreeCensus?.flagged ? "white" : "black"}
                       />
                     }
                   >
-                    {flagged ? "Flagged" : "Flag"} for Review
+                    {selectedTreeCensus?.flagged ? "Flagged" : "Flag"} for
+                    Review
                   </AppButton>
                   <Ionicons name="close" size={24} onPress={minimizeDrawer} />
                 </View>
@@ -245,19 +294,11 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
                 <View>
                   {plotCensus && (
                     <DataEntryForm
-                      treeCensus={
-                        selectedTreeCensus || {
-                          ...blankTreeCensus,
-                          plotCensusId: plotCensus.id,
-                          treeId: selectedTree.id,
-                          authorId: "",
-                          flagged: flagged,
-                          id: "",
-                        }
-                      }
-                      flagged={flagged}
+                      selectedTree={selectedTree}
+                      selectedTreeCensus={selectedTreeCensus}
                       cancel={() => {
-                        dispatch(locallyDeleteTree(selectedTree.tag));
+                        dispatch(locallyDeleteTree(selectedTree.id));
+                        dispatch(deselectTreeCensus());
                         dispatch(deselectTree());
                         minimizeDrawer();
                       }}

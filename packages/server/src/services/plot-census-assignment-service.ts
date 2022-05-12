@@ -35,7 +35,7 @@ export const createAssignment = async (
 
   // try to create a new census on this plot or get existing one
   try {
-    plotCensus = await createPlotCensus({ plotId });
+    plotCensus = await createPlotCensus(plotId);
   } catch (e) {
     if (e instanceof CensusExistsError) {
       // get the census

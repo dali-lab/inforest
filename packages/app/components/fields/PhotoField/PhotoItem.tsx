@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   ListRenderItemInfo,
   Pressable,
@@ -6,13 +6,12 @@ import {
   Image,
   StyleSheet,
 } from "react-native";
-import { ImageInfo } from "expo-image-picker";
 import FieldController from "../FieldController";
 import SelectField from "../SelectField";
 import Colors from "../../../constants/Colors";
 import { Text, TextVariants } from "../../Themed";
 import { Ionicons } from "@expo/vector-icons";
-import { TreePhoto, TreePhotoPurpose } from "@ong-forestry/schema";
+import { TreePhoto } from "@ong-forestry/schema";
 
 interface PhotoItemProps {
   item: ListRenderItemInfo<TreePhoto>;

@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
 import { Dimensions, StyleSheet, View } from "react-native";
-import { Plot } from "@ong-forestry/schema";
 import { MapScreenModes } from "../../constants";
 import useAppDispatch from "../../hooks/useAppDispatch";
 import { getForest } from "../../redux/slices/forestSlice";
@@ -13,6 +12,8 @@ import PlotView from "./PlotView";
 import ExploreView from "./ExploreView";
 import { getAllTreePhotoPurposes } from "../../redux/slices/treePhotoPurposeSlice";
 import { getForestForestCensuses } from "../../redux/slices/forestCensusSlice";
+import useAppSelector from "../../hooks/useAppSelector";
+import { deselectTreeCensus } from "../../redux/slices/treeCensusSlice";
 
 export default function MapScreen() {
   const dispatch = useAppDispatch();
@@ -30,22 +31,9 @@ export default function MapScreen() {
     dispatch(getForestForestCensuses({ forestId: FOREST_ID }));
   }, [dispatch]);
 
+  const { selected: selectedPlot } = useAppSelector((state) => state.plots);
+
   const [mode, setMode] = useState<MapScreenModes>(MapScreenModes.Explore);
-
-  const [selectedPlot, setSelectedPlot] = useState<Plot>();
-
-  const selectPlot = useCallback(
-    (plot: Plot) => {
-      setSelectedPlot(plot);
-      setMode(MapScreenModes.Select);
-    },
-    [setSelectedPlot, setMode]
-  );
-
-  const deselectPlot = useCallback(() => {
-    setSelectedPlot(undefined);
-    setMode(MapScreenModes.Explore);
-  }, [setSelectedPlot, setMode]);
 
   const beginPlotting = useCallback(() => {
     setMode(MapScreenModes.Plot);
@@ -53,6 +41,7 @@ export default function MapScreen() {
 
   const endPlotting = useCallback(() => {
     dispatch(deselectTree());
+    dispatch(deselectTreeCensus());
     setMode(MapScreenModes.Select);
   }, [setMode, dispatch]);
 
@@ -61,15 +50,12 @@ export default function MapScreen() {
       {mode !== "PLOT" && (
         <ExploreView
           // selectedForestCensus={}
-          selectedPlot={selectedPlot}
-          selectPlot={selectPlot}
-          deselectPlot={deselectPlot}
+          setMode={setMode}
           beginPlotting={beginPlotting}
         />
       )}
       {mode === "PLOT" && selectedPlot && (
         <PlotView
-          selectedPlot={selectedPlot}
           onExit={() => {
             setMode(MapScreenModes.Explore);
             endPlotting();
