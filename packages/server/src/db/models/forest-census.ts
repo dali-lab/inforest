@@ -39,7 +39,7 @@ class ForestCensus extends Model<IForestCensus> implements IForestCensus {
 
   @ForeignKey(() => Forest)
   @AllowNull(false)
-  @Column(DataTypes.STRING)
+  @Column(DataTypes.UUID)
   forestId: string;
 
   @HasMany(() => PlotCensus)

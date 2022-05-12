@@ -10,6 +10,7 @@ import {
   AllowNull,
   BelongsToMany,
   Default,
+  HasOne,
 } from "sequelize-typescript";
 import Tree from "db/models/tree";
 import TreePhoto from "db/models/tree-photo";
@@ -73,7 +74,7 @@ class TreeCensus
 
   @ForeignKey(() => User)
   @AllowNull(false)
-  @Column(DataTypes.STRING)
+  @Column(DataTypes.UUID)
   authorId: string;
 
   @BelongsTo(() => User)
@@ -81,11 +82,14 @@ class TreeCensus
 
   @ForeignKey(() => PlotCensus)
   @AllowNull(false)
-  @Column(DataTypes.STRING)
+  @Column(DataTypes.UUID)
   plotCensusId: string;
 
   @BelongsTo(() => PlotCensus)
   plotCensus: IPlotCensus;
+
+  @HasOne(() => Tree)
+  initTree: ITree;
 }
 
 export default TreeCensus;

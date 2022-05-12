@@ -1,7 +1,7 @@
 import { TreeCensus } from "@ong-forestry/schema";
 import express from "express";
 import { createTreeCensus, editTreeCensuses, getTreeCensuses } from "services";
-import { requireAuth } from "services/auth-service";
+import { requireAuth } from "util/auth";
 
 const treeCensusRouter = express.Router();
 
@@ -17,6 +17,12 @@ treeCensusRouter.post<{}, any, Omit<TreeCensus, "plotCensusId">>(
       res.status(500).send(e?.message ?? "Unknown error.");
     }
   }
+);
+
+treeCensusRouter.post<{}, any, Omit<TreeCensus, "plotCensusId">[]>(
+  "/many",
+  requireAuth,
+  async (req, res) => {}
 );
 
 const parseParams = (query: any) => ({

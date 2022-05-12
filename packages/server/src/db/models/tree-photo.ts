@@ -19,12 +19,6 @@ import {
 
 @Table({
   tableName: "tree_photos",
-  indexes: [
-    {
-      name: "type",
-      fields: ["type"],
-    },
-  ],
 })
 class TreePhoto extends Model<ITreePhoto> implements ITreePhoto {
   @PrimaryKey
@@ -42,7 +36,11 @@ class TreePhoto extends Model<ITreePhoto> implements ITreePhoto {
 
   @AllowNull(false)
   @Column(DataTypes.STRING)
-  url: string;
+  fullUrl: string;
+
+  @AllowNull(false)
+  @Column(DataTypes.STRING)
+  thumbUrl: string;
 
   @ForeignKey(() => TreePhotoPurpose)
   @AllowNull(false)

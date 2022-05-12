@@ -1,12 +1,18 @@
 import { TreePhoto } from "@ong-forestry/schema";
 import express from "express";
+import multer from "multer";
 import {
   createTreePhoto,
   getTreePhotos,
   editTreePhotos,
   deleteTreePhotos,
 } from "services";
-import { requireAuth } from "services/auth-service";
+import { requireAuth, imageResize } from "middleware";
+import { treePhotoPurposeRouter } from "./tree-photo-purpose-routes";
+
+const upload = multer({
+  limits: { fieldSize: 25 * 1024 * 1024 },
+});
 
 const treePhotoRouter = express.Router();
 
@@ -65,5 +71,7 @@ treePhotoRouter.delete<{}, any, TreePhoto>(
     }
   }
 );
+
+treePhotoRouter.use("/purposes", treePhotoPurposeRouter);
 
 export { treePhotoRouter };

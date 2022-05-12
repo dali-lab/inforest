@@ -1,7 +1,8 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { Tree } from "@ong-forestry/schema";
-import SERVER_URL from "../../constants/Url";
 import axios from "axios";
+import uuid from "react-native-uuid";
+import SERVER_URL from "../../constants/Url";
 
 const BASE_URL = SERVER_URL + "trees";
 
@@ -27,7 +28,7 @@ export const getForestTrees = createAsyncThunk(
 
 export const createTree = createAsyncThunk(
   "tree/createTree",
-  async (newTree: Omit<Tree, "plot" | "trip" | "author">, thunkApi) => {
+  async (newTree: Omit<Tree, "id" | "plot">, thunkApi) => {
     thunkApi.dispatch(locallyDraftNewTree(newTree));
     // todo handle failure
     return await axios.post(`${BASE_URL}`, newTree);
@@ -38,16 +39,13 @@ export const updateTree = createAsyncThunk(
   "tree/updateTree",
   async (treeUpdates: Tree, thunkApi) => {
     thunkApi.dispatch(locallyUpdateTree(treeUpdates));
-    return await axios.patch(
-      `${BASE_URL}?tags=${treeUpdates.tag}`,
-      treeUpdates
-    );
+    return await axios.patch(`${BASE_URL}?ids=${treeUpdates.id}`, treeUpdates);
   }
 );
 
 type TreeNumericalIndexItem = {
   value: number;
-  treeTag: string;
+  id: string;
 };
 
 type TreeNumericalIndex = TreeNumericalIndexItem[];
@@ -87,19 +85,20 @@ export const treeSlice = createSlice({
   reducers: {
     locallyDraftNewTree: (state, action) => {
       const newTree = action.payload;
-      state.all[newTree.tag] = newTree;
+      newTree.id = uuid.v4();
+      state.all[newTree.id] = newTree;
       // add to drafts
-      state.drafts.add(newTree.tag);
+      state.drafts.add(newTree.id);
       // update plots index
-      if (!(newTree.plotNumber in state.indices.byPlots)) {
-        state.indices.byPlots[newTree.plotNumber] = new Set();
+      if (!(newTree.plotId in state.indices.byPlots)) {
+        state.indices.byPlots[newTree.plotId] = new Set();
       }
-      state.indices.byPlots[newTree.plotNumber].add(newTree.tag);
+      state.indices.byPlots[newTree.plotId].add(newTree.id);
       // update latitude index
       if (newTree.latitude) {
         state.indices.byLatitude.push({
           value: newTree.latitude,
-          treeTag: newTree.tag,
+          id: newTree.id,
         });
         state.indices.byLatitude.sort(treeNumericalIndexComparator);
       }
@@ -107,47 +106,32 @@ export const treeSlice = createSlice({
       if (newTree.longitude) {
         state.indices.byLongitude.push({
           value: newTree.longitude,
-          treeTag: newTree.tag,
+          id: newTree.id,
         });
         state.indices.byLongitude.sort(treeNumericalIndexComparator);
       }
+      state.selected = newTree.id;
       return state;
     },
     locallyDeleteTree: (state, action) => {
-      const treeTag = action.payload;
-      delete state.all[treeTag];
+      const treeId = action.payload;
+      const plotId = state.all[treeId].plotId;
+      delete state.all[treeId];
       // remove from drafts
-      state.drafts.delete(treeTag);
+      state.drafts.delete(treeId);
       // remove from plots index
-      state.indices.byPlots[treeTag.plotNumber]?.delete(treeTag);
+      state.indices.byPlots[plotId]?.delete(treeId);
       // remove from latitude index
-      state.indices.byLatitude.splice(
-        state.indices.byLatitude.indexOf(treeTag)
-      );
+      state.indices.byLatitude.splice(state.indices.byLatitude.indexOf(treeId));
       // remove from longitude index
       state.indices.byLongitude.splice(
-        state.indices.byLongitude.indexOf(treeTag)
+        state.indices.byLongitude.indexOf(treeId)
       );
       return state;
     },
     locallyUpdateTree: (state, action) => {
-      const { tag, updates } = action.payload;
-      state.all[updates.tag] = updates;
-      // tag changed
-      if (!!updates.tag && tag !== updates.tag) {
-        const oldTree = state.all[tag];
-        delete state.all[tag];
-        if (state.selected === tag) {
-          state.selected = updates.tag;
-        }
-        if (state.drafts.has(tag)) {
-          state.drafts.delete(tag);
-          state.drafts.add(updates.tag);
-        }
-        state.indices.byPlots[oldTree.plotNumber]?.delete(tag);
-        state.indices.byPlots[oldTree.plotNumber]?.add(updates.tag);
-      }
-      // todo: update indices
+      const { updated } = action.payload;
+      state.all[updated.id] = updated;
       return state;
     },
     selectTree: (state, action) => {
@@ -162,25 +146,25 @@ export const treeSlice = createSlice({
   extraReducers: (builder) => {
     builder.addCase(getForestTrees.fulfilled, (state, action) => {
       action.payload.forEach((tree) => {
-        state.all[tree.tag] = tree;
+        state.all[tree.id] = tree;
         // initialize plot index key if needed
-        if (!(tree.plotNumber in state.indices.byPlots)) {
-          state.indices.byPlots[tree.plotNumber] = new Set();
+        if (!(tree.plotId in state.indices.byPlots)) {
+          state.indices.byPlots[tree.plotId] = new Set();
         }
         // add to plots index
-        state.indices.byPlots[tree.plotNumber].add(tree.tag);
+        state.indices.byPlots[tree.plotId].add(tree.id);
         // add to latitude index
         if (tree.latitude) {
           state.indices.byLatitude.push({
             value: tree.latitude,
-            treeTag: tree.tag,
+            id: tree.id,
           });
         }
         // add to longitude index
         if (tree.longitude) {
           state.indices.byLongitude.push({
             value: tree.longitude,
-            treeTag: tree.tag,
+            id: tree.id,
           });
         }
         if (
@@ -190,7 +174,7 @@ export const treeSlice = createSlice({
           state.indices.bySpecies[tree.speciesCode] = new Set();
         }
         if (tree.speciesCode)
-          state.indices.bySpecies[tree.speciesCode].add(tree.tag);
+          state.indices.bySpecies[tree.speciesCode].add(tree.id);
       });
       // sort indices
       state.indices.byLatitude.sort(treeNumericalIndexComparator);

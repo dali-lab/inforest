@@ -10,7 +10,6 @@ export default function App() {
   const isLoadingComplete = useCachedResources();
 
   // const persistedStore = persistStore(store);
-
   return (
     <Provider store={store}>
       {/* <PersistGate loading={null} persistor={persistedStore}> */}

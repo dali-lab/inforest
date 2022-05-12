@@ -1,6 +1,6 @@
 import { Dimensions, View, StyleSheet } from "react-native";
+import { useMemo, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
-import { Plot } from "@ong-forestry/schema";
 import { PlottingSheet } from "../../components/PlottingSheet";
 import { PlotDrawer } from "../../components/PlotDrawer";
 import { DrawerStates, MapScreenModes } from "../../constants";
@@ -8,23 +8,39 @@ import { formPlotNumber, parsePlotNumber } from "../../constants/plots";
 import useAppSelector from "../../hooks/useAppSelector";
 import { RootState } from "../../redux";
 import Colors from "../../constants/Colors";
-import { useState } from "react";
 
 interface PlotViewProps {
-  selectedPlot: Plot;
   onExit: () => void;
   endPlotting: () => void;
 }
 
 const PlotView: React.FC<PlotViewProps> = (props) => {
-  const { selectedPlot, onExit, endPlotting } = props;
+  const { onExit, endPlotting } = props;
 
   const [drawerState, setDrawerState] = useState<DrawerStates>(
     DrawerStates.Minimized
   );
 
   const reduxState = useAppSelector((state: RootState) => state);
-  const { all: allPlots } = reduxState.plots;
+  const { all: allPlotCensuses, selected: selectedPlotCensusId } =
+    reduxState.plotCensuses;
+  const { all: allPlots, selected: selectedPlotId } = reduxState.plots;
+
+  const selectedPlot = useMemo(
+    () =>
+      (selectedPlotId &&
+        allPlots?.[selectedPlotId] &&
+        allPlots[selectedPlotId]) ||
+      undefined,
+    [allPlots, selectedPlotId]
+  );
+
+  const selectedPlotCensus = useMemo(
+    () =>
+      (selectedPlotCensusId && allPlotCensuses?.[selectedPlotCensusId]) ||
+      undefined,
+    [selectedPlotCensusId, allPlotCensuses]
+  );
 
   return (
     <>
@@ -35,6 +51,7 @@ const PlotView: React.FC<PlotViewProps> = (props) => {
         {!!selectedPlot && (
           <PlottingSheet
             plot={selectedPlot}
+            plotCensus={selectedPlotCensus}
             stakeNames={(() => {
               const { i, j } = parsePlotNumber(selectedPlot.number);
               const stakeNames = [];
@@ -66,6 +83,7 @@ const PlotView: React.FC<PlotViewProps> = (props) => {
         mode={MapScreenModes.Plot}
         drawerState={drawerState}
         plot={selectedPlot}
+        plotCensus={selectedPlotCensus}
         endPlotting={endPlotting}
         expandDrawer={() => setDrawerState(DrawerStates.Expanded)}
         minimizeDrawer={() => setDrawerState(DrawerStates.Minimized)}

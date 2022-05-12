@@ -5,7 +5,7 @@ import {
   closeForestCensus,
   getForestCensuses,
 } from "services";
-import { requireAuth } from "services/auth-service";
+import { requireAuth } from "util/auth";
 
 const forestCensusRouter = express.Router();
 

@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, View } from "react-native";
 import * as utm from "utm";
 import DashedLine from "react-native-dashed-line";
 import { getRandomBytes } from "expo-random";
-import { Plot } from "@ong-forestry/schema";
+import { Plot, PlotCensus } from "@ong-forestry/schema";
 import Colors from "../constants/Colors";
 import { Text, TextVariants } from "./Themed";
 import { DEFAULT_DBH, FOLIAGE_MAGNIFICATION } from "../constants";
@@ -14,17 +14,21 @@ import useAppSelector, {
 } from "../hooks/useAppSelector";
 import {
   deselectTree,
-  createTree,
   selectTree,
+  locallyDraftNewTree,
 } from "../redux/slices/treeSlice";
 import useAppDispatch from "../hooks/useAppDispatch";
-import { AUTHOR_ID, TRIP_ID } from "../constants/dev";
-import DrawerButton from "./DrawerButton";
+import AppButton from "./AppButton";
+import {
+  deselectTreeCensus,
+  selectTreeCensus,
+} from "../redux/slices/treeCensusSlice";
 
 const SMALL_OFFSET = 8;
 
 interface PlottingSheetProps {
   plot: Plot;
+  plotCensus: PlotCensus | undefined;
   stakeNames: string[];
   mapWidth: number;
   expandDrawer: () => void;
@@ -36,6 +40,7 @@ const STAKE_LABEL_WIDTH = 36 + 16;
 
 export const PlottingSheet: React.FC<PlottingSheetProps> = ({
   plot,
+  plotCensus,
   stakeNames,
   mapWidth,
   expandDrawer,
@@ -62,38 +67,44 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
   const {
     all,
     drafts,
-    selected: selectedTreeTag,
+    selected: selectedTreeId,
   } = useAppSelector((state) => state.trees);
-  const selected = useMemo(() => {
-    if (selectedTreeTag) {
-      return all[selectedTreeTag];
-    }
-    return;
-  }, [all, selectedTreeTag]);
+  const {
+    all: allTreeCensuses,
+    indices: { byTreeActive },
+  } = useAppSelector((state) => state.treeCensuses);
+  const selectedTree = useMemo(
+    () => (selectedTreeId && all[selectedTreeId]) || undefined,
+    [all, selectedTreeId]
+  );
   const trees = useTreesInPlots(
     useTreesByDensity(
       useAppSelector((state) => state),
       1.0
     ),
-    new Set([plot.number])
+    new Set([plot.id])
   );
-
+  const {
+    indices: { byPlotCensuses },
+  } = useAppSelector((state) => state.treeCensuses);
+  const inProgressCensuses = useMemo(
+    () => Object.keys(byPlotCensuses),
+    [byPlotCensuses]
+  );
   return (
     <Pressable
       style={{ ...styles.container, width: sheetSize, height: sheetSize }}
       onTouchMove={(e) => {
-        if (selected) {
-          dispatch(deselectTree());
-        }
+        dispatch(deselectTree());
+        dispatch(deselectTreeCensus());
         setMarkerPos({
           x: e.nativeEvent.locationX,
           y: e.nativeEvent.locationY,
         });
       }}
       onPress={() => {
-        if (selected) {
-          dispatch(deselectTree());
-        }
+        dispatch(deselectTree());
+        dispatch(deselectTreeCensus());
       }}
       onPressIn={() => {
         setMarkerPos(undefined);
@@ -152,7 +163,7 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
               top: markerPos.y + SMALL_OFFSET,
             }}
           >
-            <DrawerButton
+            <AppButton
               onPress={() => {
                 const { easting, northing, zoneNum, zoneLetter } =
                   utm.fromLatLon(plot.latitude, plot.longitude);
@@ -171,25 +182,19 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
                 const tag = getRandomBytes(2).join("").substring(0, 5);
                 const newTree = {
                   tag,
-                  plotNumber: plot.number,
+                  plotId: plot.id,
                   plotX,
                   plotY,
                   latitude,
                   longitude,
-                  tripId: TRIP_ID,
-                  authorId: AUTHOR_ID,
-                  photos: [],
-                  createdAt: new Date(),
-                  updatedAt: new Date(),
                 };
-                dispatch(createTree(newTree));
+                dispatch(locallyDraftNewTree(newTree));
                 setMarkerPos(undefined);
-                dispatch(selectTree(tag));
                 expandDrawer();
               }}
             >
               Plot tree
-            </DrawerButton>
+            </AppButton>
           </View>
           <View
             style={{
@@ -238,9 +243,10 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
       {/* trees */}
       <>
         {trees
-          .filter((tree) => tree.plotNumber === plot.number)
+          .filter((tree) => tree.plotId === plot.id)
           .map((tree) => {
-            const isDraft = drafts.has(tree.tag);
+            const isDraft = drafts.has(tree.id);
+            const isCensusing = tree.id in inProgressCensuses;
             const { plotX, plotY } = tree;
             if (!!plotX && !!plotY) {
               const treePixelSize =
@@ -253,7 +259,7 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
                 FOLIAGE_MAGNIFICATION;
               return (
                 <Pressable
-                  key={tree.tag}
+                  key={tree.id}
                   style={{
                     ...styles.tree,
                     top:
@@ -265,15 +271,20 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
                   onPress={() => {
                     setMarkerPos(undefined);
                     minimizeDrawer();
-                    dispatch(selectTree(tree.tag));
+                    dispatch(selectTree(tree.id));
+                    dispatch(selectTreeCensus(byTreeActive[tree.id]));
                   }}
                 >
                   <TreeMarker
                     color={
-                      isDraft ? Colors.primary.normal : Colors.primary.light
+                      isDraft
+                        ? Colors.primary.normal
+                        : isCensusing
+                        ? "yellow"
+                        : Colors.primary.light
                     }
                     size={treePixelSize}
-                    selected={selected?.tag === tree.tag}
+                    selected={selectedTree?.id === tree.id}
                   />
                 </Pressable>
               );

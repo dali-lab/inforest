@@ -25,7 +25,7 @@ import {
   indexes: [
     {
       name: "absolute_position",
-      fields: ["lat", "long"],
+      fields: ["latitude", "longitude"],
     },
     {
       name: "relative_position",
@@ -47,7 +47,7 @@ class Tree
 
   @ForeignKey(() => Plot)
   @AllowNull(false)
-  @Column(DataTypes.STRING)
+  @Column(DataTypes.UUID)
   plotId: string;
 
   @BelongsTo(() => Plot)
@@ -72,8 +72,16 @@ class Tree
   @BelongsTo(() => TreeSpecies)
   species: ITreeSpecies;
 
-  @HasMany(() => TreeCensus)
+  @HasMany(() => TreeCensus, "treeId")
   censuses: ITreeCensus[];
+
+  @ForeignKey(() => TreeCensus)
+  @AllowNull(true)
+  @Column(DataTypes.UUID)
+  initCensusId: string;
+
+  @BelongsTo(() => TreeCensus)
+  initCensus: ITreeCensus | null;
 }
 
 export default Tree;
