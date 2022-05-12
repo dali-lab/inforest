@@ -32,7 +32,11 @@ const PlotView: React.FC<PlotViewProps> = (props) => {
   const reduxState = useAppSelector((state: RootState) => state);
   const { all: allPlotCensuses, selected: selectedPlotCensusId } =
     reduxState.plotCensuses;
-  const { all: allPlots, selected: selectedPlotId } = reduxState.plots;
+  const {
+    all: allPlots,
+    selected: selectedPlotId,
+    indices: { byNumber },
+  } = reduxState.plots;
 
   const selectedPlot = useMemo(
     () =>
@@ -67,18 +71,18 @@ const PlotView: React.FC<PlotViewProps> = (props) => {
               const { i, j } = parsePlotNumber(selectedPlot.number);
               const stakeNames = [];
               stakeNames.push(selectedPlot.number);
-              if (formPlotNumber(i + 1, j) in allPlots) {
-                stakeNames.push(allPlots[formPlotNumber(i + 1, j)].number);
+              if (formPlotNumber(i + 1, j) in byNumber) {
+                stakeNames.push(byNumber[formPlotNumber(i + 1, j)].number);
               } else {
                 stakeNames.push("No stake");
               }
-              if (formPlotNumber(i + 1, j + 1) in allPlots) {
-                stakeNames.push(allPlots[formPlotNumber(i + 1, j + 1)].number);
+              if (formPlotNumber(i + 1, j + 1) in byNumber) {
+                stakeNames.push(byNumber[formPlotNumber(i + 1, j + 1)].number);
               } else {
                 stakeNames.push("No stake");
               }
-              if (formPlotNumber(i, j + 1) in allPlots) {
-                stakeNames.push(allPlots[formPlotNumber(i, j + 1)].number);
+              if (formPlotNumber(i, j + 1) in byNumber) {
+                stakeNames.push(byNumber[formPlotNumber(i, j + 1)].number);
               } else {
                 stakeNames.push("No stake");
               }
