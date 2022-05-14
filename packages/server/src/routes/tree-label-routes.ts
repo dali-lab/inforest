@@ -5,7 +5,7 @@ import {
   deleteTreeLabels,
   editTreeLabels,
   getTreeLabels,
-} from "services/tree-label-service";
+} from "services";
 import { requireAuth } from "middleware";
 
 const treeLabelRouter = express.Router();

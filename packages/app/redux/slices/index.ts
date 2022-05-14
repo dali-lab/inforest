@@ -3,8 +3,12 @@ import forestReducer from "./forestSlice";
 import plotReducer from "./plotSlice";
 import teamReducer from "./teamSlice";
 import treeReducer from "./treeSlice";
-import treeSpeciesReducer from "./treeSpeciesSlice"
-import tripReducer from "./tripSlice";
+import treeLabelReducer from "./treeLabelSlice";
+import treeSpeciesReducer from "./treeSpeciesSlice";
+import treePhotoPurposeReducer from "./treePhotoPurposeSlice";
+import forestCensusReducer from "./forestCensusSlice";
+import plotCensusReducer from "./plotCensusSlice";
+import treeCensusReducer from "./treeCensusSlice";
 
 export {
   userReducer,
@@ -12,6 +16,10 @@ export {
   plotReducer,
   teamReducer,
   treeReducer,
+  treeLabelReducer,
   treeSpeciesReducer,
-  tripReducer,
+  treePhotoPurposeReducer,
+  forestCensusReducer,
+  plotCensusReducer,
+  treeCensusReducer,
 };

@@ -24,12 +24,7 @@ export interface TreeCensus {
   /**
    * Tree diameter breast height in centimeters.
    */
-  dbh?: number;
-
-  /**
-   * Tree height in meters.
-   */
-  height?: number;
+  dbh: number;
 
   /**
    * Labels.
@@ -69,10 +64,10 @@ export interface TreeCensus {
   /**
    * Date and time when this entry was created.
    */
-  createdAt: Date;
+  createdAt?: Date;
 
   /**
    * Date and time when this entry was last updated.
    */
-  updatedAt: Date;
+  updatedAt?: Date;
 }

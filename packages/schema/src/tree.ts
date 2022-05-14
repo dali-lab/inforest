@@ -1,3 +1,4 @@
+import { PlotCensus } from "./plot-census";
 import { Plot } from "./plot";
 import { TreeCensus } from "./tree-census";
 
@@ -28,22 +29,22 @@ export interface Tree {
   /**
    * Tree absolute latitude measured in decimal degrees.
    */
-  latitude?: number;
+  latitude: number;
 
   /**
    * Tree absolute longitude measured in decimal degrees.
    */
-  longitude?: number;
+  longitude: number;
 
   /**
    * Tree relative position along plot width measured in meters.
    */
-  plotX?: number;
+  plotX: number;
 
   /**
    * Tree relative position along plot length measured in meters.
    */
-  plotY?: number;
+  plotY: number;
 
   /**
    * Object of the tree species.
@@ -53,7 +54,7 @@ export interface Tree {
   /**
    * Identifying code of the tree species.
    */
-  speciesCode?: string;
+  speciesCode: string;
 
   /**
    * Object of census conducted on this tree.
@@ -61,14 +62,25 @@ export interface Tree {
   censuses?: TreeCensus[];
 
   /**
+   * The initial tree census that this tree was created with
+   */
+  initCensus?: TreeCensus | null;
+
+  /**
+   * The id of the initial tree census
+   */
+
+  initCensusId: string;
+
+  /**
    * Date and time when this entry was created.
    */
-  createdAt: Date;
+  createdAt?: Date;
 
   /**
    * Date and time when this entry was last updated.
    */
-  updatedAt: Date;
+  updatedAt?: Date;
 }
 
 export enum TreeSpeciesTypes {
@@ -167,9 +179,14 @@ export interface TreePhoto {
   id: string;
 
   /**
-   * URL link to photo
+   * URL link to full-sized photo
    */
-  url: string;
+  fullUrl: string;
+
+  /**
+   * URL link to minified, thumbnail version of the photo
+   */
+  thumbUrl: string;
 
   /**
    * ID of census entry this photograph belongs to

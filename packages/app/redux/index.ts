@@ -5,11 +5,15 @@ import {
   plotReducer,
   treeReducer,
   teamReducer,
-  tripReducer,
+  treeLabelReducer,
   treeSpeciesReducer,
+  treePhotoPurposeReducer,
+  forestCensusReducer,
+  plotCensusReducer,
+  treeCensusReducer,
 } from "./slices";
-// import { persistReducer } from "redux-persist";
-// import ExpoFileSystemStorage from "redux-persist-expo-filesystem";
+import { persistReducer } from "redux-persist";
+import ExpoFileSystemStorage from "redux-persist-expo-filesystem";
 import { enableMapSet } from "immer";
 
 enableMapSet();
@@ -20,21 +24,25 @@ const rootReducer = combineReducers({
   forest: forestReducer,
   plots: plotReducer,
   trees: treeReducer,
+  treeLabels: treeLabelReducer,
   treeSpecies: treeSpeciesReducer,
   teams: teamReducer,
-  trips: tripReducer,
+  treePhotoPurposes: treePhotoPurposeReducer,
+  forestCensuses: forestCensusReducer,
+  plotCensuses: plotCensusReducer,
+  treeCensuses: treeCensusReducer,
 });
 
-// const persistConfig = {
-//   key: "root",
-//   storage: ExpoFileSystemStorage,
-// };
+const persistConfig = {
+  key: "root",
+  storage: ExpoFileSystemStorage,
+};
 
-// const persistedReducer = persistReducer(persistConfig, rootReducer);
+const persistedReducer = persistReducer(persistConfig, rootReducer);
 
 const store = configureStore({
-  reducer: rootReducer,
-  // reducer: persistedReducer,
+  // reducer: rootReducer,
+  reducer: persistedReducer,
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({ serializableCheck: false }),
 });

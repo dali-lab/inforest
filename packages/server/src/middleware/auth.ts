@@ -17,9 +17,11 @@ passport.use(
   new localStrategy(options, async (email, password, done) => {
     try {
       const user = await createUser({ email, password });
+      
       sendVerificationCode(email);
 
       return done("You must verify your email to gain access.", user);
+
     } catch (e: any) {
       done(e);
     }
