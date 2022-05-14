@@ -31,7 +31,7 @@ const VisualizationModal: React.FC<VisualizationModalProps> = ({
         </View>
         <Stack size={12}></Stack>
         <View style={styles.toggleRow}>
-          <Text variant={TextVariants.Body}>Species colorization</Text>
+          <Text variant={TextVariants.Body}>Species Colorization</Text>
           <Switch
             value={config.colorBySpecies}
             onValueChange={(value) => {

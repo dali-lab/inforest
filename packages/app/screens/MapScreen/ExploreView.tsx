@@ -12,14 +12,15 @@ import { PermissionStatus } from "expo-modules-core";
 import * as geolib from "geolib";
 import { Ionicons } from "@expo/vector-icons";
 import * as utm from "utm";
-import { Plot, Tree } from "@ong-forestry/schema";
+import { PlotCensusStatuses, Tree } from "@ong-forestry/schema";
 
 import { Text, TextVariants } from "../../components/Themed";
 import Colors from "../../constants/Colors";
 import useAppDispatch from "../../hooks/useAppDispatch";
-import { PlotDrawer } from "../../components/PlotDrawer";
+import PlotDrawer from "../../components/PlotDrawer";
 
 import { deselectTree, selectTree } from "../../redux/slices/treeSlice";
+import { selectForestCensus } from "../../redux/slices/forestCensusSlice";
 import { getPlotCorners } from "../../constants/plots";
 import VisualizationModal from "../../components/VisualizationModal";
 import SearchModal from "../../components/SearchModal";
@@ -38,6 +39,13 @@ import {
   MapScreenModes,
   VisualizationConfigType,
 } from "../../constants";
+import { selectPlot, deselectPlot } from "../../redux/slices/plotSlice";
+import {
+  deselectPlotCensus,
+  getForestCensusPlotCensuses,
+  selectPlotCensus,
+} from "../../redux/slices/plotCensusSlice";
+import { deselectTreeCensus } from "../../redux/slices/treeCensusSlice";
 
 const O_FARM_LAT = 43.7348569458618;
 const O_FARM_LNG = -72.2519099587406;
@@ -45,15 +53,19 @@ const MIN_REGION_DELTA = 0.0000005;
 const FOLIAGE_MAGNIFICATION = 3;
 const NUM_OF_SPECIES = 8;
 
+const plotCensusColorMap: { [key in PlotCensusStatuses]?: string } = {
+  IN_PROGRESS: "rgba(255, 240, 0, 0.3)",
+  PENDING: "rgba(0,0,250,0.3)",
+  APPROVED: "rgba(0,250,0,0.3)",
+};
+
 interface ExploreViewProps {
-  selectedPlot?: Plot;
-  selectPlot: (plot: Plot) => void;
-  deselectPlot: () => void;
+  setMode: (mode: MapScreenModes) => void;
   beginPlotting: () => void;
 }
 
 const ExploreView: React.FC<ExploreViewProps> = (props) => {
-  const { selectedPlot, selectPlot, deselectPlot, beginPlotting } = props;
+  const { beginPlotting, setMode } = props;
 
   const [searchModalOpen, setSearchModalOpen] = useState(false);
   const [regionSnapshot, setRegionSnapshot] = useState<Region>();
@@ -84,12 +96,36 @@ const ExploreView: React.FC<ExploreViewProps> = (props) => {
 
   const dispatch = useAppDispatch();
   const reduxState = useAppSelector((state: RootState) => state);
-  const { all: allTrees, selected: selectedTree } = reduxState.trees;
-  const { all: allPlots } = reduxState.plots;
+  const { all: allTrees, selected: selectedTreeId } = reduxState.trees;
+  const { all: allPlots, selected: selectedPlotId } = reduxState.plots;
+  const { all: allForestCensuses } = reduxState.forestCensuses;
+  const {
+    all: allPlotCensuses,
+    selected: selectedPlotCensusId,
+    indices: { byPlotActive: plotCensusesByActivePlot },
+  } = reduxState.plotCensuses;
   const { colorMap } = reduxState.treeSpecies;
+  const selectedPlot = useMemo(
+    () => (selectedPlotId && allPlots?.[selectedPlotId]) || undefined,
+    [selectedPlotId, allPlots]
+  );
+  const selectedPlotCensus = useMemo(
+    () =>
+      (selectedPlotCensusId && allPlotCensuses?.[selectedPlotCensusId]) ||
+      undefined,
+    [selectedPlotCensusId, allPlotCensuses]
+  );
+  useEffect(() => {
+    for (const census of Object.values(allForestCensuses)) {
+      if (census.active) {
+        dispatch(selectForestCensus(census.id));
+        dispatch(getForestCensusPlotCensuses({ forestCensusId: census.id }));
+        break;
+      }
+    }
+  }, [allForestCensuses, dispatch]);
 
   const plots = usePlotsInRegion(usePlots(reduxState), regionSnapshot);
-
   const density = useMemo(() => {
     if (plots.length <= Math.pow(5, 2)) {
       return 1;
@@ -109,6 +145,23 @@ const ExploreView: React.FC<ExploreViewProps> = (props) => {
       return 1 / Object.keys(allTrees).length;
     }
   }, [plots.length, allTrees]);
+
+  const selectPlotAndCensus = useCallback(
+    async (plotId: string) => {
+      dispatch(selectPlot(plotId));
+      if (plotId in plotCensusesByActivePlot) {
+        dispatch(selectPlotCensus(plotCensusesByActivePlot[plotId]));
+      }
+      setMode(MapScreenModes.Select);
+    },
+    [plotCensusesByActivePlot, setMode, dispatch]
+  );
+
+  const deselectPlotAndCensus = useCallback(() => {
+    dispatch(deselectPlot());
+    dispatch(deselectPlotCensus());
+    setMode(MapScreenModes.Explore);
+  }, [setMode, dispatch]);
 
   const trees = useTreesInRegion(
     useTreesByDensity(reduxState, density),
@@ -133,10 +186,10 @@ const ExploreView: React.FC<ExploreViewProps> = (props) => {
     (treeTag: string) => {
       const tree = allTrees[treeTag];
       if (tree) {
-        dispatch(selectTree(tree.tag));
-        const plot = tree.plotNumber;
+        dispatch(selectTree(tree.id));
+        const plot = tree.plotId;
         if (plot) {
-          selectPlot(allPlots[plot]);
+          selectPlotAndCensus(plot);
           const { easting, northing, zoneNum, zoneLetter } = utm.fromLatLon(
             allPlots[plot].latitude,
             allPlots[plot].longitude
@@ -161,20 +214,20 @@ const ExploreView: React.FC<ExploreViewProps> = (props) => {
         );
       }
     },
-    [allPlots, allTrees, dispatch, selectPlot]
+    [allPlots, allTrees, dispatch, selectPlotAndCensus]
   );
 
   const treeNodes = useMemo(() => {
     setSpeciesFrequencyMap({});
     // This ternary expression ensures that the selected tree is at the end of the list and is therefore rendered on top of others
-    return (selectedTree ? [...trees, allTrees[selectedTree]] : trees).map(
+    return (selectedTreeId ? [...trees, allTrees[selectedTreeId]] : trees).map(
       (tree: Tree, i) => {
         if (
           !!tree?.latitude &&
           !!tree?.longitude &&
-          (tree.tag !== selectedTree || i !== trees.length)
+          (tree.id !== selectedTreeId || i !== trees.length)
         ) {
-          const selected = selectedTree === tree.tag;
+          const selected = selectedTreeId === tree.id;
           let nodeColor = visualizationConfig.satellite
             ? Colors.neutral[1]
             : Colors.primary.normal;
@@ -191,7 +244,7 @@ const ExploreView: React.FC<ExploreViewProps> = (props) => {
             FOLIAGE_MAGNIFICATION;
           return (
             <Circle
-              key={tree.tag}
+              key={tree.id}
               center={{
                 latitude: tree.latitude,
                 longitude: tree.longitude,
@@ -211,8 +264,19 @@ const ExploreView: React.FC<ExploreViewProps> = (props) => {
     visualizationConfig.colorBySpecies,
     visualizationConfig.satellite,
     colorMap,
-    selectedTree,
+    selectedTreeId,
   ]);
+
+  const plotIdColorMap = useCallback(
+    (id: string) => {
+      if (plotCensusesByActivePlot?.[id]) {
+        const status = allPlotCensuses[plotCensusesByActivePlot[id]].status;
+        return status ? plotCensusColorMap[status] : "rgba(255, 255, 255, 0.3)";
+      }
+      return "rgba(255, 255, 255, 0.3)";
+    },
+    [allPlotCensuses, plotCensusesByActivePlot]
+  );
 
   useEffect(() => {
     (async () => {
@@ -270,6 +334,7 @@ const ExploreView: React.FC<ExploreViewProps> = (props) => {
         onPress={(e) => {
           closeVisualizationModal();
           dispatch(deselectTree());
+          dispatch(deselectTreeCensus());
           if (!!e.nativeEvent.coordinate && !!selectedPlot) {
             if (
               !geolib.isPointInPolygon(
@@ -277,7 +342,7 @@ const ExploreView: React.FC<ExploreViewProps> = (props) => {
                 getPlotCorners(selectedPlot)
               )
             ) {
-              deselectPlot();
+              deselectPlotAndCensus();
             }
           }
         }}
@@ -321,22 +386,23 @@ const ExploreView: React.FC<ExploreViewProps> = (props) => {
               strokeColor="rgba(255, 255, 255, 0.6)"
               fillColor="rgba(255, 255, 255, 0.6)"
               tappable={true}
-              onPress={deselectPlot}
+              onPress={deselectPlotAndCensus}
             />
           </>
         )}
         {plots.map((plot) => {
           return (
             <Polygon
-              key={plot.number}
+              key={plot.id}
               style={styles.plot}
               coordinates={[...getPlotCorners(plot), getPlotCorners(plot)[0]]}
               strokeWidth={2}
               strokeColor="rgba(255, 255, 255, 0.6)"
-              fillColor="rgba(255, 255, 255, 0.3)"
+              fillColor={plotIdColorMap(plot.id)}
               tappable={true}
               onPress={() => {
-                selectPlot(plot);
+                deselectPlotAndCensus();
+                plot && selectPlotAndCensus(plot.id);
               }}
             />
           );
@@ -427,6 +493,7 @@ const ExploreView: React.FC<ExploreViewProps> = (props) => {
         drawerState={drawerState}
         setDrawerHeight={setDrawerHeight}
         plot={selectedPlot}
+        plotCensus={selectedPlotCensus}
         beginPlotting={() => {
           if (selectedPlot) {
             const { easting, northing, zoneNum, zoneLetter } = utm.fromLatLon(

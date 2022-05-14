@@ -19,6 +19,6 @@ export default {
     7: "#424B59",
     8: "#2A2F38",
   },
-  error: "#FF6B3D",
+  error: "#FF4D3D",
   highlight: "#FFD700",
 };

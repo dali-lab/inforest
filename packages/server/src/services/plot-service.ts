@@ -60,22 +60,22 @@ const constructQuery = (params: GetPlotsParams) => {
     };
   }
   if (latMin) {
-    query.where.lat = {
+    query.where.latitude = {
       [Op.gte]: latMin,
     };
   }
   if (latMax) {
-    query.where.lat = {
+    query.where.latitude = {
       [Op.lte]: latMax,
     };
   }
   if (longMin) {
-    query.where.long = {
+    query.where.longitude = {
       [Op.gte]: longMin,
     };
   }
   if (longMax) {
-    query.where.long = {
+    query.where.longitude = {
       [Op.lte]: longMax,
     };
   }

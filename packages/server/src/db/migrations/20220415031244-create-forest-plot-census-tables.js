@@ -50,9 +50,9 @@ module.exports = {
             defaultValue: Sequelize.UUIDV4,
             primaryKey: true,
           },
-          approved: {
-            type: Sequelize.BOOLEAN,
-            defaultValue: false,
+          status: {
+            type: Sequelize.ENUM("IN_PROGRESS", "PENDING", "APPROVED"),
+            defaultValue: "IN_PROGRESS",
           },
           plotNumber: {
             type: Sequelize.STRING,
