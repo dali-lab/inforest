@@ -1,3 +1,5 @@
+export * from "services/auth-service";
+export * from "services/email-service";
 export * from "services/tree-service";
 export * from "services/tree-census-service";
 export * from "services/team-service";
@@ -9,3 +11,4 @@ export * from "services/forest-service";
 export * from "services/forest-census-service";
 export * from "services/membership-service";
 export * from "services/tree-photo-service";
+export * from "services/verification-code-service";

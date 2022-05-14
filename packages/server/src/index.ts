@@ -8,6 +8,7 @@ import morgan from "morgan";
 
 import * as models from "db/models";
 import {
+  authRouter,
   treeRouter,
   plotRouter,
   plotCensusAssignmentRouter,
@@ -53,6 +54,7 @@ try {
   console.error("Unable to connect to the database:", error);
 }
 
+app.use("/auth", authRouter);
 app.use("/trees", treeRouter);
 app.use("/plots", plotRouter);
 app.use("/plot_census_assignments", plotCensusAssignmentRouter);
