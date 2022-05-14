@@ -4,8 +4,8 @@ import VerificationCodeModel from "db/models/verification-code";
 
 const generateCode = () => {
   const length = 6;
-  const a = "a".charCodeAt(0);
-  const z = "z".charCodeAt(0);
+  const a = "A".charCodeAt(0);
+  const z = "Z".charCodeAt(0);
 
   var code = "";
   for (var i = 0; i < length; i++)

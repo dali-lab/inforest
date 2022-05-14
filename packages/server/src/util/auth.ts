@@ -4,6 +4,8 @@ import {
   getUsers,
   createVerificationCode,
   getVerificationCode,
+  editUsers,
+  deleteVerificationCode,
 } from "services";
 import { emailCode } from "../util";
 
@@ -26,6 +28,11 @@ export const sendVerificationCode = async (email: string) => {
 export const verifyVerificationCode = async (
   verificationCode: VerificationCode
 ) => {
+  // get user
+  const user = await getUsers({ email: verificationCode.email });
+  if (user.length == 0) throw new Error("No user with this email exists.");
+  if (user[0].verified) throw new Error("This user is already verified.");
+
   const code = await getVerificationCode({ email: verificationCode.email });
   if (code == null || verificationCode.code != code.code) {
     throw new Error("Wrong verification code.");
@@ -34,5 +41,14 @@ export const verifyVerificationCode = async (
     throw new Error("Verification code expired.");
   }
 
-  return (await getUsers({ email: verificationCode.email }))[0];
+  // set user verified to true
+  const verifiedUser = await editUsers(
+    { verified: true },
+    { email: verificationCode.email }
+  );
+
+  // delete verification code
+  await deleteVerificationCode({ email: verificationCode.email });
+
+  return verifiedUser[1][0];
 };

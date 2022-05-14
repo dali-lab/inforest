@@ -93,6 +93,14 @@ export const deleteUsers = async (params: GetUsersParams) => {
 
 export const isValidPassword = async (email: string, password: string) => {
   const users = await getUsers({ email });
-  if (users.length == 0) throw new Error("No user exists with this email.");
-  return await bcrypt.compare(password, users[0].password);
+  // get password; getUsers omits it
+  const hash = (
+    await UserModel.findAll({ where: { email: { [Op.eq]: email } } })
+  )[0].password;
+
+  if (users.length == 0 || hash == null) {
+    throw new Error("No user exists with this email.");
+  }
+
+  return await bcrypt.compare(password, hash);
 };
