@@ -1,5 +1,6 @@
 export * from "services/tree-service";
 export * from "services/tree-census-service";
+export * from "services/tree-label-service";
 export * from "services/team-service";
 export * from "services/user-service";
 export * from "services/plot-service";
