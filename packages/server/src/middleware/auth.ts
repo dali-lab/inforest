@@ -1,17 +1,9 @@
 import passport from "passport";
 import { Strategy as localStrategy } from "passport-local";
 import { Strategy as jwtStrategy, ExtractJwt } from "passport-jwt";
-import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
-import { User, VerificationCode } from "@ong-forestry/schema";
-import {
-  createUser,
-  getUsers,
-  isValidPassword,
-  emailCode,
-  createVerificationCode,
-} from "services";
-import { getVerificationCode } from "./verification-code-service";
+import { createUser, getUsers, isValidPassword } from "services";
+import { sendVerificationCode } from "../util";
 
 dotenv.config();
 
@@ -81,35 +73,5 @@ passport.use(
     }
   )
 );
-
-export const createToken = (user: User) => {
-  const userData = { id: user.id, email: user.email };
-  const token = jwt.sign(
-    { user: userData },
-    process.env.AUTH_SECRET as string,
-    { expiresIn: "14d" } // two weeks
-  );
-
-  return token;
-};
-
-export const sendVerificationCode = async (email: string) => {
-  const verificationCode = await createVerificationCode({ email });
-  emailCode({ email, code: verificationCode.code });
-};
-
-export const verifyVerificationCode = async (
-  verificationCode: VerificationCode
-) => {
-  const code = await getVerificationCode({ email: verificationCode.email });
-  if (code == null || verificationCode.code != code.code) {
-    throw new Error("Wrong verification code.");
-  }
-  if (code.expiration.getTime() < new Date().getTime()) {
-    throw new Error("Verification code expired.");
-  }
-
-  return (await getUsers({ email: verificationCode.email }))[0];
-};
 
 export const requireAuth = passport.authenticate("jwt", { session: false });

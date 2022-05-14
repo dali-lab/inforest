@@ -1,6 +1,6 @@
 import express from "express";
-import { requireAuth } from "services/auth-service";
 import { createAssignment } from "services/plot-census-assignment-service";
+import { requireAuth } from "middleware";
 
 const plotCensusAssignmentRouter = express.Router();
 

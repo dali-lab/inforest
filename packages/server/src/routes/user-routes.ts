@@ -1,7 +1,7 @@
-import { User } from "@ong-forestry/schema";
 import express from "express";
+import { User } from "@ong-forestry/schema";
 import { createUser, deleteUsers, editUsers, getUsers } from "services";
-import { requireAuth } from "services/auth-service";
+import { requireAuth } from "middleware";
 
 const userRouter = express.Router();
 

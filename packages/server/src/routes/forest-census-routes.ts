@@ -1,11 +1,11 @@
-import { ForestCensus } from "@ong-forestry/schema";
 import express from "express";
+import { ForestCensus } from "@ong-forestry/schema";
 import {
   createForestCensus,
   closeForestCensus,
   getForestCensuses,
 } from "services";
-import { requireAuth } from "services/auth-service";
+import { requireAuth } from "middleware";
 
 const forestCensusRouter = express.Router();
 

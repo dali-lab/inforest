@@ -1,12 +1,12 @@
-import { TreePhoto } from "@ong-forestry/schema";
 import express from "express";
+import { TreePhoto } from "@ong-forestry/schema";
 import {
   createTreePhoto,
   getTreePhotos,
   editTreePhotos,
   deleteTreePhotos,
 } from "services";
-import { requireAuth } from "services/auth-service";
+import { requireAuth } from "middleware";
 
 const treePhotoRouter = express.Router();
 

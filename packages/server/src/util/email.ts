@@ -1,8 +1,7 @@
 import dotenv from "dotenv";
 import fs from "fs";
 import { SendEmailCommand, SESv2, SESv2Client } from "@aws-sdk/client-sesv2";
-import { getUsers } from "services";
-import { getTeams } from "./team-service";
+import { getUsers, getTeams } from "services";
 
 dotenv.config();
 

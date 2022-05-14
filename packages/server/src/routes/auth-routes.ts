@@ -1,12 +1,12 @@
-import { User, VerificationCode } from "@ong-forestry/schema";
 import express from "express";
 import passport from "passport";
+import { User, VerificationCode } from "@ong-forestry/schema";
+import { requireAuth } from "middleware";
 import {
   createToken,
-  requireAuth,
   sendVerificationCode,
   verifyVerificationCode,
-} from "services";
+} from "../util";
 
 const authRouter = express.Router();
 

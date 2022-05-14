@@ -1,12 +1,12 @@
-import { Membership, MembershipRoles } from "@ong-forestry/schema";
 import express from "express";
+import { Membership, MembershipRoles } from "@ong-forestry/schema";
 import {
   createMembership,
   deleteMemberships,
   editMemberships,
   getMemberships,
 } from "services";
-import { requireAuth } from "services/auth-service";
+import { requireAuth } from "middleware";
 
 const membershipRouter = express.Router();
 

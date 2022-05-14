@@ -1,7 +1,7 @@
-import { Plot } from "@ong-forestry/schema";
 import express from "express";
+import { Plot } from "@ong-forestry/schema";
 import { createPlot, deletePlots, editPlots, getPlots } from "services";
-import { requireAuth } from "services/auth-service";
+import { requireAuth } from "middleware";
 import { plotCensusRouter } from "./plot-census-routes";
 
 const plotRouter = express.Router();

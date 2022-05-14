@@ -1,12 +1,12 @@
-import { TreeLabel } from "@ong-forestry/schema";
 import express from "express";
-import { requireAuth } from "services/auth-service";
+import { TreeLabel } from "@ong-forestry/schema";
 import {
   createTreeLabel,
   deleteTreeLabels,
   editTreeLabels,
   getTreeLabels,
 } from "services/tree-label-service";
+import { requireAuth } from "middleware";
 
 const treeLabelRouter = express.Router();
 

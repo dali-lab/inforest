@@ -1,7 +1,7 @@
-import { Team } from "@ong-forestry/schema";
 import express from "express";
+import { Team } from "@ong-forestry/schema";
 import { createTeam, deleteTeams, editTeams, getTeams } from "services";
-import { requireAuth } from "services/auth-service";
+import { requireAuth } from "middleware";
 
 const teamRouter = express.Router();
 

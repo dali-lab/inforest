@@ -1,5 +1,3 @@
-export * from "services/auth-service";
-export * from "services/email-service";
 export * from "services/tree-service";
 export * from "services/tree-census-service";
 export * from "services/team-service";
