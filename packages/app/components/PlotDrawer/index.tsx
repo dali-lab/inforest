@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo } from "react";
 import { Animated, Dimensions, StyleSheet, View } from "react-native";
 import { Queue, Stack } from "react-native-spacing-system";
 import { BlurView } from "expo-blur";
@@ -7,7 +7,11 @@ import { Forest, Plot, PlotCensus, TreeCensus } from "@ong-forestry/schema";
 import { Ionicons } from "@expo/vector-icons";
 import { MapScreenModes, DrawerStates } from "../../constants";
 import useAppSelector from "../../hooks/useAppSelector";
-import { locallyDeleteTree, deselectTree } from "../../redux/slices/treeSlice";
+import {
+  locallyDeleteTree,
+  deselectTree,
+  createTree,
+} from "../../redux/slices/treeSlice";
 import AppButton from "../AppButton";
 import { Text, TextVariants } from "../Themed";
 import useAppDispatch from "../../hooks/useAppDispatch";
@@ -127,6 +131,7 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
   const startCensus = useCallback(() => {
     if (plot && selectedForestCensus) {
       dispatch(createPlotCensus(plot.id));
+      // dispatch(deselectPlotCensus());
     }
   }, [dispatch, selectedForestCensus, plot]);
 
@@ -141,7 +146,7 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
         })
       );
     }
-  }, [dispatch, locallyUpdateTreeCensus, selectedTreeCensus]);
+  }, [dispatch, selectedTreeCensus]);
 
   useEffect(() => {
     if (
@@ -216,7 +221,7 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
             </View>
           </View>
         )}
-        {mode === MapScreenModes.Plot && !!plot && (
+        {mode === MapScreenModes.Plot && plot && (
           <>
             <View style={styles.header}>
               {drawerState === "MINIMIZED" && !selectedTree && (
@@ -248,7 +253,7 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
                   </AppButton>
                 </>
               )}
-              {drawerState === "EXPANDED" && !!selectedTree && (
+              {drawerState === "EXPANDED" && !!selectedTree && plot && (
                 <View
                   style={{
                     flexDirection: "row",
@@ -303,7 +308,9 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
                         minimizeDrawer();
                       }}
                       finish={(newTreeCensus) => {
-                        dispatch(createTreeCensus(newTreeCensus));
+                        dispatch(createTree(selectedTree));
+                        dispatch(createTreeCensus(selectedTreeCensus));
+                        console.log("selectedTree", selectedTree);
                         console.log("newTreeCensus", newTreeCensus);
                         minimizeDrawer();
                       }}

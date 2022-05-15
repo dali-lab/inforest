@@ -96,7 +96,6 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
     selected: selectedTreeId,
   } = useAppSelector((state) => state.trees);
   const {
-    all: allTreeCensuses,
     indices: { byTreeActive },
   } = useAppSelector((state) => state.treeCensuses);
   const selectedTree = useMemo(
