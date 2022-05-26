@@ -6,7 +6,7 @@ import {
   editMemberships,
   getMemberships,
 } from "services";
-import { requireAuth } from "middleware";
+import { requireAuth, requireMembership } from "middleware";
 
 const membershipRouter = express.Router();
 
@@ -14,15 +14,20 @@ membershipRouter.post<
   {},
   any,
   Pick<Membership, "teamId" | "role"> & { email: string }
->("/", requireAuth, async (req, res) => {
-  try {
-    const membership = await createMembership(req.body);
-    res.status(201).json(membership);
-  } catch (e: any) {
-    console.error(e);
-    res.status(500).send(e?.message ?? "Unknown error.");
+>(
+  "/",
+  requireAuth,
+  requireMembership("teamId", "teamId", { admin: true }),
+  async (req, res) => {
+    try {
+      const membership = await createMembership(req.body);
+      res.status(201).json(membership);
+    } catch (e: any) {
+      console.error(e);
+      res.status(500).send(e?.message ?? "Unknown error.");
+    }
   }
-});
+);
 
 const parseParams = (query: any) => ({
   id: query.id as string,
@@ -36,6 +41,7 @@ const parseParams = (query: any) => ({
 membershipRouter.patch<{}, any, Membership>(
   "/",
   requireAuth,
+  requireMembership("teamId", "teamId", { admin: true }),
   async (req, res) => {
     try {
       const memberships = await editMemberships(
@@ -67,6 +73,7 @@ membershipRouter.get<{}, any, Membership>(
 membershipRouter.delete<{}, any, Membership>(
   "/",
   requireAuth,
+  requireMembership("teamId", "teamId", { admin: true }),
   async (req, res) => {
     try {
       await deleteMemberships(parseParams(req.query));

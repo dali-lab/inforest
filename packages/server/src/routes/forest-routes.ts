@@ -1,7 +1,7 @@
 import express from "express";
 import { Forest } from "@ong-forestry/schema";
 import { createForest, deleteForests, editForests, getForests } from "services";
-import { requireAuth } from "middleware";
+import { requireAuth, requireMembership } from "middleware";
 import { forestCensusRouter } from "./forest-census-routes";
 
 const forestRouter = express.Router();
@@ -24,15 +24,20 @@ const parseParams = (query: any) => ({
   offset: parseInt(query.offset as string),
 });
 
-forestRouter.patch<{}, any, Forest>("/", requireAuth, async (req, res) => {
-  try {
-    const forests = await editForests(req.body, parseParams(req.query));
-    res.status(200).json(forests);
-  } catch (e: any) {
-    console.error(e);
-    res.status(500).send(e?.message ?? "Unknown error.");
+forestRouter.patch<{}, any, Forest>(
+  "/",
+  requireAuth,
+  requireMembership("id", "forestId", { fromQuery: true }),
+  async (req, res) => {
+    try {
+      const forests = await editForests(req.body, parseParams(req.query));
+      res.status(200).json(forests);
+    } catch (e: any) {
+      console.error(e);
+      res.status(500).send(e?.message ?? "Unknown error.");
+    }
   }
-});
+);
 
 forestRouter.get<{}, any, Forest>("/", requireAuth, async (req, res) => {
   try {
@@ -44,15 +49,20 @@ forestRouter.get<{}, any, Forest>("/", requireAuth, async (req, res) => {
   }
 });
 
-forestRouter.delete<{}, any, Forest>("/", requireAuth, async (req, res) => {
-  try {
-    await deleteForests(parseParams(req.query));
-    res.status(200).send("Forests successfully deleted.");
-  } catch (e: any) {
-    console.error(e);
-    res.status(500).send(e?.message ?? "Unknown error.");
+forestRouter.delete<{}, any, Forest>(
+  "/",
+  requireAuth,
+  requireMembership("id", "forestId", { fromQuery: true }),
+  async (req, res) => {
+    try {
+      await deleteForests(parseParams(req.query));
+      res.status(200).send("Forests successfully deleted.");
+    } catch (e: any) {
+      console.error(e);
+      res.status(500).send(e?.message ?? "Unknown error.");
+    }
   }
-});
+);
 
 forestRouter.use("/census", forestCensusRouter);
 

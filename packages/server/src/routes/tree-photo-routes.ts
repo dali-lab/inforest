@@ -7,7 +7,7 @@ import {
   editTreePhotos,
   deleteTreePhotos,
 } from "services";
-import { requireAuth, imageResize } from "middleware";
+import { requireAuth, imageResize, requireMembership } from "middleware";
 import { treePhotoPurposeRouter } from "./tree-photo-purpose-routes";
 
 const upload = multer({
@@ -16,15 +16,20 @@ const upload = multer({
 
 const treePhotoRouter = express.Router();
 
-treePhotoRouter.post<{}, any, TreePhoto>("/", requireAuth, async (req, res) => {
-  try {
-    const photo = await createTreePhoto(req.body);
-    res.status(201).json(photo);
-  } catch (e: any) {
-    console.error(e);
-    res.status(500).send(e?.message ?? "Unknown error.");
+treePhotoRouter.post<{}, any, TreePhoto>(
+  "/",
+  requireAuth,
+  requireMembership("treeCensusId", "treeCensusId"),
+  async (req, res) => {
+    try {
+      const photo = await createTreePhoto(req.body);
+      res.status(201).json(photo);
+    } catch (e: any) {
+      console.error(e);
+      res.status(500).send(e?.message ?? "Unknown error.");
+    }
   }
-});
+);
 
 const parseParams = (query: any) => ({
   id: query.id as string,
@@ -37,6 +42,7 @@ const parseParams = (query: any) => ({
 treePhotoRouter.patch<{}, any, TreePhoto>(
   "/",
   requireAuth,
+  requireMembership("treeCensusId", "treeCensusId"),
   async (req, res) => {
     try {
       const photos = await editTreePhotos(req.body, parseParams(req.query));
@@ -61,6 +67,7 @@ treePhotoRouter.get<{}, any, TreePhoto>("/", requireAuth, async (req, res) => {
 treePhotoRouter.delete<{}, any, TreePhoto>(
   "/",
   requireAuth,
+  requireMembership("treeCensusId", "treeCensusId"),
   async (req, res) => {
     try {
       await deleteTreePhotos(parseParams(req.query));

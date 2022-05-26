@@ -6,11 +6,11 @@ import {
   editTreeLabels,
   getTreeLabels,
 } from "services";
-import { requireAuth } from "middleware";
+import { requireAuth, retoolAuth } from "middleware";
 
 const treeLabelRouter = express.Router();
 
-treeLabelRouter.post<{}, any, TreeLabel>("/", requireAuth, async (req, res) => {
+treeLabelRouter.post<{}, any, TreeLabel>("/", retoolAuth, async (req, res) => {
   try {
     const label = await createTreeLabel(req.body);
     res.status(201).json(label);
@@ -27,19 +27,15 @@ const parseParams = (query: any) => ({
   offset: parseInt(query.offset as string),
 });
 
-treeLabelRouter.patch<{}, any, TreeLabel>(
-  "/",
-  requireAuth,
-  async (req, res) => {
-    try {
-      const labels = await editTreeLabels(req.body, parseParams(req.query));
-      res.status(200).json(labels);
-    } catch (e: any) {
-      console.error(e);
-      res.status(500).send(e?.message ?? "Unknown error.");
-    }
+treeLabelRouter.patch<{}, any, TreeLabel>("/", retoolAuth, async (req, res) => {
+  try {
+    const labels = await editTreeLabels(req.body, parseParams(req.query));
+    res.status(200).json(labels);
+  } catch (e: any) {
+    console.error(e);
+    res.status(500).send(e?.message ?? "Unknown error.");
   }
-);
+});
 
 treeLabelRouter.get<{}, any, TreeLabel>("/", requireAuth, async (req, res) => {
   try {
@@ -53,7 +49,7 @@ treeLabelRouter.get<{}, any, TreeLabel>("/", requireAuth, async (req, res) => {
 
 treeLabelRouter.delete<{}, any, TreeLabel>(
   "/",
-  requireAuth,
+  retoolAuth,
   async (req, res) => {
     try {
       await deleteTreeLabels(parseParams(req.query));

@@ -1,6 +1,6 @@
 import { TreePhotoPurpose } from "@ong-forestry/schema";
 import express from "express";
-import { requireAuth } from "middleware/auth";
+import { requireAuth, retoolAuth } from "middleware/auth";
 import {
   createTreePhotoPurpose,
   deleteTreePhotoPurposes,
@@ -12,7 +12,7 @@ const treePhotoPurposeRouter = express.Router();
 
 treePhotoPurposeRouter.post<{}, any, TreePhotoPurpose>(
   "/",
-  requireAuth,
+  retoolAuth,
   async (req, res) => {
     try {
       const purpose = await createTreePhotoPurpose(req.body);
@@ -33,7 +33,7 @@ const parseParams = (query: any) => ({
 
 treePhotoPurposeRouter.patch<{}, any, TreePhotoPurpose>(
   "/",
-  requireAuth,
+  retoolAuth,
   async (req, res) => {
     try {
       const purposes = await editTreePhotoPurposes(
@@ -64,7 +64,7 @@ treePhotoPurposeRouter.get<{}, any, TreePhotoPurpose>(
 
 treePhotoPurposeRouter.delete<{}, any, TreePhotoPurpose>(
   "/",
-  requireAuth,
+  retoolAuth,
   async (req, res) => {
     try {
       await deleteTreePhotoPurposes(parseParams(req.query));

@@ -1,16 +1,20 @@
 import express from "express";
 import { TreeCensus } from "@ong-forestry/schema";
 import { createTreeCensus, editTreeCensuses, getTreeCensuses } from "services";
-import { requireAuth } from "middleware";
+import { requireAuth, requireMembership } from "middleware";
 
 const treeCensusRouter = express.Router();
 
-treeCensusRouter.post<{}, any, Omit<TreeCensus, "plotCensusId">>(
+treeCensusRouter.post<{}, any, TreeCensus>(
   "/",
   requireAuth,
+  requireMembership("plotCensusId", "plotCensusId"),
   async (req, res) => {
     try {
-      const treeCensus = await createTreeCensus(req.body);
+      const treeCensus = await createTreeCensus({
+        ...req.body,
+        authorId: req.user?.id ?? "",
+      });
       res.status(201).send(treeCensus);
     } catch (e: any) {
       console.error(e);
@@ -19,9 +23,10 @@ treeCensusRouter.post<{}, any, Omit<TreeCensus, "plotCensusId">>(
   }
 );
 
-treeCensusRouter.post<{}, any, Omit<TreeCensus, "plotCensusId">[]>(
+treeCensusRouter.post<{}, any, TreeCensus[]>(
   "/many",
   requireAuth,
+  requireMembership("plotCensusId", "plotCensusId", { admin: true }),
   async (req, res) => {}
 );
 
@@ -42,13 +47,17 @@ treeCensusRouter.get<{}, any, any>("/", requireAuth, async (req, res) => {
   }
 });
 
-treeCensusRouter.patch<{}, any, Omit<TreeCensus, "plotCensusId">>(
+treeCensusRouter.patch<{}, any, TreeCensus>(
   "/",
   requireAuth,
+  requireMembership("plotCensusId", "plotCensusId"),
   async (req, res) => {
     try {
       const treeCensuses = await editTreeCensuses(
-        req.body,
+        {
+          ...req.body,
+          authorId: req.user?.id ?? "",
+        },
         parseParams(req.query)
       );
       res.status(200).send(treeCensuses);

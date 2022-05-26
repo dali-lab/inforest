@@ -6,7 +6,7 @@ import {
   getPlotCensuses,
   submitForReview,
 } from "services";
-import { requireAuth } from "middleware";
+import { requireAuth, requireMembership, retoolAuth } from "middleware";
 
 const plotCensusRouter = express.Router();
 
@@ -51,6 +51,7 @@ plotCensusRouter.get<{}, any, any>("/", requireAuth, async (req, res) => {
 plotCensusRouter.patch<{}, any, any>(
   "/submit",
   requireAuth,
+  requireMembership("plotId", "plotId"),
   async (req, res) => {
     try {
       await submitForReview(parseParams(req.query));
@@ -65,7 +66,7 @@ plotCensusRouter.patch<{}, any, any>(
 // approve plot in review
 plotCensusRouter.patch<{}, any, any>(
   "/approve",
-  requireAuth,
+  retoolAuth,
   async (req, res) => {
     try {
       await approve(parseParams(req.query));
