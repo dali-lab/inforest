@@ -5,6 +5,7 @@ import { Sequelize } from "sequelize-typescript";
 import passport from "passport";
 import bodyParser from "body-parser";
 import morgan from "morgan";
+import { User as CustomUser } from "@ong-forestry/schema";
 
 import * as models from "db/models";
 import {
@@ -16,6 +17,12 @@ import {
   forestRouter,
   membershipRouter,
 } from "routes";
+
+declare global {
+  namespace Express {
+    interface User extends CustomUser {}
+  }
+}
 
 const app = express();
 app.use(cors());

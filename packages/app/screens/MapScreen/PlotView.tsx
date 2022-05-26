@@ -11,13 +11,13 @@ import { RootState } from "../../redux";
 import Colors from "../../constants/Colors";
 
 interface PlotViewProps {
+  mode: MapScreenModes;
   selectedPlot: Plot;
   onExit: () => void;
-  endPlotting: () => void;
 }
 
 const PlotView: React.FC<PlotViewProps> = (props) => {
-  const { selectedPlot, onExit, endPlotting } = props;
+  const { selectedPlot, onExit } = props;
 
   const [drawerState, setDrawerState] = useState<DrawerStates>(
     DrawerStates.Minimized
@@ -85,7 +85,6 @@ const PlotView: React.FC<PlotViewProps> = (props) => {
         drawerState={drawerState}
         plot={selectedPlot}
         plotCensus={selectedPlotCensus}
-        endPlotting={endPlotting}
         expandDrawer={() => setDrawerState(DrawerStates.Expanded)}
         minimizeDrawer={() => setDrawerState(DrawerStates.Minimized)}
       ></PlotDrawer>

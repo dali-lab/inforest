@@ -273,7 +273,6 @@ const DataForm: React.FC<DataFormProps> = ({
   );
   const addLabel = useCallback(
     (code: string) => {
-      console.log(pills.map((label) => label?.code));
       if (!(code in pills.map((label) => label?.code)))
         setPills((prev) => [...prev, allLabels[code]]);
     },

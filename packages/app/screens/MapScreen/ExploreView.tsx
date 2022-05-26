@@ -40,6 +40,10 @@ import {
   VisualizationConfigType,
 } from "../../constants";
 import { getForestCensusPlotCensuses } from "../../redux/slices/plotCensusSlice";
+import { useNavigation } from "@react-navigation/native";
+import { max, min } from "lodash";
+import { MapOverlay } from "../../components/MapOverlay";
+import { ModeSwitcher } from "./ModeSwitcher";
 
 const O_FARM_LAT = 43.7348569458618;
 const O_FARM_LNG = -72.2519099587406;
@@ -53,15 +57,30 @@ const plotCensusColorMap: { [key in PlotCensusStatuses]?: string } = {
   APPROVED: "rgba(0,250,0,0.3)",
 };
 
-interface ExploreViewProps {
+type ForestViewProps = {
+  mode: MapScreenModes;
+  switchMode: () => void;
   selectedPlot?: Plot;
   selectPlot: (plot: Plot) => void;
   deselectPlot: () => void;
   beginPlotting: () => void;
-}
+  showUI?: boolean;
+  showTrees?: boolean;
+};
 
-const ExploreView: React.FC<ExploreViewProps> = (props) => {
-  const { selectedPlot, selectPlot, deselectPlot, beginPlotting } = props;
+const ForestView: React.FC<ForestViewProps> = (props) => {
+  const {
+    mode,
+    switchMode,
+    selectedPlot,
+    selectPlot,
+    deselectPlot,
+    beginPlotting,
+    showUI = true,
+    showTrees = true,
+  } = props;
+
+  const navigate = useNavigation();
 
   const [searchModalOpen, setSearchModalOpen] = useState(false);
   const [regionSnapshot, setRegionSnapshot] = useState<Region>();
@@ -93,7 +112,7 @@ const ExploreView: React.FC<ExploreViewProps> = (props) => {
   const dispatch = useAppDispatch();
   const reduxState = useAppSelector((state: RootState) => state);
   const { all: allTrees, selected: selectedTree } = reduxState.trees;
-  const { all: allPlots } = reduxState.plots;
+  const { all: allPlots, indices: plotIndices } = reduxState.plots;
   const { all: allForestCensuses, selected: selectedForestCensus } =
     reduxState.forestCensuses;
   const {
@@ -111,6 +130,20 @@ const ExploreView: React.FC<ExploreViewProps> = (props) => {
   }, [allForestCensuses]);
 
   const plots = usePlotsInRegion(usePlots(reduxState), regionSnapshot);
+  const forestBoundaries = useMemo(() => {
+    if (plotIndices.latitude.length && plotIndices.longitude.length) {
+      return {
+        latitude: {
+          min: min(plotIndices.latitude.map(({ value }) => value)) as number,
+          max: max(plotIndices.latitude.map(({ value }) => value)) as number,
+        },
+        longitude: {
+          min: min(plotIndices.longitude.map(({ value }) => value)) as number,
+          max: max(plotIndices.longitude.map(({ value }) => value)) as number,
+        },
+      };
+    } else return;
+  }, [plotIndices]);
   const density = useMemo(() => {
     if (plots.length <= Math.pow(5, 2)) {
       return 1;
@@ -292,15 +325,25 @@ const ExploreView: React.FC<ExploreViewProps> = (props) => {
           }
         }}
         initialRegion={
-          regionSnapshot ?? {
-            latitude: O_FARM_LAT,
-            longitude: O_FARM_LNG,
-            latitudeDelta: MIN_REGION_DELTA,
-            longitudeDelta: MIN_REGION_DELTA,
-          }
+          regionSnapshot ??
+          (forestBoundaries && {
+            latitude:
+              (forestBoundaries.latitude.max + forestBoundaries.latitude.min) /
+              2,
+            longitude:
+              (forestBoundaries.longitude.max +
+                forestBoundaries.longitude.min) /
+              2,
+            latitudeDelta:
+              forestBoundaries.latitude.max - forestBoundaries.latitude.min,
+            longitudeDelta:
+              forestBoundaries.longitude.max - forestBoundaries.longitude.min,
+          })
         }
         onRegionChangeComplete={(region) => {
-          setRegionSnapshot(region);
+          if (forestBoundaries) {
+            setRegionSnapshot(region);
+          }
         }}
         onPress={(e) => {
           closeVisualizationModal();
@@ -376,56 +419,60 @@ const ExploreView: React.FC<ExploreViewProps> = (props) => {
             />
           );
         })}
-        {treeNodes}
+        {showTrees && treeNodes}
       </MapView>
-      <View
-        style={{
-          ...styles.mapOverlay,
-          bottom: drawerHeight + 32,
-          right: 32,
-        }}
-      >
-        <Ionicons
-          name="ios-locate"
-          size={32}
-          onPress={() => {
-            mapRef.current?.animateToRegion({
-              latitude: userPos.latitude,
-              longitude: userPos.longitude,
-              latitudeDelta: MIN_REGION_DELTA,
-              longitudeDelta: MIN_REGION_DELTA,
-            });
-          }}
-        />
-      </View>
-      <View
-        style={{
-          ...styles.mapOverlay,
-          bottom: drawerHeight + 128,
-          left: 32,
-        }}
-      >
-        <Ionicons
-          name="ios-search"
-          size={32}
-          onPress={() => {
-            setSearchModalOpen(true);
-          }}
-        />
-      </View>
-      <View
-        style={{
-          ...styles.mapOverlay,
-          bottom: drawerHeight + 32,
-          left: 32,
-        }}
-      >
-        <Ionicons
-          name="ios-settings"
-          size={32}
-          onPress={openVisualizationModal}
-        />
-      </View>
+      {showUI && (
+        <MapOverlay bottom={drawerHeight + 32} right={32}>
+          <Ionicons
+            name="ios-locate"
+            size={32}
+            onPress={() => {
+              mapRef.current?.animateToRegion({
+                latitude: userPos.latitude,
+                longitude: userPos.longitude,
+                latitudeDelta: MIN_REGION_DELTA,
+                longitudeDelta: MIN_REGION_DELTA,
+              });
+            }}
+          />
+        </MapOverlay>
+      )}
+      {showUI && (
+        <MapOverlay top={32} left={32}>
+          <Ionicons
+            name="ios-arrow-back"
+            size={32}
+            onPress={() => {
+              navigate.goBack();
+            }}
+          />
+        </MapOverlay>
+      )}
+      {showUI && (
+        <MapOverlay bottom={drawerHeight + 128} left={32}>
+          <Ionicons
+            name="ios-search"
+            size={32}
+            onPress={() => {
+              setSearchModalOpen(true);
+            }}
+          />
+        </MapOverlay>
+      )}
+      {showUI && (
+        <MapOverlay bottom={drawerHeight + 32} left={32}>
+          <Ionicons
+            name="ios-settings"
+            size={32}
+            onPress={openVisualizationModal}
+          />
+        </MapOverlay>
+      )}
+      {showUI && (
+        <View style={{ position: "absolute", top: 32, right: 32 }}>
+          <ModeSwitcher mode={mode} switchMode={switchMode}></ModeSwitcher>
+        </View>
+      )}
       <View style={{ position: "absolute" }}>
         {visualizationConfig.modalOpen && (
           <VisualizationModal
@@ -457,44 +504,46 @@ const ExploreView: React.FC<ExploreViewProps> = (props) => {
           <ColorKey config={visualizationConfig} />
         )}
       </View>
-      <PlotDrawer
-        mode={selectedPlot ? MapScreenModes.Select : MapScreenModes.Explore}
-        drawerState={drawerState}
-        setDrawerHeight={setDrawerHeight}
-        plot={selectedPlot}
-        plotCensus={
-          (selectedPlot &&
-            selectedForestCensus &&
-            plotCensusesByPlot?.[selectedPlot?.id]?.[
-              selectedForestCensus?.id
-            ]) ||
-          undefined
-        }
-        beginPlotting={() => {
-          if (selectedPlot) {
-            const { easting, northing, zoneNum, zoneLetter } = utm.fromLatLon(
-              selectedPlot.latitude,
-              selectedPlot.longitude
-            );
-            const { width, length } = selectedPlot;
-            const focusToPlotRegion = {
-              ...utm.toLatLon(
-                easting + width / 2,
-                northing - length / 2,
-                zoneNum,
-                zoneLetter
-              ),
-              latitudeDelta: MIN_REGION_DELTA,
-              longitudeDelta: MIN_REGION_DELTA,
-            };
-            mapRef.current?.animateToRegion(focusToPlotRegion, 500);
-            setRegionSnapshot(focusToPlotRegion);
-            setTimeout(() => beginPlotting(), 500);
+      {showUI && (
+        <PlotDrawer
+          mode={MapScreenModes.Explore}
+          drawerState={drawerState}
+          setDrawerHeight={setDrawerHeight}
+          plot={selectedPlot}
+          plotCensus={
+            (selectedPlot &&
+              selectedForestCensus &&
+              plotCensusesByPlot?.[selectedPlot?.id]?.[
+                selectedForestCensus?.id
+              ]) ||
+            undefined
           }
-        }}
-        expandDrawer={() => setDrawerState(DrawerStates.Expanded)}
-        minimizeDrawer={() => setDrawerState(DrawerStates.Minimized)}
-      ></PlotDrawer>
+          beginPlotting={() => {
+            if (selectedPlot) {
+              const { easting, northing, zoneNum, zoneLetter } = utm.fromLatLon(
+                selectedPlot.latitude,
+                selectedPlot.longitude
+              );
+              const { width, length } = selectedPlot;
+              const focusToPlotRegion = {
+                ...utm.toLatLon(
+                  easting + width / 2,
+                  northing - length / 2,
+                  zoneNum,
+                  zoneLetter
+                ),
+                latitudeDelta: MIN_REGION_DELTA,
+                longitudeDelta: MIN_REGION_DELTA,
+              };
+              mapRef.current?.animateToRegion(focusToPlotRegion, 500);
+              setRegionSnapshot(focusToPlotRegion);
+              setTimeout(() => beginPlotting(), 500);
+            }
+          }}
+          expandDrawer={() => setDrawerState(DrawerStates.Expanded)}
+          minimizeDrawer={() => setDrawerState(DrawerStates.Minimized)}
+        ></PlotDrawer>
+      )}
     </>
   );
 };
@@ -517,7 +566,7 @@ const styles = StyleSheet.create({
   },
   mapOverlay: {
     position: "absolute",
-    backgroundColor: "white",
+    backgroundColor: Colors.blurViewBackground,
     width: 64,
     height: 64,
     borderRadius: 8,
@@ -526,4 +575,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ExploreView;
+export default ForestView;

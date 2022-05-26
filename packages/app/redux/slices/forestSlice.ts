@@ -19,26 +19,33 @@ export const getForest = createAsyncThunk(
   "forest/getForest",
   async (params: GetForestParams) => {
     return await axios
-      .get<Forest>(`${BASE_URL}?id=${params.id}`)
+      .get<Forest[]>(`${BASE_URL}?id=${params.id}`)
       .then((response) => {
-        return response.data;
+        return response.data[0];
       });
   }
 );
 export interface ForestState {
   currentTeamForests: Forest[];
-  currentForest: Forest | null;
+  currentForest?: Forest;
 }
 
 const initialState: ForestState = {
   currentTeamForests: [],
-  currentForest: null,
+  currentForest: undefined,
 };
 
 export const forestSlice = createSlice({
   name: "forest",
   initialState,
-  reducers: {},
+  reducers: {
+    changeForest: (state, action) => {
+      state.currentForest = state.currentTeamForests.find(
+        (forest) => forest.id === action.payload.id
+      );
+      return state;
+    },
+  },
   extraReducers: (builder) => {
     builder.addCase(getForests.fulfilled, (state, action) => {
       state.currentTeamForests = action.payload;
@@ -48,5 +55,7 @@ export const forestSlice = createSlice({
     });
   },
 });
+
+export const { changeForest } = forestSlice.actions;
 
 export default forestSlice.reducer;

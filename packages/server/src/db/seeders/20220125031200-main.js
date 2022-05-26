@@ -302,10 +302,13 @@ module.exports = {
         transaction,
       });
 
+      const plotCensusIds = [];
       const plot_censuses = {};
       for (const plot of Object.values(plots)) {
+        const id = uuid();
+        plotCensusIds.push(id);
         plot_censuses[plot.id] = {
-          id: uuid(),
+          id,
           status: "APPROVED",
           plotId: plot.id,
           forestCensusId: DATA_SEEDER_FOREST_CENSUS_ID,
@@ -316,9 +319,11 @@ module.exports = {
 
       const inprogress_plot_censuses = {};
       for (let i = 0; i < Math.floor(Object.values(plots).length / 2); i++) {
+        const id = uuid();
+        plotCensusIds.push(id);
         const plot = Object.values(plots)[i];
         inprogress_plot_censuses[plot.id] = {
-          id: uuid(),
+          id,
           status: "IN_PROGRESS",
           plotId: plot.id,
           forestCensusId: INPROGRESS_FOREST_CENSUS_ID,
@@ -338,6 +343,20 @@ module.exports = {
       await queryInterface.bulkInsert(
         "plot_census",
         Object.values(inprogress_plot_censuses),
+        {
+          transaction,
+        }
+      );
+
+      await queryInterface.bulkInsert(
+        "plot_census_assignment",
+        plotCensusIds.map((plotCensusId) => ({
+          id: uuid(),
+          plotCensusId,
+          userId: DATA_SEEDER_AUTHOR_ID,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        })),
         {
           transaction,
         }
@@ -400,6 +419,9 @@ module.exports = {
         transaction,
       });
       await queryInterface.bulkDelete("tree_census", null, { transaction });
+      await queryInterface.bulkDelete("plot_census_assignment", null, {
+        transaction,
+      });
       await queryInterface.bulkDelete("plot_census", null, { transaction });
       await queryInterface.bulkDelete("forest_census", null, { transaction });
       await queryInterface.bulkDelete("trees", null, { transaction });

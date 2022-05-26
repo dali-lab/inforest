@@ -19,6 +19,7 @@ export default {
     7: "#424B59",
     8: "#2A2F38",
   },
+  blurViewBackground: "rgba(255, 255, 255, 0.5)",
   error: "#FF4D3D",
   highlight: "#FFD700",
 };

@@ -2,7 +2,7 @@ import React, { Fragment, useMemo } from "react";
 import { View, StyleSheet } from "react-native";
 import { BlurView } from "expo-blur";
 import { Queue, Stack } from "react-native-spacing-system";
-import { VisualizationConfigType } from "../constants";
+import { BLUR_VIEW_INTENSITY, VisualizationConfigType } from "../constants";
 import Colors from "../constants/Colors";
 import useAppSelector from "../hooks/useAppSelector";
 import { RootState } from "../redux";
@@ -27,7 +27,7 @@ const ColorKey: React.FC<ColorKeyProps> = ({ config }) => {
     [config, frequencyMapArray]
   );
   return (
-    <BlurView intensity={40}>
+    <BlurView intensity={BLUR_VIEW_INTENSITY}>
       <View style={styles.container}>
         {speciesToRender.map(([speciesCode, _num]) => (
           <Fragment key={speciesCode}>
@@ -66,7 +66,7 @@ const KeyRow: React.FC<KeyRowProps> = ({ color, species }) => {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "rgba(255, 255, 255, 0.5)",
+    backgroundColor: Colors.blurViewBackground,
     borderRadius: 12,
     paddingVertical: 12,
     paddingHorizontal: 18,

@@ -1,5 +1,6 @@
 import { PlotCensus, PlotCensusStatuses } from "@ong-forestry/schema";
 import PlotCensusModel from "db/models/plot-census";
+import UserModel from "db/models/user";
 import { Op } from "sequelize";
 import { CensusExistsError } from "errors";
 import {
@@ -9,6 +10,7 @@ import {
   getTrees,
   getTreeCensuses,
 } from "services";
+import { PlotCensusAssignment } from "db/models";
 
 const uuid = require("uuid4");
 
@@ -120,7 +122,10 @@ const constructQuery = (params: PlotCensusParams) => {
 
 export const getPlotCensuses = async (params: PlotCensusParams) => {
   const query = constructQuery(params);
-  var plotCensuses = await PlotCensusModel.findAll(query);
+  var plotCensuses = await PlotCensusModel.findAll({
+    ...query,
+    include: UserModel,
+  });
 
   // search by user assigned to this plot census
   if (params.userId) {
