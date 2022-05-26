@@ -10,9 +10,10 @@ import {
 } from "services";
 import { PlotCensus } from "db/models";
 
-const validatePlotCensus = async (
-  treeCensus: Omit<TreeCensus, "plotCensusId">
-) => {
+const validatePlotCensus = async (treeCensusData: Partial<TreeCensus>) => {
+  // get all data about whatever was passed about the tree census
+  const treeCensus = (await getTreeCensuses(treeCensusData))[0];
+
   // find tree being censused -> plot it's on -> active plot census
   const trees = await getTrees({
     ids: [treeCensus.treeId],
@@ -51,9 +52,7 @@ const validatePlotCensus = async (
   return plotCensuses[0].id;
 };
 
-export const createTreeCensus = async (
-  treeCensus: Omit<TreeCensus, "plotCensusId">
-) => {
+export const createTreeCensus = async (treeCensus: TreeCensus) => {
   const plotCensusId = await validatePlotCensus(treeCensus);
   // ^ throws error if census is not in_progress
 
@@ -73,7 +72,7 @@ export const createTreeCensus = async (
 };
 
 export interface TreeCensusParams {
-  ids?: string[];
+  id?: string;
   treeIds?: string[];
   plotCensusId?: string;
   authorId?: string;
@@ -81,10 +80,10 @@ export interface TreeCensusParams {
 }
 
 const constructQuery = (params: TreeCensusParams) => {
-  const { ids, treeIds, plotCensusId, authorId, flagged } = params;
+  const { id, treeIds, plotCensusId, authorId, flagged } = params;
   const query: any = { where: {} };
-  if (ids) {
-    query.where.treeId = { [Op.in]: ids };
+  if (id) {
+    query.where.treeId = { [Op.eq]: id };
   }
   if (treeIds) {
     query.where.treeId = { [Op.in]: treeIds };
@@ -119,13 +118,10 @@ export const getTreeCensuses = async (params: TreeCensusParams) => {
 };
 
 export const editTreeCensuses = async (
-  treeCensus: Omit<TreeCensus, "plotCensusId">,
+  treeCensus: Partial<TreeCensus>,
   params: TreeCensusParams
 ) => {
-  // the author of the census is the person who last updated
-  // frontend should include id of editor in the request body
-
-  await validatePlotCensus(treeCensus);
+  await validatePlotCensus({ ...params, ...treeCensus });
   // ^ throws error if census is not in_progress
 
   const query = constructQuery(params);

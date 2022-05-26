@@ -120,7 +120,7 @@ export const requireMembership = (
 
       switch (type) {
         case "treeCensusId":
-          id = (await getTreeCensuses({ ids: [id] }))[0].treeId; // get tree id
+          id = (await getTreeCensuses({ id }))[0].treeId; // get tree id
         case "treeId":
           id = (await getTrees({ ids: [id] }))[0].plotId; // plot id
         case "plotId":
