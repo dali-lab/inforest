@@ -55,7 +55,7 @@ export const editTreePhotos = async (
   params: GetTreePhotosParams
 ) => {
   const query = constructQuery(params);
-  return await TreePhotoModel.update(treePhoto, query);
+  return (await TreePhotoModel.update(treePhoto, query))[1];
 };
 
 export const getTreePhotos = async (params: GetTreePhotosParams) => {

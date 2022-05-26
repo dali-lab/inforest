@@ -1,6 +1,5 @@
 import { PlotCensusStatuses, TreeCensus } from "@ong-forestry/schema";
 import TreeCensusModel from "db/models/tree-census";
-import TreeModel from "db/models/tree";
 import { Op } from "sequelize";
 import {
   getPlotCensusAssignments,
@@ -73,6 +72,7 @@ export const createTreeCensus = async (
 };
 
 export interface TreeCensusParams {
+  id?: string;
   treeIds?: string[];
   plotCensusId?: string;
   authorId?: string;
@@ -80,8 +80,11 @@ export interface TreeCensusParams {
 }
 
 const constructQuery = (params: TreeCensusParams) => {
-  const { treeIds, plotCensusId, authorId, flagged } = params;
+  const { id, treeIds, plotCensusId, authorId, flagged } = params;
   const query: any = { where: {} };
+  if (id) {
+    query.where.treeId = { [Op.eq]: id };
+  }
   if (treeIds) {
     query.where.treeId = { [Op.in]: treeIds };
   }
@@ -125,5 +128,5 @@ export const editTreeCensuses = async (
   // ^ throws error if census is not in_progress
 
   const query = constructQuery(params);
-  return await TreeCensusModel.update(treeCensus, query);
+  return (await TreeCensusModel.update(treeCensus, query))[1];
 };
