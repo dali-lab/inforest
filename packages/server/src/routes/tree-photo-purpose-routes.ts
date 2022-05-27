@@ -1,28 +1,9 @@
 import { TreePhotoPurpose } from "@ong-forestry/schema";
 import express from "express";
 import { requireAuth, retoolAuth } from "middleware/auth";
-import {
-  createTreePhotoPurpose,
-  deleteTreePhotoPurposes,
-  editTreePhotoPurposes,
-  getTreePhotoPurposes,
-} from "../services/tree-photo-purpose-service";
+import { getTreePhotoPurposes } from "../services/tree-photo-purpose-service";
 
 const treePhotoPurposeRouter = express.Router();
-
-treePhotoPurposeRouter.post<{}, any, TreePhotoPurpose>(
-  "/",
-  retoolAuth,
-  async (req, res) => {
-    try {
-      const purpose = await createTreePhotoPurpose(req.body);
-      res.status(201).json(purpose);
-    } catch (e: any) {
-      console.error(e);
-      res.status(500).send(e?.message ?? "Unknown error.");
-    }
-  }
-);
 
 const parseParams = (query: any) => ({
   name: query.name as string,
@@ -31,44 +12,13 @@ const parseParams = (query: any) => ({
   offset: parseInt(query.offset as string),
 });
 
-treePhotoPurposeRouter.patch<{}, any, TreePhotoPurpose>(
-  "/",
-  retoolAuth,
-  async (req, res) => {
-    try {
-      const purposes = await editTreePhotoPurposes(
-        req.body,
-        parseParams(req.query)
-      );
-      res.status(200).json(purposes);
-    } catch (e: any) {
-      console.error(e);
-      res.status(500).send(e?.message ?? "Unknown error.");
-    }
-  }
-);
-
 treePhotoPurposeRouter.get<{}, any, TreePhotoPurpose>(
   "/",
   requireAuth,
   async (req, res) => {
     try {
-      const purposes = await getTreePhotoPurposes(req.query);
+      const purposes = await getTreePhotoPurposes(parseParams(req.query));
       res.status(200).json(purposes);
-    } catch (e: any) {
-      console.error(e);
-      res.status(500).send(e?.message ?? "Unknown error.");
-    }
-  }
-);
-
-treePhotoPurposeRouter.delete<{}, any, TreePhotoPurpose>(
-  "/",
-  retoolAuth,
-  async (req, res) => {
-    try {
-      await deleteTreePhotoPurposes(parseParams(req.query));
-      res.status(200).send("Photo Purposes successfully deleted.");
     } catch (e: any) {
       console.error(e);
       res.status(500).send(e?.message ?? "Unknown error.");

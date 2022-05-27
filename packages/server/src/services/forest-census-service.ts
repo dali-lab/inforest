@@ -17,14 +17,14 @@ export const createForestCensus = async (forestCensus: ForestCensus) => {
   return await ForestCensusModel.create(forestCensus);
 };
 
-export interface GetForestCensusesParams {
+export interface ForestCensusParams {
   forestId?: string;
   active?: boolean;
   limit?: number;
   offset?: number;
 }
 
-const constructQuery = (params: GetForestCensusesParams) => {
+const constructQuery = (params: ForestCensusParams) => {
   const { forestId, active, limit, offset } = params;
   const query: any = {
     where: {},
@@ -48,7 +48,7 @@ const constructQuery = (params: GetForestCensusesParams) => {
   return query;
 };
 
-export const getForestCensuses = async (params: GetForestCensusesParams) => {
+export const getForestCensuses = async (params: ForestCensusParams) => {
   const query = constructQuery(params);
   return await ForestCensusModel.findAll(query);
 };

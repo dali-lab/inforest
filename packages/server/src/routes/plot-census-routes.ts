@@ -10,20 +10,6 @@ import { requireAuth, requireMembership, retoolAuth } from "middleware";
 
 const plotCensusRouter = express.Router();
 
-plotCensusRouter.post<{ plotId: string }, any, PlotCensus>(
-  "/:plotId",
-  requireAuth,
-  async (req, res) => {
-    try {
-      const plotCensus = await createPlotCensus(req.params.plotId);
-      res.status(201).send(plotCensus);
-    } catch (e: any) {
-      console.error(e);
-      res.status(500).send(e?.message ?? "Unknown error.");
-    }
-  }
-);
-
 const parseParams = (query: any) => ({
   id: query.id as string,
 

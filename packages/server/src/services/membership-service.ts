@@ -32,7 +32,7 @@ export const createMembership = async (membership: {
   return newMembership;
 };
 
-export interface GetMembershipsParams {
+export interface MembershipParams {
   id?: string;
 
   teamId?: string;
@@ -44,7 +44,7 @@ export interface GetMembershipsParams {
   limit?: number;
 }
 
-const constructQuery = (params: GetMembershipsParams) => {
+const constructQuery = (params: MembershipParams) => {
   const { id, teamId, userId, role, offset, limit } = params;
   const query: any = {
     where: {},
@@ -79,18 +79,18 @@ const constructQuery = (params: GetMembershipsParams) => {
 };
 export const editMemberships = async (
   membership: Partial<Membership>,
-  params: GetMembershipsParams
+  params: MembershipParams
 ) => {
   const query = constructQuery(params);
   return await MembershipModel.update(membership, query);
 };
 
-export const getMemberships = async (params: GetMembershipsParams) => {
+export const getMemberships = async (params: MembershipParams) => {
   const query = constructQuery(params);
   return await MembershipModel.findAll(query);
 };
 
-export const deleteMemberships = async (params: GetMembershipsParams) => {
+export const deleteMemberships = async (params: MembershipParams) => {
   const query = constructQuery(params);
   return await MembershipModel.destroy(query);
 };

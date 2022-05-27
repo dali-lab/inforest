@@ -23,13 +23,6 @@ treeCensusRouter.post<{}, any, TreeCensus>(
   }
 );
 
-treeCensusRouter.post<{}, any, TreeCensus[]>(
-  "/many",
-  requireAuth,
-  requireMembership("plotCensusId", "plotCensusId", { admin: true }),
-  async (req, res) => {}
-);
-
 const parseParams = (query: any) => ({
   treeIds: (query.treeIds as string)?.split(","),
   plotCensusId: query.plotCensusId as string,

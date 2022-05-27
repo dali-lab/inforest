@@ -1,6 +1,6 @@
 import express from "express";
 import { Tree } from "@ong-forestry/schema";
-import { createTree, getTrees, editTrees, deleteTrees } from "services";
+import { createTree, getTrees, editTrees } from "services";
 import { requireAuth, requireMembership } from "middleware";
 import { treePhotoRouter } from "./tree-photo-routes";
 import { treeSpeciesRouter } from "./tree-species-routes";
@@ -65,21 +65,6 @@ treeRouter.get<{}, any, Tree>("/", requireAuth, async (req, res) => {
     res.status(500).send(e?.message ?? "Unknown error.");
   }
 });
-
-treeRouter.delete<{}, any, Tree>(
-  "/",
-  requireAuth,
-  requireMembership("plotId", "plotId", { admin: true }),
-  async (req, res) => {
-    try {
-      await deleteTrees(parseParams(req.query));
-      res.status(200).send("Trees deleted successfully.");
-    } catch (e: any) {
-      console.error(e);
-      res.status(500).send(e?.message ?? "Unknown error.");
-    }
-  }
-);
 
 treeRouter.use("/photos", treePhotoRouter);
 treeRouter.use("/species", treeSpeciesRouter);

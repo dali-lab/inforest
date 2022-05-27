@@ -11,7 +11,7 @@ export const createTreePhoto = async ({ body: treePhoto, images }: any) => {
   return await TreePhotoModel.create(treePhoto);
 };
 
-export interface GetTreePhotosParams {
+export interface TreePhotoParams {
   id?: string;
 
   treeId?: string;
@@ -21,7 +21,7 @@ export interface GetTreePhotosParams {
   offset?: number;
 }
 
-const constructQuery = (params: GetTreePhotosParams) => {
+const constructQuery = (params: TreePhotoParams) => {
   const { id, treeId, purposeName, limit, offset } = params;
   const query: any = {
     where: {},
@@ -52,18 +52,18 @@ const constructQuery = (params: GetTreePhotosParams) => {
 
 export const editTreePhotos = async (
   treePhoto: Partial<TreePhoto>,
-  params: GetTreePhotosParams
+  params: TreePhotoParams
 ) => {
   const query = constructQuery(params);
   return await TreePhotoModel.update(treePhoto, query);
 };
 
-export const getTreePhotos = async (params: GetTreePhotosParams) => {
+export const getTreePhotos = async (params: TreePhotoParams) => {
   const query = constructQuery(params);
   return await TreePhotoModel.findAll(query);
 };
 
-export const deleteTreePhotos = async (params: GetTreePhotosParams) => {
+export const deleteTreePhotos = async (params: TreePhotoParams) => {
   const query = constructQuery(params);
   return await TreePhotoModel.destroy(query);
 };

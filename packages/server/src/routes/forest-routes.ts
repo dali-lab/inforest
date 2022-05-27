@@ -1,6 +1,6 @@
 import express from "express";
 import { Forest } from "@ong-forestry/schema";
-import { createForest, deleteForests, editForests, getForests } from "services";
+import { createForest, editForests, getForests } from "services";
 import { requireAuth, requireMembership } from "middleware";
 import { forestCensusRouter } from "./forest-census-routes";
 
@@ -48,21 +48,6 @@ forestRouter.get<{}, any, Forest>("/", requireAuth, async (req, res) => {
     res.status(500).send(e?.message ?? "Unknown error.");
   }
 });
-
-forestRouter.delete<{}, any, Forest>(
-  "/",
-  requireAuth,
-  requireMembership("id", "forestId", { fromQuery: true }),
-  async (req, res) => {
-    try {
-      await deleteForests(parseParams(req.query));
-      res.status(200).send("Forests successfully deleted.");
-    } catch (e: any) {
-      console.error(e);
-      res.status(500).send(e?.message ?? "Unknown error.");
-    }
-  }
-);
 
 forestRouter.use("/census", forestCensusRouter);
 
