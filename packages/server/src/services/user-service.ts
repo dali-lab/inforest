@@ -33,7 +33,7 @@ export const createInactiveAccount = async (email: string) => {
   });
 };
 
-export interface GetUsersParams {
+export interface UserParams {
   id?: string;
   email?: string;
 
@@ -43,7 +43,7 @@ export interface GetUsersParams {
   offset?: number;
 }
 
-const constructQuery = (params: GetUsersParams) => {
+const constructQuery = (params: UserParams) => {
   const { id, email, active, limit = 30, offset = 0 } = params;
   const query: any = {
     where: {},
@@ -73,20 +73,17 @@ const constructQuery = (params: GetUsersParams) => {
   return query;
 };
 
-export const getUsers = async (params: GetUsersParams) => {
+export const getUsers = async (params: UserParams) => {
   const query = constructQuery(params);
   return await UserModel.findAll(query);
 };
 
-export const editUsers = async (
-  user: Partial<User>,
-  params: GetUsersParams
-) => {
+export const editUsers = async (user: Partial<User>, params: UserParams) => {
   const query = constructQuery(params);
   return await UserModel.update(user, query);
 };
 
-export const deleteUsers = async (params: GetUsersParams) => {
+export const deleteUsers = async (params: UserParams) => {
   const query = constructQuery(params);
   return await UserModel.destroy(query);
 };
