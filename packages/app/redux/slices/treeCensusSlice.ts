@@ -45,7 +45,6 @@ export const updateTreeCensus = createAsyncThunk(
 //     // return await axios.post()
 //   }
 // );
-<<<<<<< HEAD
 
 // takes the state and the action payload(!!) and returns the updated state with the payload's censuses added. used for downloading, drafting, and rehydrating
 const addTreeCensuses = (state: TreeCensusState, action: any) => {
@@ -78,8 +77,6 @@ const addTreeCensuses = (state: TreeCensusState, action: any) => {
   });
   return state;
 };
-=======
->>>>>>> origin/offline-sync-route
 
 export interface TreeCensusState {
   all: Record<string, TreeCensus>;
