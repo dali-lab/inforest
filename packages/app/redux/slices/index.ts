@@ -9,6 +9,7 @@ import treePhotoPurposeReducer from "./treePhotoPurposeSlice";
 import forestCensusReducer from "./forestCensusSlice";
 import plotCensusReducer from "./plotCensusSlice";
 import treeCensusReducer from "./treeCensusSlice";
+import syncReducer from "./syncSlice";
 
 export {
   userReducer,
@@ -22,4 +23,5 @@ export {
   forestCensusReducer,
   plotCensusReducer,
   treeCensusReducer,
+  syncReducer,
 };

@@ -11,6 +11,7 @@ import {
   forestCensusReducer,
   plotCensusReducer,
   treeCensusReducer,
+  syncReducer,
 } from "./slices";
 import { createTransform, persistReducer, persistStore } from "redux-persist";
 import hardSet from "redux-persist/lib/stateReconciler/hardSet";
@@ -46,6 +47,7 @@ export type RootState = {
   forestCensuses: ForestCensusState;
   plotCensuses: PlotCensusState;
   treeCensuses: TreeCensusState;
+  sync: any;
 };
 
 // Combine reducers from slices here, so that it can be passed to Redux Persist
@@ -61,6 +63,7 @@ const rootReducer = combineReducers<RootState>({
   forestCensuses: forestCensusReducer,
   plotCensuses: plotCensusReducer,
   treeCensuses: treeCensusReducer,
+  sync: syncReducer,
 });
 
 const DraftSetTransform = createTransform(
@@ -94,7 +97,7 @@ export const store = configureStore({
   // reducer: rootReducer,
   reducer: persistedReducer,
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware({ serializableCheck: false }),
+    getDefaultMiddleware({ serializableCheck: false, immutableCheck: false }),
 });
 
 export const persistor = persistStore(store, {}, rehydrationCallback);

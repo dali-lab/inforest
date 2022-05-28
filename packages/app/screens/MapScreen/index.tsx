@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Dimensions, StyleSheet, View } from "react-native";
+import { useIsConnected } from "react-native-offline";
 import { MapScreenModes } from "../../constants";
 import useAppDispatch from "../../hooks/useAppDispatch";
 import { getForest } from "../../redux/slices/forestSlice";
@@ -14,22 +15,28 @@ import { getAllTreePhotoPurposes } from "../../redux/slices/treePhotoPurposeSlic
 import { getForestForestCensuses } from "../../redux/slices/forestCensusSlice";
 import useAppSelector from "../../hooks/useAppSelector";
 import { deselectTreeCensus } from "../../redux/slices/treeCensusSlice";
+import { uploadCensusData } from "../../redux/slices/syncSlice";
 
 export default function MapScreen() {
   const dispatch = useAppDispatch();
+  const isConnected = useIsConnected();
   useEffect(() => {
-    dispatch(getForest({ id: FOREST_ID }));
-    dispatch(getForestPlots({ forestId: FOREST_ID }));
-    dispatch(
-      getForestTrees({
-        forestId: FOREST_ID,
-      })
-    );
-    dispatch(getAllTreeSpecies());
-    dispatch(getAllTreeLabels());
-    dispatch(getAllTreePhotoPurposes());
-    dispatch(getForestForestCensuses({ forestId: FOREST_ID }));
-  }, [dispatch]);
+    alert(isConnected);
+    if (isConnected) {
+      dispatch(uploadCensusData());
+      dispatch(getForest({ id: FOREST_ID }));
+      dispatch(getForestPlots({ forestId: FOREST_ID }));
+      dispatch(
+        getForestTrees({
+          forestId: FOREST_ID,
+        })
+      );
+      dispatch(getAllTreeSpecies());
+      dispatch(getAllTreeLabels());
+      dispatch(getAllTreePhotoPurposes());
+      dispatch(getForestForestCensuses({ forestId: FOREST_ID }));
+    }
+  }, [dispatch, isConnected]);
 
   const { selected: selectedPlot } = useAppSelector((state) => state.plots);
 
