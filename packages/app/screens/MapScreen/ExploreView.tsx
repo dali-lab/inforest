@@ -95,16 +95,22 @@ const ExploreView: React.FC<ExploreViewProps> = (props) => {
   const mapRef = useRef<MapView>(null);
 
   const dispatch = useAppDispatch();
-  const reduxState = useAppSelector((state: RootState) => state);
-  const { all: allTrees, selected: selectedTreeId } = reduxState.trees;
-  const { all: allPlots, selected: selectedPlotId } = reduxState.plots;
-  const { all: allForestCensuses } = reduxState.forestCensuses;
+  const reduxState = useAppSelector((state) => state);
+  const { all: allTrees, selected: selectedTreeId } = useAppSelector(
+    (state: RootState) => state.trees
+  );
+  const { all: allPlots, selected: selectedPlotId } = useAppSelector(
+    (state: RootState) => state.plots
+  );
+  const { all: allForestCensuses } = useAppSelector(
+    (state: RootState) => state.forestCensuses
+  );
   const {
     all: allPlotCensuses,
     selected: selectedPlotCensusId,
     indices: { byPlotActive: plotCensusesByActivePlot },
-  } = reduxState.plotCensuses;
-  const { colorMap } = reduxState.treeSpecies;
+  } = useAppSelector((state: RootState) => state.plotCensuses);
+  const { colorMap } = useAppSelector((state: RootState) => state.treeSpecies);
   const selectedPlot = useMemo(
     () => (selectedPlotId && allPlots?.[selectedPlotId]) || undefined,
     [selectedPlotId, allPlots]
@@ -115,6 +121,7 @@ const ExploreView: React.FC<ExploreViewProps> = (props) => {
       undefined,
     [selectedPlotCensusId, allPlotCensuses]
   );
+
   useEffect(() => {
     for (const census of Object.values(allForestCensuses)) {
       if (census.active) {
@@ -125,7 +132,8 @@ const ExploreView: React.FC<ExploreViewProps> = (props) => {
     }
   }, [allForestCensuses, dispatch]);
 
-  const plots = usePlotsInRegion(usePlots(reduxState), regionSnapshot);
+  const plotArray = useMemo(() => Object.values(allPlots), [allPlots]);
+  const plots = usePlotsInRegion(plotArray, regionSnapshot);
   const density = useMemo(() => {
     if (plots.length <= Math.pow(5, 2)) {
       return 1;
@@ -146,8 +154,14 @@ const ExploreView: React.FC<ExploreViewProps> = (props) => {
     }
   }, [plots.length, allTrees]);
 
+  const trees = useTreesInRegion(
+    useTreesByDensity(reduxState, density),
+    regionSnapshot
+  );
+
   const selectPlotAndCensus = useCallback(
     async (plotId: string) => {
+      console.log(plotId);
       dispatch(selectPlot(plotId));
       if (plotId in plotCensusesByActivePlot) {
         dispatch(selectPlotCensus(plotCensusesByActivePlot[plotId]));
@@ -162,11 +176,6 @@ const ExploreView: React.FC<ExploreViewProps> = (props) => {
     dispatch(deselectPlotCensus());
     setMode(MapScreenModes.Explore);
   }, [setMode, dispatch]);
-
-  const trees = useTreesInRegion(
-    useTreesByDensity(reduxState, density),
-    regionSnapshot
-  );
 
   const openVisualizationModal = useCallback(() => {
     setVisualizationConfig((prev: VisualizationConfigType) => ({
@@ -401,6 +410,7 @@ const ExploreView: React.FC<ExploreViewProps> = (props) => {
               fillColor={plotIdColorMap(plot.id)}
               tappable={true}
               onPress={() => {
+                console.log();
                 deselectPlotAndCensus();
                 plot?.id && selectPlotAndCensus(plot.id);
               }}

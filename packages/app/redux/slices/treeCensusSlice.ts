@@ -3,6 +3,7 @@ import { TreeCensus } from "@ong-forestry/schema";
 import SERVER_URL from "../../constants/Url";
 import axios from "axios";
 import uuid from "react-native-uuid";
+import { isArray } from "lodash";
 
 const BASE_URL = SERVER_URL + "trees/census";
 
@@ -45,6 +46,38 @@ export const updateTreeCensus = createAsyncThunk(
 //   }
 // );
 
+// takes the state and the action payload(!!) and returns the updated state with the payload's censuses added. used for downloading, drafting, and rehydrating
+const addTreeCensuses = (state: TreeCensusState, action: any) => {
+  let newCensuses;
+  if (action?.draft || action?.rehydrate) {
+    newCensuses = action.data;
+  } else newCensuses = action;
+  if (!isArray(newCensuses)) newCensuses = [newCensuses];
+  newCensuses.forEach((newCensus) => {
+    newCensus.id = uuid.v4();
+    if (!action?.rehydrate) state.all[newCensus.id] = newCensus;
+    // add to drafts
+    if (action?.draft) state.drafts.add(newCensus.id);
+    if (
+      !(newCensus.plotCensusId in state.indices.byPlotCensuses) ||
+      !state.indices.byPlotCensuses[newCensus.plotCensusId]?.add
+    ) {
+      state.indices.byPlotCensuses[newCensus.plotCensusId] = new Set();
+    }
+    state.indices.byPlotCensuses[newCensus.plotCensusId].add(newCensus.id);
+    if (
+      !(newCensus.treeId in state.indices.byTrees) ||
+      !state.indices.byTrees[newCensus.treeId]?.add
+    ) {
+      state.indices.byTrees[newCensus.treeId] = new Set();
+    }
+    state.indices.byTrees[newCensus.treeId].add(newCensus.id);
+    state.indices.byTreeActive[newCensus.treeId] = newCensus.id;
+    if (action?.draft) state.selected = newCensus.id;
+  });
+  return state;
+};
+
 export interface TreeCensusState {
   all: Record<string, TreeCensus>;
   indices: {
@@ -57,7 +90,6 @@ export interface TreeCensusState {
 }
 
 const initialState: TreeCensusState = {
-  // all currently is indexed by the treeTag, but likely change this in the future
   all: {},
   indices: {
     byPlotCensuses: {},
@@ -72,22 +104,14 @@ export const treeCensusSlice = createSlice({
   name: "treeCensus",
   initialState,
   reducers: {
+    createTreeCensus: (state, action) => {
+      return addTreeCensuses(state, action.payload);
+    },
     locallyDraftNewTreeCensus: (state, action) => {
-      const { newCensus } = action.payload;
-      newCensus.id = uuid.v4();
-      state.all[newCensus.id] = newCensus;
-      // add to drafts
-      state.drafts.add(newCensus.id);
-      if (!(newCensus.plotCensusId in state.indices.byPlotCensuses)) {
-        state.indices.byPlotCensuses[newCensus.plotCensusId] = new Set();
-      }
-      state.indices.byPlotCensuses[newCensus.plotCensusId].add(newCensus.id);
-      if (!(newCensus.treeId in state.indices.byTrees)) {
-        state.indices.byTrees[newCensus.treeId] = new Set();
-      }
-      state.indices.byTrees[newCensus.treeId].add(newCensus.id);
-      state.indices.byTreeActive[newCensus.treeId] = newCensus.id;
-      state.selected = newCensus.id;
+      treeCensusSlice.caseReducers.createTreeCensus(state, {
+        payload: { data: action.payload, draft: true },
+        type: "treeCensus/createTreeCensus",
+      });
       return state;
     },
     locallyDeleteTreeCensus: (state, action) => {
@@ -112,29 +136,17 @@ export const treeCensusSlice = createSlice({
       state.selected = undefined;
       return state;
     },
+    rehydrateTreeCensuses: (state) => {
+      state.indices = initialState.indices;
+      return addTreeCensuses(state, {
+        data: Object.values(state.all),
+        rehydrate: true,
+      });
+    },
   },
   extraReducers: (builder) => {
     builder.addCase(getPlotCensusTreeCensuses.fulfilled, (state, action) => {
-      action.payload.forEach((census: TreeCensus) => {
-        const { id, plotCensusId, plotCensus, treeId } = census;
-        state.all[id] = census;
-        if (!(plotCensusId in state.indices.byPlotCensuses)) {
-          state.indices.byPlotCensuses[plotCensusId] = new Set();
-        }
-        state.indices.byPlotCensuses[plotCensusId].add(id);
-        if (!(treeId in state.indices.byTrees)) {
-          state.indices.byTrees[treeId] = new Set();
-        }
-        state.indices.byTrees[treeId].add(id);
-        // This only works if there is only one active census on a plot at any given time, which should hold true
-        if (
-          plotCensus?.status === "PENDING" ||
-          plotCensus?.status === "IN_PROGRESS"
-        ) {
-          state.indices.byTreeActive[treeId] = id;
-        }
-      });
-      return state;
+      return addTreeCensuses(state, action.payload);
     });
   },
 });
@@ -145,6 +157,7 @@ export const {
   locallyUpdateTreeCensus,
   selectTreeCensus,
   deselectTreeCensus,
+  rehydrateTreeCensuses,
 } = treeCensusSlice.actions;
 
 export default treeCensusSlice.reducer;

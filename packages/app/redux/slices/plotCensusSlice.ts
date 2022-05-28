@@ -53,16 +53,25 @@ export const plotCensusSlice = createSlice({
   name: "plotCensus",
   initialState,
   reducers: {
-    addPlotCensus: (state, action) => {
+    createPlotCensus: (state, action) => {
       const newCensus = action.payload;
       state.all[newCensus.id] = newCensus;
-      if (!(newCensus.forestCensusId in state.indices.byForestCensuses)) {
+      if (
+        !(newCensus.forestCensusId in state.indices.byForestCensuses) ||
+        !(
+          state.indices.byForestCensuses[newCensus.forestCensusId] instanceof
+          Set
+        )
+      ) {
         state.indices.byForestCensuses[newCensus.forestCensusId] = new Set();
       }
       state.indices.byForestCensuses[newCensus.forestCensusId].add(
         newCensus.id
       );
-      if (!(newCensus.plotId in state.indices.byPlots)) {
+      if (
+        !(newCensus.plotId in state.indices.byPlots) ||
+        !(state.indices.byPlots[newCensus.plotId] instanceof Set)
+      ) {
         state.indices.byPlots[newCensus.plotId] = new Set();
       }
       state.indices.byPlots[newCensus.plotId].add(newCensus.id);
@@ -81,21 +90,16 @@ export const plotCensusSlice = createSlice({
   extraReducers: (builder) => {
     builder.addCase(getForestCensusPlotCensuses.fulfilled, (state, action) => {
       action.payload.forEach((census) => {
-        state.all[census.id] = census;
-        if (!(census.forestCensusId in state.indices.byForestCensuses)) {
-          state.indices.byForestCensuses[census.forestCensusId] = new Set();
+        if (!(census.id in state.all)) {
+          plotCensusSlice.caseReducers.createPlotCensus(state, {
+            payload: census,
+            type: "plotCensus/createPlotCensus",
+          });
         }
-        state.indices.byForestCensuses[census.forestCensusId].add(census.id);
-        if (!(census.plotId in state.indices.byPlots)) {
-          state.indices.byPlots[census.plotId] = new Set();
-        }
-        state.indices.byPlots[census.plotId].add(census.id);
-        if (census.status != "APPROVED")
-          state.indices.byPlotActive[census.plotId] = census.id;
       });
     });
     builder.addCase(createPlotCensus.fulfilled, (state, action) => {
-      plotCensusSlice.caseReducers.addPlotCensus(state, action);
+      plotCensusSlice.caseReducers.createPlotCensus(state, action);
     });
   },
 });

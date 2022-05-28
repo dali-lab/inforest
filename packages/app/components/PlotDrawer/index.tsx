@@ -69,7 +69,7 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
   }, [setDrawerHeight]);
   const dispatch = useAppDispatch();
   const {
-    all,
+    all: allTrees,
     selected: selectedTreeId,
     indices: { byPlots },
   } = useAppSelector((state) => state.trees);
@@ -81,8 +81,8 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
   const { all: allForestCensuses, selected: selectedForestCensusId } =
     useAppSelector((state) => state.forestCensuses);
   const selectedTree = useMemo(
-    () => (selectedTreeId ? all[selectedTreeId] : undefined),
-    [all, selectedTreeId]
+    () => (selectedTreeId ? allTrees[selectedTreeId] : undefined),
+    [allTrees, selectedTreeId]
   );
   const selectedTreeCensus = useMemo(
     () =>
@@ -108,25 +108,26 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
     }
   }, [drawerState]);
 
+  // TODO: fix this by pulling from date of most recent Plot Census. May require additional column and new RTK indices
   const computePlotLastUpdatedDate = useCallback(
     (plotId: string) => {
-      const plotTrees = byPlots[plotId];
+      const plotTrees = byPlots?.[plotId];
       let latestCensus: Date | undefined;
-      for (const treeTag of plotTrees) {
-        const { updatedAt } = all[treeTag];
-        if (updatedAt && (!latestCensus || updatedAt > latestCensus)) {
-          latestCensus = updatedAt;
-        }
-      }
+      plotTrees instanceof Set &&
+        plotTrees.forEach((treeId) => {
+          const { updatedAt } = allTrees[treeId];
+          if (updatedAt && (!latestCensus || updatedAt > latestCensus)) {
+            latestCensus = updatedAt;
+          }
+        });
       return latestCensus;
     },
-    [byPlots, all]
+    [byPlots, allTrees]
   );
 
   const startCensus = useCallback(() => {
     if (plot && selectedForestCensus) {
       dispatch(createPlotCensus(plot.id));
-      // dispatch(deselectPlotCensus());
     }
   }, [dispatch, selectedForestCensus, plot]);
 
@@ -153,11 +154,9 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
       try {
         dispatch(
           locallyDraftNewTreeCensus({
-            newCensus: {
-              ...blankTreeCensus,
-              treeId: selectedTree?.id,
-              plotCensusId: plotCensus.id,
-            },
+            ...blankTreeCensus,
+            treeId: selectedTree?.id,
+            plotCensusId: plotCensus.id,
           })
         );
       } catch (err: any) {
