@@ -7,13 +7,18 @@ import { Forest, Plot, PlotCensus, TreeCensus } from "@ong-forestry/schema";
 import { Ionicons } from "@expo/vector-icons";
 import { MapScreenModes, DrawerStates } from "../../constants";
 import useAppSelector from "../../hooks/useAppSelector";
-import { locallyDeleteTree, deselectTree } from "../../redux/slices/treeSlice";
+import {
+  locallyDeleteTree,
+  deselectTree,
+  createTree,
+} from "../../redux/slices/treeSlice";
 import AppButton from "../AppButton";
 import { Text, TextVariants } from "../Themed";
 import useAppDispatch from "../../hooks/useAppDispatch";
 import DataEntryForm from "./DataEntryForm";
 import FlagIcon from "../../assets/icons/flag-icon.svg";
 import {
+  createTreeCensus,
   deselectTreeCensus,
   locallyDraftNewTreeCensus,
   locallyUpdateTreeCensus,
@@ -128,6 +133,7 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
   const startCensus = useCallback(() => {
     if (plot && selectedForestCensus) {
       dispatch(createPlotCensus(plot.id));
+      // dispatch(deselectPlotCensus());
     }
   }, [dispatch, selectedForestCensus, plot]);
 
@@ -301,7 +307,13 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
                         dispatch(deselectTree());
                         minimizeDrawer();
                       }}
-                      finish={minimizeDrawer}
+                      finish={(newTreeCensus) => {
+                        dispatch(createTree(selectedTree));
+                        dispatch(createTreeCensus(selectedTreeCensus));
+                        console.log("selectedTree", selectedTree);
+                        console.log("newTreeCensus", newTreeCensus);
+                        minimizeDrawer();
+                      }}
                       style={{ flex: 1 }}
                     />
                   )}

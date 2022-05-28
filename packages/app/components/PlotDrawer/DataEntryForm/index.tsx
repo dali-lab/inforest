@@ -23,7 +23,7 @@ interface DataEntryFormProps {
   selectedTree: Tree | undefined;
   selectedTreeCensus: TreeCensus | undefined;
   cancel: () => void;
-  finish: () => void;
+  finish: (newTreeCensus: TreeCensus) => void;
 }
 
 const DataEntryForm: React.FC<DataEntryFormProps & View["props"]> = ({
@@ -35,9 +35,6 @@ const DataEntryForm: React.FC<DataEntryFormProps & View["props"]> = ({
   const dispatch = useAppDispatch();
 
   const [stage, setStage] = useState<number>(0);
-  const onFinish = useCallback(() => {
-    finish();
-  }, [finish]);
 
   const updateTreeDraft = useCallback(
     (updatedFields) => {
@@ -126,7 +123,7 @@ const DataEntryForm: React.FC<DataEntryFormProps & View["props"]> = ({
             )}
             {stage == StageList.length - 1 && (
               <AppButton
-                onPress={onFinish}
+                onPress={() => finish(selectedTreeCensus)}
                 style={[styles.navButton, { marginLeft: "auto" }]}
               >
                 Save

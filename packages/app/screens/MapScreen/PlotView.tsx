@@ -1,5 +1,5 @@
 import { Dimensions, View, StyleSheet } from "react-native";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { PlottingSheet } from "../../components/PlottingSheet";
 import { PlotDrawer } from "../../components/PlotDrawer";
@@ -8,6 +8,8 @@ import { formPlotNumber, parsePlotNumber } from "../../constants/plots";
 import useAppSelector from "../../hooks/useAppSelector";
 import { RootState } from "../../redux";
 import Colors from "../../constants/Colors";
+
+const LOWER_BUTTON_HEIGHT = 64;
 
 interface PlotViewProps {
   onExit: () => void;
@@ -20,11 +22,21 @@ const PlotView: React.FC<PlotViewProps> = (props) => {
   const [drawerState, setDrawerState] = useState<DrawerStates>(
     DrawerStates.Minimized
   );
+  const [_, setDrawerHeight] = useState(0);
+
+  const [direction, setDirection] = useState(0);
+  const rotate = useCallback(() => {
+    setDirection((direction + 1) % 4);
+  }, [direction]);
 
   const reduxState = useAppSelector((state: RootState) => state);
   const { all: allPlotCensuses, selected: selectedPlotCensusId } =
     reduxState.plotCensuses;
-  const { all: allPlots, selected: selectedPlotId } = reduxState.plots;
+  const {
+    all: allPlots,
+    selected: selectedPlotId,
+    indices: { byNumber },
+  } = reduxState.plots;
 
   const selectedPlot = useMemo(
     () =>
@@ -48,6 +60,9 @@ const PlotView: React.FC<PlotViewProps> = (props) => {
         <View style={{ ...styles.mapOverlay, top: 32, left: 32 }}>
           <Ionicons name="ios-arrow-back" size={32} onPress={onExit} />
         </View>
+        <View style={{ ...styles.mapOverlay, top: 32, right: 32 }}>
+          <Ionicons name="ios-refresh" size={32} onPress={rotate} />
+        </View>
         {!!selectedPlot && (
           <PlottingSheet
             plot={selectedPlot}
@@ -56,24 +71,25 @@ const PlotView: React.FC<PlotViewProps> = (props) => {
               const { i, j } = parsePlotNumber(selectedPlot.number);
               const stakeNames = [];
               stakeNames.push(selectedPlot.number);
-              if (formPlotNumber(i + 1, j) in allPlots) {
-                stakeNames.push(allPlots[formPlotNumber(i + 1, j)].number);
+              if (formPlotNumber(i + 1, j) in byNumber) {
+                stakeNames.push(byNumber[formPlotNumber(i + 1, j)].number);
               } else {
                 stakeNames.push("No stake");
               }
-              if (formPlotNumber(i + 1, j + 1) in allPlots) {
-                stakeNames.push(allPlots[formPlotNumber(i + 1, j + 1)].number);
+              if (formPlotNumber(i + 1, j + 1) in byNumber) {
+                stakeNames.push(byNumber[formPlotNumber(i + 1, j + 1)].number);
               } else {
                 stakeNames.push("No stake");
               }
-              if (formPlotNumber(i, j + 1) in allPlots) {
-                stakeNames.push(allPlots[formPlotNumber(i, j + 1)].number);
+              if (formPlotNumber(i, j + 1) in byNumber) {
+                stakeNames.push(byNumber[formPlotNumber(i, j + 1)].number);
               } else {
                 stakeNames.push("No stake");
               }
               return stakeNames;
             })()}
             mapWidth={Dimensions.get("window").width}
+            direction={direction}
             expandDrawer={() => setDrawerState(DrawerStates.Expanded)}
             minimizeDrawer={() => setDrawerState(DrawerStates.Minimized)}
           />
@@ -82,6 +98,7 @@ const PlotView: React.FC<PlotViewProps> = (props) => {
       <PlotDrawer
         mode={MapScreenModes.Plot}
         drawerState={drawerState}
+        setDrawerHeight={setDrawerHeight}
         plot={selectedPlot}
         plotCensus={selectedPlotCensus}
         endPlotting={endPlotting}
@@ -103,8 +120,8 @@ const styles = StyleSheet.create({
   mapOverlay: {
     position: "absolute",
     backgroundColor: "white",
-    width: 64,
-    height: 64,
+    width: LOWER_BUTTON_HEIGHT,
+    height: LOWER_BUTTON_HEIGHT,
     borderRadius: 8,
     justifyContent: "center",
     alignItems: "center",

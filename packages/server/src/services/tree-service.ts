@@ -146,7 +146,7 @@ export const editTrees = async (
   params: GetTreesParams
 ) => {
   const query = constructQuery(params);
-  return await TreeModel.update(tree, query);
+  return (await TreeModel.update(tree, query))[1];
 };
 
 export const getTrees = async (params: GetTreesParams) => {
