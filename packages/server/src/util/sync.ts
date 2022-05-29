@@ -1,32 +1,10 @@
 import { Tree, TreeCensus, TreePhoto } from "@ong-forestry/schema";
 import { sequelize } from "index";
 import {
-  createTree,
-  createTreeCensus,
-  TreeCensusParams,
-  editTrees,
-  GetTreePhotosParams,
-  GetTreesParams,
-  editTreeCensuses,
-  createTreePhoto,
-  editTreePhotos,
   bulkUpsertTrees,
   bulkUpsertTreeCensuses,
   bulkUpsertTreePhotos,
 } from "services";
-
-interface EditTreeData {
-  data: Partial<Tree>;
-  query: GetTreesParams;
-}
-interface EditTreeCensusData {
-  data: Omit<TreeCensus, "plotCensusId">;
-  query: TreeCensusParams;
-}
-interface EditTreePhotoData {
-  data: Partial<TreePhoto>;
-  query: GetTreePhotosParams;
-}
 
 export interface SyncData {
   trees: Tree[];
