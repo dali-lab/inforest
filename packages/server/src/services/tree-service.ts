@@ -4,6 +4,12 @@ import TreeModel from "db/models/tree";
 import { Op } from "sequelize";
 import { getPlots } from "services";
 
+export const bulkUpsertTrees = async (trees: Tree[]) => {
+  return await TreeModel.bulkCreate(trees, {
+    updateOnDuplicate: Object.keys(TreeModel.rawAttributes) as (keyof Tree)[],
+  });
+};
+
 export const createTree = async (tree: Tree) => {
   // ensure tag unique in this forest
   // find plot tree is in

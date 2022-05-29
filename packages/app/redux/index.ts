@@ -12,6 +12,7 @@ import {
   plotCensusReducer,
   treeCensusReducer,
   syncReducer,
+  treePhotoReducer,
 } from "./slices";
 import { createTransform, persistReducer, persistStore } from "redux-persist";
 import hardSet from "redux-persist/lib/stateReconciler/hardSet";
@@ -32,6 +33,7 @@ import {
   rehydrateTreeCensuses,
 } from "./slices/treeCensusSlice";
 import useAppDispatch from "../hooks/useAppDispatch";
+import { TreePhotoState } from "./slices/treePhotoSlice";
 
 enableMapSet();
 
@@ -42,6 +44,7 @@ export type RootState = {
   trees: TreeState;
   treeLabels: TreeLabelState;
   treeSpecies: TreeSpeciesState;
+  treePhotos: TreePhotoState;
   teams: TeamState;
   treePhotoPurposes: TreePhotoPurposeState;
   forestCensuses: ForestCensusState;
@@ -58,6 +61,7 @@ const rootReducer = combineReducers<RootState>({
   trees: treeReducer,
   treeLabels: treeLabelReducer,
   treeSpecies: treeSpeciesReducer,
+  treePhotos: treePhotoReducer,
   teams: teamReducer,
   treePhotoPurposes: treePhotoPurposeReducer,
   forestCensuses: forestCensusReducer,
@@ -73,7 +77,7 @@ const DraftSetTransform = createTransform(
   (outboundState, key) => {
     return { ...outboundState, drafts: new Set(outboundState.drafts) };
   },
-  { whitelist: ["trees", "treeCensuses"] }
+  { whitelist: ["trees", "treeCensuses", "treePhotos"] }
 );
 
 const persistConfig = {

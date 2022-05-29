@@ -47,14 +47,14 @@ export const updateTreeCensus = createAsyncThunk(
 // );
 
 // takes the state and the action payload(!!) and returns the updated state with the payload's censuses added. used for downloading, drafting, and rehydrating
-const addTreeCensuses = (state: TreeCensusState, action: any) => {
+const upsertTreeCensuses = (state: TreeCensusState, action: any) => {
   let newCensuses;
   if (action?.draft || action?.rehydrate) {
     newCensuses = action.data;
   } else newCensuses = action;
   if (!isArray(newCensuses)) newCensuses = [newCensuses];
   newCensuses.forEach((newCensus) => {
-    newCensus.id = uuid.v4();
+    if (!newCensus?.id) newCensus.id = uuid.v4();
     if (!action?.rehydrate) state.all[newCensus.id] = newCensus;
     // add to drafts
     if (action?.draft) state.drafts.add(newCensus.id);
@@ -105,7 +105,7 @@ export const treeCensusSlice = createSlice({
   initialState,
   reducers: {
     createTreeCensus: (state, action) => {
-      return addTreeCensuses(state, action.payload);
+      return upsertTreeCensuses(state, action.payload);
     },
     locallyDraftNewTreeCensus: (state, action) => {
       treeCensusSlice.caseReducers.createTreeCensus(state, {
@@ -138,15 +138,18 @@ export const treeCensusSlice = createSlice({
     },
     rehydrateTreeCensuses: (state) => {
       state.indices = initialState.indices;
-      return addTreeCensuses(state, {
+      return upsertTreeCensuses(state, {
         data: Object.values(state.all),
         rehydrate: true,
       });
     },
+    clearTreeCensusDrafts: (state) => {
+      return { ...state, drafts: initialState.drafts };
+    },
   },
   extraReducers: (builder) => {
     builder.addCase(getPlotCensusTreeCensuses.fulfilled, (state, action) => {
-      return addTreeCensuses(state, action.payload);
+      return upsertTreeCensuses(state, action.payload);
     });
   },
 });
@@ -158,6 +161,7 @@ export const {
   selectTreeCensus,
   deselectTreeCensus,
   rehydrateTreeCensuses,
+  clearTreeCensusDrafts,
 } = treeCensusSlice.actions;
 
 export default treeCensusSlice.reducer;

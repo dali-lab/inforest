@@ -12,6 +12,9 @@ import { useEffect } from "react";
 
 export default function App() {
   const isLoadingComplete = useCachedResources();
+  useEffect(() => {
+    persistor.purge();
+  }, [persistor]);
   return (
     <Provider store={store}>
       <NetworkProvider>

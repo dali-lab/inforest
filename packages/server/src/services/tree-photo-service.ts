@@ -3,6 +3,14 @@ import TreePhotoModel from "db/models/tree-photo";
 import { Op } from "sequelize";
 import { uploadImage } from "util/s3";
 
+export const bulkUpsertTreePhotos = async (treePhotos: TreePhoto[]) => {
+  return await TreePhotoModel.bulkCreate(treePhotos, {
+    updateOnDuplicate: Object.keys(
+      TreePhotoModel.rawAttributes
+    ) as (keyof TreePhoto)[],
+  });
+};
+
 export const createTreePhoto = async ({ body: treePhoto, images }: any) => {
   if (images.length != 0) throw new Error("Invalid number of images uploaded");
   const image = images[0];

@@ -161,7 +161,6 @@ const ExploreView: React.FC<ExploreViewProps> = (props) => {
 
   const selectPlotAndCensus = useCallback(
     async (plotId: string) => {
-      console.log(plotId);
       dispatch(selectPlot(plotId));
       if (plotId in plotCensusesByActivePlot) {
         dispatch(selectPlotCensus(plotCensusesByActivePlot[plotId]));
@@ -410,7 +409,6 @@ const ExploreView: React.FC<ExploreViewProps> = (props) => {
               fillColor={plotIdColorMap(plot.id)}
               tappable={true}
               onPress={() => {
-                console.log();
                 deselectPlotAndCensus();
                 plot?.id && selectPlotAndCensus(plot.id);
               }}

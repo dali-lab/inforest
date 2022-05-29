@@ -24,6 +24,7 @@ import {
   locallyUpdateTreeCensus,
 } from "../../redux/slices/treeCensusSlice";
 import { createPlotCensus } from "../../redux/slices/plotCensusSlice";
+import { useIsConnected } from "react-native-offline";
 
 const blankTreeCensus: Omit<
   TreeCensus,
@@ -101,6 +102,8 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
       undefined,
     [selectedForestCensusId, allForestCensuses]
   );
+
+  const isConnected = useIsConnected();
 
   const setStyle = useCallback(() => {
     switch (drawerState) {
@@ -307,11 +310,7 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
                         dispatch(deselectTree());
                         minimizeDrawer();
                       }}
-                      finish={(newTreeCensus) => {
-                        dispatch(createTree(selectedTree));
-                        dispatch(createTreeCensus(selectedTreeCensus));
-                        console.log("selectedTree", selectedTree);
-                        console.log("newTreeCensus", newTreeCensus);
+                      finish={() => {
                         minimizeDrawer();
                       }}
                       style={{ flex: 1 }}

@@ -10,6 +10,9 @@ import {
   editTreeCensuses,
   createTreePhoto,
   editTreePhotos,
+  bulkUpsertTrees,
+  bulkUpsertTreeCensuses,
+  bulkUpsertTreePhotos,
 } from "services";
 
 interface EditTreeData {
@@ -17,7 +20,7 @@ interface EditTreeData {
   query: GetTreesParams;
 }
 interface EditTreeCensusData {
-  data: Partial<TreeCensus>;
+  data: Omit<TreeCensus, "plotCensusId">;
   query: TreeCensusParams;
 }
 interface EditTreePhotoData {
@@ -26,74 +29,24 @@ interface EditTreePhotoData {
 }
 
 export interface SyncData {
-  trees: { new: Tree[]; edited: EditTreeData[] };
-  treeCensuses: { new: TreeCensus[]; edited: EditTreeCensusData[] };
-  treePhotos: { new: TreePhoto[]; edited: EditTreePhotoData[] };
+  trees: Tree[];
+  treeCensuses: TreeCensus[];
+  treePhotos: TreePhoto[];
 }
 
 export const sync = async (data: SyncData) => {
   const transaction = await sequelize.transaction();
   try {
-    var result = {
-      trees: new Array<Tree>(),
-      treeCensuses: new Array<TreeCensus>(),
-      treePhotos: new Array<TreePhoto>(),
-    };
-
-    // create new trees
-    if (data.trees.new != [])
-      result.trees.concat(
-        await Promise.all(data.trees.new.map((tree) => createTree(tree)))
-      );
-    // edit trees
-    if (data.trees.edited != [])
-      result.trees.concat(
-        ...(await Promise.all(
-          data.trees.edited.map((edit) => editTrees(edit.data, edit.query))
-        ))
-      );
-
-    // create new tree censuses
-    if (data.treeCensuses.new != [])
-      result.treeCensuses.concat(
-        await Promise.all(
-          data.treeCensuses.new.map((treeCensus) =>
-            createTreeCensus(treeCensus)
-          )
-        )
-      );
-    // edit tree censuses
-    if (data.treeCensuses.edited != [])
-      result.treeCensuses.concat(
-        ...(await Promise.all(
-          data.treeCensuses.edited.map((edit) =>
-            editTreeCensuses(edit.data, edit.query)
-          )
-        ))
-      );
-
-    // create new tree photos
-    if (data.treePhotos.new != [])
-      result.treePhotos.concat(
-        await Promise.all(
-          data.treePhotos.new.map((treePhoto) => createTreePhoto(treePhoto))
-        )
-      );
-    // edit tree photos
-    if (data.treePhotos.edited != [])
-      result.treePhotos.concat(
-        ...(await Promise.all(
-          data.treePhotos.edited.map((edit) =>
-            editTreePhotos(edit.data, edit.query)
-          )
-        ))
-      );
-
+    const { trees, treeCensuses, treePhotos } = data;
+    console.log(trees, treeCensuses, treePhotos);
+    console.log("treeUpsert", await bulkUpsertTrees(trees));
+    console.log("treeCensusUpsert", await bulkUpsertTreeCensuses(treeCensuses));
+    console.log("treePhotoUpsert", await bulkUpsertTreePhotos(treePhotos));
     transaction.commit();
-    return { data: result };
+    return {};
   } catch (e: any) {
     transaction.rollback();
-    console.log(e);
+    console.error(e);
     return { error: e?.message ?? "An unknown error occured." };
   }
 };

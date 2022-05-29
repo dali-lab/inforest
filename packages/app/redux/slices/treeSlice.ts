@@ -2,8 +2,8 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { Tree } from "@ong-forestry/schema";
 import axios from "axios";
 import uuid from "react-native-uuid";
-import SERVER_URL from "../../constants/Url";
 import { isArray } from "lodash";
+import SERVER_URL from "../../constants/Url";
 
 const BASE_URL = SERVER_URL + "trees";
 
@@ -20,7 +20,6 @@ export const getForestTrees = createAsyncThunk(
         `${BASE_URL}?forestId=${params.forestId}&limit=${params?.limit}`
       )
       .then((response) => {
-        console.log("response");
         // const species = Array.from(new Set(response.data.map((tree)=>tree?.speciesCode||"")))
         // thunkApi.dispatch(getManyTreeSpecies({codes: species}))
         return response.data;
@@ -86,14 +85,14 @@ const initialState: TreeState = {
 };
 
 // takes the state and the action payload(!!) and returns the updated state with the payload's trees added. used for downloading, drafting, and rehydrating
-const addTrees = (state: TreeState, action: any) => {
+const upsertTrees = (state: TreeState, action: any) => {
   let newTrees: Tree[];
   if (action?.draft || action?.rehydrate) {
     newTrees = action.data;
   } else newTrees = action;
   if (!isArray(newTrees)) newTrees = [newTrees];
   newTrees.forEach((newTree) => {
-    newTree.id = uuid.v4().toString();
+    if (!newTree?.id) newTree.id = uuid.v4().toString();
     if (!action?.rehydrate) state.all[newTree.id] = newTree;
     // add to drafts
     if (action?.draft) state.drafts.add(newTree.id);
@@ -140,14 +139,10 @@ export const treeSlice = createSlice({
   initialState,
   reducers: {
     createTree: (state, action) => {
-      return addTrees(state, action.payload);
+      return upsertTrees(state, action.payload);
     },
     locallyDraftNewTree: (state, action) => {
-      treeSlice.caseReducers.createTree(state, {
-        payload: { data: action.payload, draft: true },
-        type: "tree/createTree",
-      });
-      return state;
+      return upsertTrees(state, { data: action.payload, draft: true });
     },
     locallyDeleteTree: (state, action) => {
       const treeId = action.payload;
@@ -180,15 +175,18 @@ export const treeSlice = createSlice({
     },
     rehydrateTrees: (state) => {
       state.indices = initialState.indices;
-      return addTrees(state, {
+      return upsertTrees(state, {
         data: Object.values(state.all),
         rehydrate: true,
       });
     },
+    clearTreeDrafts: (state) => {
+      return { ...state, drafts: initialState.drafts };
+    },
   },
   extraReducers: (builder) => {
     builder.addCase(getForestTrees.fulfilled, (state, action) => {
-      return addTrees(state, action.payload);
+      return upsertTrees(state, action.payload);
     });
   },
 });
@@ -200,6 +198,7 @@ export const {
   selectTree,
   deselectTree,
   rehydrateTrees,
+  clearTreeDrafts,
 } = treeSlice.actions;
 
 export default treeSlice.reducer;

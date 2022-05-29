@@ -9,6 +9,14 @@ import {
 } from "services";
 import { PlotCensus } from "db/models";
 
+export const bulkUpsertTreeCensuses = async (treeCensuses: TreeCensus[]) => {
+  return await TreeCensusModel.bulkCreate(treeCensuses, {
+    updateOnDuplicate: Object.keys(
+      TreeCensusModel.rawAttributes
+    ) as (keyof TreeCensus)[],
+  });
+};
+
 const validatePlotCensus = async (
   treeCensus: Omit<TreeCensus, "plotCensusId">
 ) => {
