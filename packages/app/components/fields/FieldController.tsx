@@ -11,6 +11,7 @@ export interface CommonFieldProps {
   setEditing?: (newEditing: boolean) => void;
   setValue?: (newValue: string) => void;
   label: string;
+  isModal?: boolean;
 }
 
 export type FieldControllerProps = {
@@ -64,6 +65,7 @@ export const FieldController: React.FC<FieldControllerProps> = ({
         setEditing,
         value: currValue,
         setValue: setCurrValue,
+        isModal: true,
       }),
     [
       modalComponent,

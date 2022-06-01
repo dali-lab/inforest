@@ -40,11 +40,6 @@ const DataEntryForm: React.FC<DataEntryFormProps & View["props"]> = ({
   updateTreeDraft,
   updateCensusDraft,
 }) => {
-  // const isConnected = useIsConnected();
-  const isConnected = false;
-
-  const dispatch = useAppDispatch();
-
   const [stage, setStage] = useState<number>(0);
 
   if (!selectedTree || !selectedTreeCensus) {
@@ -208,7 +203,8 @@ const DataForm: React.FC<DataFormProps> = ({
   );
   const addLabel = useCallback(
     (code: string) => {
-      if (code && !pills.map((label) => label?.code).includes(code))
+      if (!code) code = labelsOptions[0].value;
+      if (!pills.map((label) => label?.code).includes(code))
         setPills((prev) => [...prev, allLabels[code]]);
     },
     [allLabels, pills, setPills]
@@ -228,6 +224,7 @@ const DataForm: React.FC<DataFormProps> = ({
       <View style={styles.formRow}>
         <FieldController
           value={selectedCensus?.dbh?.toString() || "0"}
+          style={{ width: 120 }}
           onConfirm={(newValue) => {
             updateCensusDraft({ dbh: Number(newValue) });
           }}
