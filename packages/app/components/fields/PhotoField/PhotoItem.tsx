@@ -12,6 +12,7 @@ import Colors from "../../../constants/Colors";
 import { Text, TextVariants } from "../../Themed";
 import { Ionicons } from "@expo/vector-icons";
 import { TreePhoto, TreePhotoPurpose } from "@ong-forestry/schema";
+import ImagePicker from "expo-image-picker";
 
 interface PhotoItemProps {
   item: ListRenderItemInfo<TreePhoto>;

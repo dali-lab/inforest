@@ -2,6 +2,7 @@ import React, { useState, useCallback, useEffect, useMemo } from "react";
 import { FlatList, Pressable, View, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import {
+  useCameraPermissions,
   ImagePickerOptions,
   launchCameraAsync,
   launchImageLibraryAsync,
@@ -29,6 +30,8 @@ export type PhotoFieldProps = {
 
 const PhotoField: React.FC<PhotoFieldProps> = ({ census }) => {
   const dispatch = useAppDispatch();
+  const [status, requestPermission] = useCameraPermissions();
+
   const { all: allPurposes } = useAppSelector(
     (state: RootState) => state.treePhotoPurposes
   );
@@ -45,7 +48,8 @@ const PhotoField: React.FC<PhotoFieldProps> = ({ census }) => {
     return treePhotos;
   }, [byTreeCensus, allPhotos, census]);
   const addPhoto = useCallback(async () => {
-    const photo = await launchImageLibraryAsync(imageLibraryOptions);
+    if (!status) await requestPermission();
+    const photo = await launchCameraAsync(imageLibraryOptions);
     if (!photo?.cancelled) {
       const parsedPhoto = {
         id: "",
