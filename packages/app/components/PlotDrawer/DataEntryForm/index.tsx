@@ -4,7 +4,7 @@ import { View, StyleSheet, ScrollView } from "react-native";
 import useAppDispatch from "../../../hooks/useAppDispatch";
 import useAppSelector from "../../../hooks/useAppSelector";
 import { RootState } from "../../../redux";
-import { locallyUpdateTree } from "../../../redux/slices/treeSlice";
+import { locallyUpdateTree, updateTree } from "../../../redux/slices/treeSlice";
 import AppButton from "../../AppButton";
 import { Text, TextVariants } from "../../Themed";
 import FormProgress from "../FormProgress";
@@ -14,104 +14,79 @@ import SelectField from "../../fields/SelectField";
 import PhotoField from "../../fields/PhotoField";
 import LabelPillRow from "./LabelPillRow";
 import {
-  locallyDraftNewTreeCensus,
   locallyUpdateTreeCensus,
+  updateTreeCensus,
 } from "../../../redux/slices/treeCensusSlice";
+import { useIsConnected } from "react-native-offline";
 
 export type FormStages = "META" | "DATA" | "REVIEW";
 
 export const StageList: FormStages[] = ["META", "DATA", "REVIEW"];
 
 interface DataEntryFormProps {
+  selectedTree: Tree | undefined;
+  selectedTreeCensus: TreeCensus | undefined;
   cancel: () => void;
-  finish: () => void;
-  treeCensus: TreeCensus;
-  flagged: boolean;
+  finish: (newTreeCensus: TreeCensus) => void;
 }
 
 const DataEntryForm: React.FC<DataEntryFormProps & View["props"]> = ({
   finish,
   style,
-  treeCensus,
-  flagged,
+  selectedTree,
+  selectedTreeCensus,
 }) => {
-  const dispatch = useAppDispatch();
-  const { all, selected: selectedTreeTag } = useAppSelector(
-    (state) => state.trees
-  );
-  const { drafts } = useAppSelector((state) => state.treeCensuses);
+  // const isConnected = useIsConnected();
+  const isConnected = false;
 
-  const selectedTree = useMemo(
-    () => (selectedTreeTag ? all[selectedTreeTag] : undefined),
-    [selectedTreeTag, all]
-  );
+  const dispatch = useAppDispatch();
 
   const [stage, setStage] = useState<number>(0);
-  const onFinish = useCallback(() => {
-    finish();
-  }, [finish]);
 
   const updateTreeDraft = useCallback(
     (updatedFields) => {
       if (selectedTree) {
         try {
-          dispatch(
-            locallyUpdateTree({
-              tag: selectedTree.tag,
-              updates: { ...selectedTree, ...updatedFields },
-            })
-          );
+          const updated: Tree = { ...selectedTree, ...updatedFields };
+          isConnected
+            ? dispatch(updateTree(updated))
+            : dispatch(
+                locallyUpdateTree({
+                  updated,
+                })
+              );
         } catch (err: any) {
           alert(err?.message || "An unknown error occurred.");
         }
       }
     },
-    [dispatch, selectedTree]
+    [dispatch, selectedTree, isConnected]
   );
 
   const updateCensusDraft = useCallback(
     async (updatedFields) => {
-      if (selectedTree?.tag && drafts?.[selectedTree.tag]) {
+      if (selectedTreeCensus?.id) {
         try {
-          dispatch(
-            locallyUpdateTreeCensus({
-              censusTreeTag: selectedTree.tag,
-              updates: { ...treeCensus, ...updatedFields },
-            })
-          );
+          const updated: TreeCensus = {
+            ...selectedTreeCensus,
+            ...updatedFields,
+          };
+          isConnected
+            ? dispatch(updateTreeCensus(updated))
+            : dispatch(
+                locallyUpdateTreeCensus({
+                  updated: { ...selectedTreeCensus, ...updatedFields },
+                })
+              );
         } catch (err: any) {
           alert(err?.message || "An unknown error occurred.");
         }
       }
     },
-    [dispatch, selectedTree, treeCensus, drafts]
+    [dispatch, selectedTreeCensus, isConnected]
   );
-  useEffect(() => {
-    if (selectedTree?.tag && drafts?.[selectedTree.tag]) {
-      dispatch(
-        locallyUpdateTreeCensus({
-          censusTreeTag: selectedTree.tag,
-          updates: { ...treeCensus, flagged },
-        })
-      );
-    }
-  }, [flagged, selectedTree]);
 
-  useEffect(() => {
-    if (selectedTree?.tag && !drafts?.[selectedTree.tag]) {
-      try {
-        dispatch(
-          locallyDraftNewTreeCensus({
-            censusTreeTag: selectedTree.tag,
-            newCensus: treeCensus,
-          })
-        );
-      } catch (err: any) {
-        alert(err?.message || "An unknown error occurred.");
-      }
-    }
-  }, [selectedTree, drafts]);
-  if (!selectedTree) {
+  if (!selectedTree || !selectedTreeCensus) {
     return null;
   }
   return (
@@ -130,14 +105,14 @@ const DataEntryForm: React.FC<DataEntryFormProps & View["props"]> = ({
             )}
             {StageList[stage] == "DATA" && (
               <DataForm
-                selectedCensus={treeCensus}
+                selectedCensus={selectedTreeCensus}
                 updateCensusDraft={updateCensusDraft}
               />
             )}
             {StageList[stage] == "REVIEW" && (
               <ReviewForm
                 selectedTree={selectedTree}
-                selectedCensus={treeCensus}
+                selectedCensus={selectedTreeCensus}
               />
             )}
           </View>
@@ -164,7 +139,7 @@ const DataEntryForm: React.FC<DataEntryFormProps & View["props"]> = ({
             )}
             {stage == StageList.length - 1 && (
               <AppButton
-                onPress={onFinish}
+                onPress={() => finish(selectedTreeCensus)}
                 style={[styles.navButton, { marginLeft: "auto" }]}
               >
                 Save
@@ -219,7 +194,6 @@ const MetaDataForm: React.FC<MetaFormProps> = ({
               label="Species Code"
               textType="SHORT_TEXT"
               placeholder="Select code here"
-              disabled
             />
           }
           modalComponent={
@@ -282,7 +256,7 @@ const DataForm: React.FC<DataFormProps> = ({
     (code: string) => {
       setPills((prev) => prev.filter((label) => label?.code !== code));
     },
-    [pills, setPills]
+    [setPills]
   );
 
   useEffect(() => {
@@ -329,12 +303,7 @@ const DataForm: React.FC<DataFormProps> = ({
         />
       </View>
       <View style={{ marginTop: 12 }}>
-        <PhotoField
-          census={selectedCensus}
-          onUpdate={(photos) => {
-            updateCensusDraft({ photos });
-          }}
-        />
+        <PhotoField census={selectedCensus} />
       </View>
       <View style={styles.formRow}>
         <FieldController

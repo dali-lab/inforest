@@ -16,6 +16,7 @@ import {
   teamRouter,
   forestRouter,
   membershipRouter,
+  syncRouter,
 } from "routes";
 
 declare global {
@@ -27,7 +28,8 @@ declare global {
 const app = express();
 app.use(cors());
 app.use(morgan("dev"));
-app.use(express.json());
+app.use(express.json({ limit: "10mb" }));
+
 const server = createServer(app);
 const port = process.env.PORT;
 server.listen({ port }, () => {
@@ -37,7 +39,7 @@ server.listen({ port }, () => {
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(passport.initialize());
 
-const sequelize = new Sequelize(
+export const sequelize = new Sequelize(
   process.env.DATABASE_URL ??
     `postgres://${process.env.DB_USER}:${process.env.DB_PASS}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`,
   {
@@ -69,3 +71,4 @@ app.use("/users", userRouter);
 app.use("/teams", teamRouter);
 app.use("/forests", forestRouter);
 app.use("/memberships", membershipRouter);
+app.use("/sync", syncRouter);

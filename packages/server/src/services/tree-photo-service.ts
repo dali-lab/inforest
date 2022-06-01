@@ -1,7 +1,22 @@
 import { TreePhoto } from "@ong-forestry/schema";
 import TreePhotoModel from "db/models/tree-photo";
 import { Op } from "sequelize";
+import { resizeImage } from "util/resize";
 import { uploadImage } from "util/s3";
+
+export const bulkInsertTreePhotos = async (treePhotos: any[]) => {
+  treePhotos.map(async (photo) => {
+    const resizedPhoto = await resizeImage(photo);
+    photo.fullUrl = await uploadImage(resizedPhoto.full);
+    photo.thumbUrl = await uploadImage(resizedPhoto.thumb);
+    delete photo.buffer;
+  });
+  return await TreePhotoModel.bulkCreate(await Promise.all(treePhotos), {
+    updateOnDuplicate: Object.keys(
+      TreePhotoModel.rawAttributes
+    ) as (keyof TreePhoto)[],
+  });
+};
 
 export const createTreePhoto = async ({ body: treePhoto, images }: any) => {
   if (images.length != 0) throw new Error("Invalid number of images uploaded");
@@ -55,7 +70,7 @@ export const editTreePhotos = async (
   params: GetTreePhotosParams
 ) => {
   const query = constructQuery(params);
-  return await TreePhotoModel.update(treePhoto, query);
+  return (await TreePhotoModel.update(treePhoto, query))[1];
 };
 
 export const getTreePhotos = async (params: GetTreePhotosParams) => {

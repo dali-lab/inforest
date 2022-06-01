@@ -14,9 +14,7 @@ import { PlotCensusAssignment } from "db/models";
 
 const uuid = require("uuid4");
 
-export const createPlotCensus = async (params: Pick<PlotCensus, "plotId">) => {
-  const { plotId } = params;
-
+export const createPlotCensus = async (plotId: string) => {
   if (plotId == null) {
     throw new Error("You must specify a plot.");
   }

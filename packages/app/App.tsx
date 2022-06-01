@@ -1,11 +1,11 @@
+import { useCallback, useState } from "react";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Provider } from "react-redux";
-
+import { PersistGate } from "redux-persist/integration/react";
+import { NetworkProvider } from "react-native-offline";
 import useCachedResources from "./hooks/useCachedResources";
 import { NavigationContainer } from "@react-navigation/native";
-import store from "./redux";
-import MapScreen from "./screens/MapScreen";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { HomeScreen } from "./screens/HomeScreen";
 import { MapScreenModes, MapScreenZoomLevels } from "./constants";
@@ -21,16 +21,20 @@ export type RootStackParamList = {
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
+import { store, persistor } from "./redux";
+import MapScreen from "./screens/MapScreen";
+import { useEffect } from "react";
 
 export default function App() {
   const isLoadingComplete = useCachedResources();
-
-  // const persistedStore = persistStore(store);
-
+  useEffect(() => {
+    persistor.purge();
+  }, [persistor]);
   return (
     <Provider store={store}>
-      {/* <PersistGate loading={null} persistor={persistedStore}> */}
-      {isLoadingComplete && (
+      <NetworkProvider>
+        <PersistGate loading={null} persistor={persistor}>
+          {isLoadingComplete && (
         <SafeAreaProvider>
           <NavigationContainer>
             <Stack.Navigator
@@ -51,7 +55,8 @@ export default function App() {
           <StatusBar />
         </SafeAreaProvider>
       )}
-      {/* </PersistGate> */}
+        </PersistGate>
+      </NetworkProvider>
     </Provider>
   );
 }

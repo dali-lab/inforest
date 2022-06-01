@@ -18,7 +18,12 @@
     "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.inforest.app"
+      "isTabletOnly": true,
+      "bundleIdentifier": "com.inforest.app",
+      "requireFullScreen": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "This app uses the camera to allow users to photograph trees for future identification and review."
+      }
     },
     "android": {
       "adaptiveIcon": {

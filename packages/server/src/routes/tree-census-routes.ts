@@ -5,7 +5,7 @@ import { requireAuth } from "util/auth";
 
 const treeCensusRouter = express.Router();
 
-treeCensusRouter.post<{}, any, Omit<TreeCensus, "plotCensusId">>(
+treeCensusRouter.post<{}, any, TreeCensus>(
   "/",
   requireAuth,
   async (req, res) => {
@@ -29,14 +29,14 @@ const parseParams = (query: any) => ({
 treeCensusRouter.get<{}, any, any>("/", requireAuth, async (req, res) => {
   try {
     const treeCensuses = await getTreeCensuses(parseParams(req.query));
-    res.status(200).json(treeCensuses);
+    res.status(200).send(treeCensuses);
   } catch (e: any) {
     console.error(e);
     res.status(500).send(e?.message ?? "Unknown error");
   }
 });
 
-treeCensusRouter.patch<{}, any, Omit<TreeCensus, "plotCensusId">>(
+treeCensusRouter.patch<{}, any, TreeCensus>(
   "/",
   requireAuth,
   async (req, res) => {
@@ -45,6 +45,7 @@ treeCensusRouter.patch<{}, any, Omit<TreeCensus, "plotCensusId">>(
         req.body,
         parseParams(req.query)
       );
+      console.log(treeCensuses);
       res.status(200).send(treeCensuses);
     } catch (e: any) {
       console.error(e);

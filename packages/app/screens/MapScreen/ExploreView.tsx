@@ -41,13 +41,21 @@ import {
   MapScreenZoomLevels,
   VisualizationConfigType,
 } from "../../constants";
-import { getForestCensusPlotCensuses } from "../../redux/slices/plotCensusSlice";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { max, min } from "lodash";
 import { MapOverlay } from "../../components/MapOverlay";
 import { ModeSwitcher } from "./ModeSwitcher";
 import { Queue } from "react-native-spacing-system";
 import Color from "color";
+import { selectPlot, deselectPlot } from "../../redux/slices/plotSlice";
+import {
+  createPlotCensus,
+  deselectPlotCensus,
+  getForestCensusPlotCensuses,
+  selectPlotCensus,
+} from "../../redux/slices/plotCensusSlice";
+import { deselectTreeCensus } from "../../redux/slices/treeCensusSlice";
+import { useIsConnected } from "react-native-offline";
 
 const O_FARM_LAT = 43.7348569458618;
 const O_FARM_LNG = -72.2519099587406;
@@ -64,9 +72,6 @@ const plotCensusColorMap: { [key in PlotCensusStatuses]?: string } = {
 type ForestViewProps = {
   mode: MapScreenModes;
   switchMode: () => void;
-  selectedPlot?: Plot;
-  selectPlot: (plot: Plot) => void;
-  deselectPlot: () => void;
   beginPlotting: (plot: Plot) => void;
   showUI?: boolean;
   showTrees?: boolean;
@@ -76,9 +81,6 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
   const {
     mode,
     switchMode,
-    selectedPlot,
-    selectPlot,
-    deselectPlot,
     beginPlotting,
     showUI = true,
     showTrees = true,
@@ -112,27 +114,33 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
     });
 
   const mapRef = useRef<MapView>(null);
+  // const isConnected = useIsConnected();
+  const isConnected = false;
 
   const dispatch = useAppDispatch();
   const reduxState = useAppSelector((state: RootState) => state);
   const {
     all: allTrees,
-    selected: selectedTree,
+    selected: selectedTreeId,
     indices: { byPlots },
-  } = reduxState.trees;
+  } = useAppSelector((state: RootState) => state.trees);
   const {
     all: allTreeCensuses,
-    indices: { byPlotCensuses },
-  } = reduxState.treeCensuses;
-  const { all: allPlots, indices: plotIndices } = reduxState.plots;
-  const { all: allForestCensuses, selected: selectedForestCensus } =
-    reduxState.forestCensuses;
+    indices: { byTrees, byPlotCensuses },
+  } = useAppSelector((state: RootState) => state.treeCensuses);
+  const { all: allPlots, indices: plotIndices, selected: selectedPlotId } = useAppSelector(
+    (state: RootState) => state.plots
+  );
+  const { all: allForestCensuses, selected: selectedForestCensus } = useAppSelector(
+    (state: RootState) => state.forestCensuses
+  );
   const {
-    indices: { byPlots: plotCensusesByPlot },
-  } = reduxState.plotCensuses;
-  const { colorMap } = reduxState.treeSpecies;
+    all: allPlotCensuses,
+    selected: selectedPlotCensusId,
+    indices: { byPlotActive: plotCensusesByActivePlot, byPlots: plotCensusesByPlot },
+  } = useAppSelector((state: RootState) => state.plotCensuses);
+  const { colorMap } = useAppSelector((state: RootState) => state.treeSpecies);
 
-  const plots = usePlotsInRegion(usePlots(reduxState), regionSnapshot);
   const forestBoundaries = useMemo(() => {
     if (plotIndices.latitude.length && plotIndices.longitude.length) {
       return {
@@ -147,6 +155,29 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
       };
     } else return;
   }, [plotIndices]);
+  const selectedPlot = useMemo(
+    () => (selectedPlotId && allPlots?.[selectedPlotId]) || undefined,
+    [selectedPlotId, allPlots]
+  );
+  const selectedPlotCensus = useMemo(
+    () =>
+      (selectedPlotCensusId && allPlotCensuses?.[selectedPlotCensusId]) ||
+      undefined,
+    [selectedPlotCensusId, allPlotCensuses]
+  );
+
+  useEffect(() => {
+    for (const census of Object.values(allForestCensuses)) {
+      if (census.active) {
+        dispatch(selectForestCensus(census.id));
+        dispatch(getForestCensusPlotCensuses({ forestCensusId: census.id }));
+        break;
+      }
+    }
+  }, [allForestCensuses, dispatch]);
+
+  const plotArray = useMemo(() => Object.values(allPlots), [allPlots]);
+  const plots = usePlotsInRegion(plotArray, regionSnapshot);
   const density = useMemo(() => {
     if (plots.length <= Math.pow(5, 2)) {
       return 1;
@@ -172,6 +203,21 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
     regionSnapshot
   );
 
+  const selectPlotAndCensus = useCallback(
+    async (plotId: string) => {
+      dispatch(selectPlot(plotId));
+      if (plotId in plotCensusesByActivePlot) {
+        dispatch(selectPlotCensus(plotCensusesByActivePlot[plotId]));
+      }
+    },
+    [plotCensusesByActivePlot, dispatch]
+  );
+
+  const deselectPlotAndCensus = useCallback(() => {
+    dispatch(deselectPlot());
+    dispatch(deselectPlotCensus());
+  }, [dispatch]);
+
   const openVisualizationModal = useCallback(() => {
     setVisualizationConfig((prev: VisualizationConfigType) => ({
       ...prev,
@@ -190,10 +236,10 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
     (treeTag: string) => {
       const tree = allTrees[treeTag];
       if (tree) {
-        dispatch(selectTree(tree.tag));
+        dispatch(selectTree(tree.id));
         const plot = tree.plotId;
         if (plot) {
-          selectPlot(allPlots[plot]);
+          selectPlotAndCensus(plot);
           const { easting, northing, zoneNum, zoneLetter } = utm.fromLatLon(
             allPlots[plot].latitude,
             allPlots[plot].longitude
@@ -218,20 +264,20 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
         );
       }
     },
-    [allPlots, allTrees, dispatch, selectPlot]
+    [allPlots, allTrees, dispatch, selectPlotAndCensus]
   );
 
   const treeNodes = useMemo(() => {
     setSpeciesFrequencyMap({});
     // This ternary expression ensures that the selected tree is at the end of the list and is therefore rendered on top of others
-    return (selectedTree ? [...trees, allTrees[selectedTree]] : trees).map(
+    return (selectedTreeId ? [...trees, allTrees[selectedTreeId]] : trees).map(
       (tree: Tree, i) => {
         if (
           !!tree?.latitude &&
           !!tree?.longitude &&
-          (tree.tag !== selectedTree || i !== trees.length)
+          (tree.id !== selectedTreeId || i !== trees.length)
         ) {
-          const selected = selectedTree === tree.tag;
+          const selected = selectedTreeId === tree.id;
           let nodeColor = visualizationConfig.satellite
             ? Colors.neutral[1]
             : Colors.primary.normal;
@@ -242,13 +288,13 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
             }
           }
           const treePixelSize =
-            (tree?.censuses?.[0]?.dbh ?? DEFAULT_DBH) *
+            (tree?.censuses?.[0].dbh ?? DEFAULT_DBH) *
             0.01 *
             0.5 *
             FOLIAGE_MAGNIFICATION;
           return (
             <Circle
-              key={tree.tag}
+              key={tree.id}
               center={{
                 latitude: tree.latitude,
                 longitude: tree.longitude,
@@ -268,21 +314,19 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
     visualizationConfig.colorBySpecies,
     visualizationConfig.satellite,
     colorMap,
-    selectedTree,
+    selectedTreeId,
+    byTrees,
   ]);
 
   const plotIdColorMap = useCallback(
     (id: string) => {
-      if (
-        selectedForestCensus?.id &&
-        plotCensusesByPlot?.[id]?.[selectedForestCensus?.id]
-      ) {
-        const status = plotCensusesByPlot[id][selectedForestCensus.id]?.status;
+      if (plotCensusesByActivePlot?.[id]) {
+        const status = allPlotCensuses[plotCensusesByActivePlot[id]].status;
         return status ? plotCensusColorMap[status] : "rgba(255, 255, 255, 0.3)";
       }
       return "rgba(255, 255, 255, 0.3)";
     },
-    [selectedForestCensus, plotCensusesByPlot]
+    [allPlotCensuses, plotCensusesByActivePlot, selectedPlotCensus]
   );
 
   const computePlotLastUpdatedDate = useCallback(
@@ -387,6 +431,7 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
         onPress={(e) => {
           closeVisualizationModal();
           dispatch(deselectTree());
+          dispatch(deselectTreeCensus());
           if (!!e.nativeEvent.coordinate && !!selectedPlot) {
             if (
               !geolib.isPointInPolygon(
@@ -394,7 +439,7 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
                 getPlotCorners(selectedPlot)
               )
             ) {
-              deselectPlot();
+              deselectPlotAndCensus();
             }
           }
         }}
@@ -408,7 +453,7 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
             });
         }}
       >
-        {!!selectedPlot && (
+        {selectedPlot && (
           <>
             <Marker
               coordinate={(() => {
@@ -483,7 +528,7 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
               strokeColor="rgba(255, 255, 255, 0.6)"
               fillColor="rgba(255, 255, 255, 0.6)"
               tappable={true}
-              onPress={deselectPlot}
+              onPress={deselectPlotAndCensus}
             />
           </>
         )}
@@ -492,17 +537,18 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
           plots.map((plot) => {
             return (
               <Polygon
-                key={plot.number}
-                style={styles.plot}
-                coordinates={[...getPlotCorners(plot), getPlotCorners(plot)[0]]}
-                strokeWidth={2}
-                strokeColor="rgba(255, 255, 255, 0.6)"
-                fillColor={plotIdColorMap(plot.id)}
-                tappable={true}
-                onPress={() => {
-                  plot && selectPlot(plot);
-                }}
-              />
+              key={plot.id}
+              style={styles.plot}
+              coordinates={[...getPlotCorners(plot), getPlotCorners(plot)[0]]}
+              strokeWidth={2}
+              strokeColor="rgba(255, 255, 255, 0.6)"
+              fillColor={plotIdColorMap(plot.id)}
+              tappable={true}
+              onPress={() => {
+                deselectPlotAndCensus();
+                plot?.id && selectPlotAndCensus(plot.id);
+              }}
+            />
             );
           })}
       </MapView>
@@ -596,14 +642,20 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
           drawerState={drawerState}
           setDrawerHeight={setDrawerHeight}
           plot={selectedPlot}
-          plotCensus={
-            (selectedPlot &&
-              selectedForestCensus &&
-              plotCensusesByPlot?.[selectedPlot?.id]?.[
-                selectedForestCensus?.id
-              ]) ||
-            undefined
-          }
+          plotCensus={selectedPlotCensus}
+          startCensus={async () => {
+            if (false) {
+              alert(
+                "You must be connected to the internet to assign yourself to a plot!"
+              );
+              return;
+            }
+            if (selectedPlot) {
+              await dispatch(createPlotCensus(selectedPlot.id));
+              // forceRerender();
+              // dispatch(deselectPlotCensus());
+            }
+          }}
           expandDrawer={() => setDrawerState(DrawerStates.Expanded)}
           minimizeDrawer={() => setDrawerState(DrawerStates.Minimized)}
         ></PlotDrawer>

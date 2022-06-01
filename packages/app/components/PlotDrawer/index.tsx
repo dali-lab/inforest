@@ -34,6 +34,19 @@ import DataEntryForm from "./DataEntryForm";
 import FlagIcon from "../../assets/icons/flag-icon.svg";
 import Colors from "../../constants/Colors";
 
+
+import {
+  createTreeCensus,
+  deselectTreeCensus,
+  locallyDraftNewTreeCensus,
+  locallyUpdateTreeCensus,
+  updateTreeCensus,
+} from "../../redux/slices/treeCensusSlice";
+import { createPlotCensus } from "../../redux/slices/plotCensusSlice";
+import { useIsConnected } from "react-native-offline";
+import { AUTHOR_ID } from "../../constants/dev";
+import useForceRerender from "../../hooks/useForceRerender";
+
 const SearchBar = () => {
   return (
     <View
@@ -74,6 +87,7 @@ type PlotDrawerProps = {
   zoom: MapScreenZoomLevels;
   drawerState: DrawerStates;
   plot?: Plot;
+  startCensus: () => void;
   plotCensus: PlotCensus | undefined;
   forest?: Forest;
   expandDrawer: () => void;
@@ -89,28 +103,49 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
   plot,
   plotCensus,
   forest,
+  beginPlotting,
+  startCensus,
   expandDrawer,
   minimizeDrawer,
-  beginPlotting,
   setDrawerHeight,
 }) => {
   const dispatch = useAppDispatch();
   const {
-    all,
-    selected: selectedTreeTag,
+    all: allTrees,
+    selected: selectedTreeId,
     indices: { byPlots },
   } = useAppSelector((state) => state.trees);
   const { currentForest } = useAppSelector((state) => state.forest);
   const {
-    drafts,
-    indices: { byPlotCensuses },
+    all: allTreeCensuses,
+    selected: selectedTreeCensusId,
+    indices: { byTreeActive },
   } = useAppSelector((state) => state.treeCensuses);
-  const {
-    all: allForestCensuses,
-    selected: selectedForestCensus,
-    indices: { byForests: thisForestCensuses },
-  } = useAppSelector((state) => state.forestCensuses);
-  const selected = selectedTreeTag ? all[selectedTreeTag] : undefined;
+  const { all: allForestCensuses, selected: selectedForestCensusId } =
+    useAppSelector((state) => state.forestCensuses);
+  const selectedTree = useMemo(
+    () => (selectedTreeId ? allTrees[selectedTreeId] : undefined),
+    [allTrees, selectedTreeId]
+  );
+  const selectedTreeCensus = useMemo(
+    () =>
+      (selectedTreeCensusId && allTreeCensuses?.[selectedTreeCensusId]) ||
+      undefined,
+    [selectedTreeCensusId, allTreeCensuses]
+  );
+
+  useEffect(() => {}, [selectedTreeCensusId]);
+  const selectedForestCensus = useMemo(
+    () =>
+      (selectedForestCensusId && allForestCensuses?.[selectedForestCensusId]) ||
+      undefined,
+    [selectedForestCensusId, allForestCensuses]
+  );
+
+  // const isConnected = useIsConnected();
+  const isConnected = false;
+  const forceRerender = useForceRerender();
+
   const setStyle = useCallback(() => {
     switch (drawerState) {
       case DrawerStates.Closed:
@@ -122,18 +157,61 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
     }
   }, [drawerState]);
 
-  const [flagged, setFlagged] = useState<boolean>(
-    (plotCensus &&
-      selected &&
-      byPlotCensuses?.[plotCensus?.id]?.[selected.tag]?.flagged) ||
-      false
+  // TODO: fix this by pulling from date of most recent Plot Census. May require additional column and new RTK indices
+  const computePlotLastUpdatedDate = useCallback(
+    (plotId: string) => {
+      const plotTrees = byPlots?.[plotId];
+      let latestCensus: Date | undefined;
+      plotTrees instanceof Set &&
+        plotTrees.forEach((treeId) => {
+          const { updatedAt } = allTrees[treeId];
+          if (updatedAt && (!latestCensus || updatedAt > latestCensus)) {
+            latestCensus = updatedAt;
+          }
+        });
+      return latestCensus;
+    },
+    [byPlots, allTrees]
   );
 
-  const toggleFlagged = useCallback(() => {
-    setFlagged((prev) => !prev);
-  }, [setFlagged]);
+  const toggleFlagged = useCallback(async () => {
+    if (selectedTreeCensus?.id) {
+      const updated = {
+        id: selectedTreeCensus.id,
+        flagged: !selectedTreeCensus?.flagged,
+      };
+      isConnected
+        ? await dispatch(updateTreeCensus(updated))
+        : dispatch(
+            locallyUpdateTreeCensus({
+              updated,
+            })
+          );
+    }
+  }, [dispatch, selectedTreeCensus, isConnected]);
 
-  const inProgressCensuses = useMemo(() => Object.keys(drafts), [drafts]);
+  useEffect(() => {
+    if (
+      selectedTree?.plotId &&
+      selectedTree?.id &&
+      plotCensus?.id &&
+      !byTreeActive?.[selectedTree.id]
+    ) {
+      try {
+        const newCensus = {
+          ...blankTreeCensus,
+          treeId: selectedTree?.id,
+          plotCensusId: plotCensus.id,
+          authorId: AUTHOR_ID,
+        };
+        isConnected
+          ? dispatch(createTreeCensus(newCensus))
+          : dispatch(locallyDraftNewTreeCensus(newCensus));
+      } catch (err: any) {
+        alert(err?.message || "An unknown error occurred.");
+      }
+    }
+  }, [selectedTree, plotCensus, dispatch, byTreeActive]);
 
   if (drawerState === DrawerStates.Closed) {
     return null;
@@ -202,71 +280,61 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
                   <SearchBar></SearchBar>
                 </View>
               )}
-
-              {drawerState === "EXPANDED" && !!selected && (
-                <>
-                  <View style={styles.header}>
-                    <View
-                      style={{
-                        flexDirection: "row",
-                        // justifyContent: "space-between",
-                        alignItems: "center",
-                        width: "100%",
-                      }}
-                    >
-                      <View style={{ flexDirection: "column", flex: 1 }}>
-                        <Text variant={TextVariants.H2}>
-                          New Census Entry in Plot {plot.number}
-                        </Text>
-                        <Text variant={TextVariants.Body}>
-                          This is the {byPlots[plot.id].size + 1}th tree in the
-                          plot.
-                        </Text>
-                      </View>
-                      <AppButton
-                        style={{ marginHorizontal: 12 }}
-                        onPress={toggleFlagged}
-                        type={flagged ? "RED" : "PLAIN"}
-                        icon={
-                          <FlagIcon
-                            height={16}
-                            width={16}
-                            style={{ marginRight: 12 }}
-                            strokeWidth={4}
-                            stroke={flagged ? "white" : "black"}
-                          />
-                        }
-                      >
-                        {flagged ? "Flagged" : "Flag"} for Review
-                      </AppButton>
-                      <Ionicons
-                        name="close"
-                        size={24}
-                        onPress={minimizeDrawer}
-                      />
-                    </View>
+              {drawerState === "EXPANDED" && !!selectedTree && plot && (
+                <View
+                  style={{
+                    flexDirection: "row",
+                    // justifyContent: "space-between",
+                    alignItems: "center",
+                    width: "100%",
+                  }}
+                >
+                  <View style={{ flexDirection: "column", flex: 1 }}>
+                    <Text variant={TextVariants.H2}>
+                      New Census Entry in Plot {plot.number}
+                    </Text>
+                    <Text variant={TextVariants.Body}>
+                      This is the {byPlots[plot.id].size + 1}th tree in the
+                      plot.
+                    </Text>
                   </View>
+                  <AppButton
+                    style={{ marginHorizontal: 12 }}
+                    onPress={toggleFlagged}
+                    type={selectedTreeCensus?.flagged ? "RED" : "PLAIN"}
+                    icon={
+                      <FlagIcon
+                        height={16}
+                        width={16}
+                        style={{ marginRight: 12 }}
+                        strokeWidth={4}
+                        stroke={selectedTreeCensus?.flagged ? "white" : "black"}
+                      />
+                    }
+                  >
+                    {selectedTreeCensus?.flagged ? "Flagged" : "Flag"} for
+                    Review
+                  </AppButton>
+                  <Ionicons name="close" size={24} onPress={minimizeDrawer} />
+                </View>
+              )}
+              {drawerState === "EXPANDED" && !!selectedTree && (
+                <>
                   <Stack size={24}></Stack>
                   <View>
                     {plotCensus && (
                       <DataEntryForm
-                        treeCensus={
-                          byPlotCensuses?.[plotCensus?.id]?.[selected.tag] || {
-                            ...blankTreeCensus,
-                            plotCensusId: plotCensus.id,
-                            treeId: selected.id,
-                            authorId: "",
-                            flagged: flagged,
-                            id: "",
-                          }
-                        }
-                        flagged={flagged}
+                        selectedTree={selectedTree}
+                        selectedTreeCensus={selectedTreeCensus}
                         cancel={() => {
-                          dispatch(locallyDeleteTree(selected.tag));
+                          dispatch(locallyDeleteTree(selectedTree.id));
+                          dispatch(deselectTreeCensus());
                           dispatch(deselectTree());
                           minimizeDrawer();
                         }}
-                        finish={minimizeDrawer}
+                        finish={() => {
+                          minimizeDrawer();
+                        }}
                         style={{ flex: 1 }}
                       />
                     )}

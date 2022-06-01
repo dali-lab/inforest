@@ -318,7 +318,7 @@ module.exports = {
       }
 
       const inprogress_plot_censuses = {};
-      for (let i = 0; i < Math.floor(Object.values(plots).length / 2); i++) {
+      for (let i = 12; i < Math.floor(Object.values(plots).length / 2); i++) {
         const id = uuid();
         plotCensusIds.push(id);
         const plot = Object.values(plots)[i];

@@ -2,8 +2,8 @@ import React, { useState, useCallback, useEffect, useMemo } from "react";
 import { FlatList, Pressable, View, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import {
-  ImageInfo,
   ImagePickerOptions,
+  launchCameraAsync,
   launchImageLibraryAsync,
 } from "expo-image-picker";
 import useAppSelector from "../../../hooks/useAppSelector";
@@ -12,66 +12,64 @@ import { Text, TextVariants } from "../../Themed";
 import FieldWrapper from "../FieldWrapper";
 import PhotoItem from "./PhotoItem";
 import { TreeCensus, TreePhoto, TreePhotoPurpose } from "@ong-forestry/schema";
+import useAppDispatch from "../../../hooks/useAppDispatch";
+import {
+  locallyDeletePhoto,
+  locallyDraftNewPhoto,
+  locallyUpdatePhoto,
+} from "../../../redux/slices/treePhotoSlice";
 
 const imageLibraryOptions: ImagePickerOptions = {
   base64: true,
 };
 
 export type PhotoFieldProps = {
-  onUpdate: (newValue: TreePhoto[]) => void;
   census: TreeCensus;
 };
 
-const PhotoField: React.FC<PhotoFieldProps> = ({ onUpdate, census }) => {
+const PhotoField: React.FC<PhotoFieldProps> = ({ census }) => {
+  const dispatch = useAppDispatch();
   const { all: allPurposes } = useAppSelector(
     (state: RootState) => state.treePhotoPurposes
   );
-  const [photos, setPhotos] = useState<Record<string, TreePhoto>>(
-    census?.photos?.reduce(
-      (prev, photo) => ({ ...prev, [photo.fullUrl]: photo }),
-      {}
-    ) || {}
-  );
-  const addedUrls = useMemo(() => Object.keys(photos), [photos]);
+  const {
+    all: allPhotos,
+    indices: { byTreeCensus },
+  } = useAppSelector((state: RootState) => state.treePhotos);
+  const photos = useMemo(() => {
+    const treePhotos: TreePhoto[] = [];
+    byTreeCensus?.[census.id] &&
+      byTreeCensus[census.id].forEach((photoId) => {
+        treePhotos.push(allPhotos[photoId]);
+      });
+    return treePhotos;
+  }, [byTreeCensus, allPhotos, census]);
   const addPhoto = useCallback(async () => {
     const photo = await launchImageLibraryAsync(imageLibraryOptions);
     if (!photo?.cancelled) {
-      if (photo.uri in addedUrls) {
-        alert("This photo has already been uploaded.");
-        return;
-      }
-      const parsedPhoto: TreePhoto = {
+      const parsedPhoto = {
         id: "",
         thumbUrl: "",
         fullUrl: photo?.uri,
         treeCensusId: census.id,
         purposeName: "",
+        buffer: photo.base64,
       };
-      setPhotos((prev) => ({ ...prev, [photo.uri]: parsedPhoto }));
+      dispatch(locallyDraftNewPhoto(parsedPhoto));
     }
-  }, [addedUrls, setPhotos]);
+  }, [census.id, dispatch]);
   const removePhoto = useCallback(
-    async (url: string) => {
-      setPhotos((prev) => {
-        const { [url]: removedPhoto, ...remainingPhotos } = prev;
-        return remainingPhotos;
-      });
+    async (id: string) => {
+      dispatch(locallyDeletePhoto(id));
     },
-    [setPhotos]
+    [dispatch]
   );
   const setPhotoPurpose = useCallback(
-    async (url: string, purpose: string) => {
-      setPhotos((prev) => ({
-        ...prev,
-        [url]: { ...prev[url], purposeName: purpose },
-      }));
+    async (photo: TreePhoto, purposeName: TreePhotoPurpose) => {
+      dispatch(locallyUpdatePhoto({ updated: { ...photo, purposeName } }));
     },
-    [setPhotos]
+    [dispatch]
   );
-  const photoList = useMemo(() => Object.values(photos), [photos]);
-  useEffect(() => {
-    onUpdate(photoList);
-  }, [photoList]);
   const purposesOptions = useMemo(
     () =>
       Object.values(allPurposes).map((purpose) => ({
@@ -80,7 +78,6 @@ const PhotoField: React.FC<PhotoFieldProps> = ({ onUpdate, census }) => {
       })),
     [allPurposes]
   );
-
   return (
     <FieldWrapper
       label="Upload Photos"
@@ -100,14 +97,14 @@ const PhotoField: React.FC<PhotoFieldProps> = ({ onUpdate, census }) => {
       </View>
       <View style={styles.addedPhotosContainer}>
         <FlatList
-          data={photoList}
+          data={photos}
           renderItem={(item) => (
             <PhotoItem
               item={item}
               removePhoto={removePhoto}
               options={purposesOptions}
               setPurpose={(newValue) => {
-                setPhotoPurpose(item.item.fullUrl, newValue);
+                setPhotoPurpose(item.item, newValue);
               }}
             />
           )}

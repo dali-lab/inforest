@@ -7,24 +7,30 @@ import {
   editTreePhotos,
   deleteTreePhotos,
 } from "services";
-import { requireAuth, imageResize } from "middleware";
+import { requireAuth, resizeMiddleware } from "middleware";
 import { treePhotoPurposeRouter } from "./tree-photo-purpose-routes";
 
 const upload = multer({
   limits: { fieldSize: 25 * 1024 * 1024 },
 });
 
+const MAX_IMAGE_NUM = 12;
+
 const treePhotoRouter = express.Router();
 
-treePhotoRouter.post<{}, any, TreePhoto>("/", requireAuth, async (req, res) => {
-  try {
-    const photo = await createTreePhoto(req.body);
-    res.status(201).json(photo);
-  } catch (e: any) {
-    console.error(e);
-    res.status(500).send(e?.message ?? "Unknown error.");
+treePhotoRouter.post<{}, any, TreePhoto>(
+  "/",
+  [requireAuth, resizeMiddleware],
+  async (req: any, res: any) => {
+    try {
+      const photo = await createTreePhoto(req.body);
+      res.status(201).json(photo);
+    } catch (e: any) {
+      console.error(e);
+      res.status(500).send(e?.message ?? "Unknown error.");
+    }
   }
-});
+);
 
 const parseParams = (query: any) => ({
   id: query.id as string,

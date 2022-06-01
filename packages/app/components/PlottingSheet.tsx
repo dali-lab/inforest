@@ -1,9 +1,9 @@
-import React, { useCallback, useMemo, useState } from "react";
-import { Pressable, StyleSheet, View } from "react-native";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { Animated, Pressable, StyleSheet, View } from "react-native";
 import * as utm from "utm";
 import DashedLine from "react-native-dashed-line";
 import { getRandomBytes } from "expo-random";
-import { Plot, PlotCensus } from "@ong-forestry/schema";
+import { Plot, PlotCensus, TreeCensus } from "@ong-forestry/schema";
 import Colors from "../constants/Colors";
 import { Text, TextVariants } from "./Themed";
 import {
@@ -18,15 +18,22 @@ import useAppSelector, {
 } from "../hooks/useAppSelector";
 import {
   deselectTree,
-  createTree,
   selectTree,
   locallyDraftNewTree,
+  createTree,
 } from "../redux/slices/treeSlice";
 import useAppDispatch from "../hooks/useAppDispatch";
-import { AUTHOR_ID, TRIP_ID } from "../constants/dev";
 import AppButton from "./AppButton";
+import {
+  createTreeCensus,
+  deselectTreeCensus,
+  locallyDraftNewTreeCensus,
+  selectTreeCensus,
+} from "../redux/slices/treeCensusSlice";
+import { useIsConnected } from "react-native-offline";
 
 const SMALL_OFFSET = 8;
+const PLOT_SHEET_MARGINS = 36;
 
 interface PlottingSheetProps {
   mode: MapScreenModes;
@@ -34,6 +41,7 @@ interface PlottingSheetProps {
   plotCensus: PlotCensus | undefined;
   stakeNames: string[];
   mapWidth: number;
+  direction?: number;
   expandDrawer: () => void;
   minimizeDrawer: () => void;
 }
@@ -41,19 +49,36 @@ interface PlottingSheetProps {
 const STAKE_LABEL_HEIGHT = 18 + 8;
 const STAKE_LABEL_WIDTH = 36 + 16;
 
+const blankTreeCensus: Omit<
+  TreeCensus,
+  "id" | "treeId" | "plotCensusId" | "authorId"
+> = {
+  dbh: 0,
+  labels: [],
+  photos: [],
+  flagged: false,
+};
+
 export const PlottingSheet: React.FC<PlottingSheetProps> = ({
   mode,
   plot,
   plotCensus,
   stakeNames,
   mapWidth,
+  direction = 0,
   expandDrawer,
   minimizeDrawer,
 }) => {
-  const sheetSize = mapWidth - (STAKE_LABEL_WIDTH + 2 * SMALL_OFFSET) * 2;
+  const isConnected = false;
+  // const isConnected = useIsConnected();
+
+  const sheetSize =
+    mapWidth - (STAKE_LABEL_WIDTH + 2 * SMALL_OFFSET + PLOT_SHEET_MARGINS) * 2;
   const [markerPos, setMarkerPos] = useState<{
     x: number;
     y: number;
+    adjustedX: number;
+    adjustedY: number;
   }>();
   const markerLocToMeters = useCallback(
     (loc: number, axis: "VERTICAL" | "HORIZONTAL") => {
@@ -67,18 +92,40 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
     },
     [sheetSize, plot.length, plot.width]
   );
+  const transformXY = useCallback(
+    (absoluteX, absoluteY) => {
+      const transformedX =
+        direction === 0 || direction === 2 ? absoluteX : absoluteY;
+      const transformedY =
+        direction === 0 || direction === 2 ? absoluteY : absoluteX;
+      return {
+        x:
+          direction === 0 || direction == 3
+            ? transformedX
+            : sheetSize - transformedX,
+        y:
+          direction === 0 || direction == 1 || direction == 4
+            ? transformedY
+            : sheetSize - transformedY,
+      };
+    },
+    [sheetSize, direction]
+  );
+
   const dispatch = useAppDispatch();
   const {
     all,
     drafts,
-    selected: selectedTreeTag,
+    selected: selectedTreeId,
   } = useAppSelector((state) => state.trees);
-  const selected = useMemo(() => {
-    if (selectedTreeTag) {
-      return all[selectedTreeTag];
-    }
-    return;
-  }, [all, selectedTreeTag]);
+  const {
+    indices: { byTreeActive },
+    selected: selectedTreeCensusId,
+  } = useAppSelector((state) => state.treeCensuses);
+  const selectedTree = useMemo(
+    () => (selectedTreeId ? all[selectedTreeId] : undefined),
+    [all, selectedTreeId]
+  );
   const trees = useTreesInPlots(
     useTreesByDensity(
       useAppSelector((state) => state),
@@ -93,22 +140,102 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
     () => Object.keys(byPlotCensuses),
     [byPlotCensuses]
   );
+
+  const animatedPlotRotationAngle = useMemo(
+    () => new Animated.Value(direction),
+    [direction]
+  );
+
+  useEffect(() => {
+    Animated.spring(animatedPlotRotationAngle, {
+      toValue: new Animated.Value(direction),
+      useNativeDriver: true,
+    }).start();
+  }, [direction, animatedPlotRotationAngle]);
+
+  const rotationAnimation = useMemo(() => {
+    return animatedPlotRotationAngle.interpolate({
+      inputRange: [0, 4],
+      outputRange: ["0deg", "360deg"],
+    });
+  }, [animatedPlotRotationAngle]);
+
+  // const createCensus = useCallback(async () => {
+  //   if (!selectedTree || !plotCensus) return;
+  //   const newCensus = {
+  //     ...blankTreeCensus,
+  //     treeId: selectedTree.id,
+  //     plotCensusId: plotCensus.id,
+  //   };
+  //   isConnected
+  //     ? await dispatch(createTreeCensus(newCensus))
+  //     : dispatch(locallyDraftNewTreeCensus(newCensus));
+  //   setMarkerPos(undefined);
+  //   expandDrawer();
+  // }, [dispatch, expandDrawer, isConnected, plotCensus, selectedTree]);
+
+  const createPlotAndCensus = useCallback(async () => {
+    if (!markerPos) return;
+    const { easting, northing, zoneNum, zoneLetter } = utm.fromLatLon(
+      plot.latitude,
+      plot.longitude
+    );
+    const { adjustedX: x, adjustedY: y } = markerPos;
+    const plotX = markerLocToMeters(sheetSize - y, "HORIZONTAL");
+    const plotY = markerLocToMeters(x, "VERTICAL");
+    const { latitude, longitude } = utm.toLatLon(
+      easting + markerLocToMeters(sheetSize - y, "HORIZONTAL"),
+      northing - markerLocToMeters(x, "VERTICAL"),
+      zoneNum,
+      zoneLetter
+    );
+    const tag = getRandomBytes(2).join("").substring(0, 5);
+    const newTree = {
+      tag,
+      plotId: plot.id,
+      plotX,
+      plotY,
+      latitude,
+      longitude,
+    };
+    isConnected
+      ? await dispatch(createTree(newTree))
+      : dispatch(locallyDraftNewTree(newTree));
+    setMarkerPos(undefined);
+  }, [
+    // createCensus,
+    dispatch,
+    expandDrawer,
+    isConnected,
+    markerLocToMeters,
+    markerPos,
+    plot.id,
+    plot.latitude,
+    plot.longitude,
+    plotCensus,
+    selectedTree,
+    sheetSize,
+  ]);
+
   return (
     <Pressable
       style={{ ...styles.container, width: sheetSize, height: sheetSize }}
       onTouchMove={(e) => {
-        if (selected) {
+        dispatch(deselectTree());
+        dispatch(deselectTreeCensus());
+
+        const { locationX, locationY } = e.nativeEvent;
+        const { x, y } = transformXY(locationX, locationY);
+
+        if (0 > x || x > sheetSize || 0 > y || y > sheetSize) {
           dispatch(deselectTree());
+        } else {
+          setMarkerPos({ x, y, adjustedX: locationX, adjustedY: locationY });
         }
-        setMarkerPos({
-          x: e.nativeEvent.locationX,
-          y: e.nativeEvent.locationY,
-        });
       }}
       onPress={() => {
-        if (selected) {
-          dispatch(deselectTree());
-        }
+        dispatch(deselectTree());
+        dispatch(deselectTreeCensus());
       }}
       onPressIn={() => {
         setMarkerPos(undefined);
@@ -119,40 +246,61 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
         <View
           style={{
             ...styles.stakeLabel,
+            ...(direction === 1 && styles.rootStakeLabel),
             top: -(STAKE_LABEL_HEIGHT + SMALL_OFFSET),
             left: -(STAKE_LABEL_WIDTH + SMALL_OFFSET),
           }}
         >
-          <Text variant={TextVariants.Numerical}>{stakeNames[1]}</Text>
+          <Text
+            variant={TextVariants.Numerical}
+            color={direction === 1 ? Colors.neutral[1] : undefined}
+          >
+            {stakeNames[Math.abs(1 - direction)]}
+          </Text>
         </View>
         <View
           style={{
             ...styles.stakeLabel,
+            ...(direction === 2 && styles.rootStakeLabel),
             top: -(STAKE_LABEL_HEIGHT + SMALL_OFFSET),
             right: -(STAKE_LABEL_WIDTH + SMALL_OFFSET),
           }}
         >
-          <Text variant={TextVariants.Numerical}>{stakeNames[2]}</Text>
+          <Text
+            variant={TextVariants.Numerical}
+            color={direction === 2 ? Colors.neutral[1] : undefined}
+          >
+            {stakeNames[Math.abs(2 - direction)]}
+          </Text>
         </View>
         <View
           style={{
             ...styles.stakeLabel,
+            ...(direction === 3 && styles.rootStakeLabel),
             bottom: -(STAKE_LABEL_HEIGHT + SMALL_OFFSET),
             right: -(STAKE_LABEL_WIDTH + SMALL_OFFSET),
           }}
         >
-          <Text variant={TextVariants.Numerical}>{stakeNames[3]}</Text>
+          <Text
+            variant={TextVariants.Numerical}
+            color={direction === 3 ? Colors.neutral[1] : undefined}
+          >
+            {stakeNames[Math.abs(3 - direction)]}
+          </Text>
         </View>
         <View
           style={{
             ...styles.stakeLabel,
-            ...styles.rootStakeLabel,
+            ...(direction === 0 && styles.rootStakeLabel),
             bottom: -(STAKE_LABEL_HEIGHT + SMALL_OFFSET),
             left: -(STAKE_LABEL_WIDTH + SMALL_OFFSET),
           }}
         >
-          <Text variant={TextVariants.Numerical} color={Colors.neutral[1]}>
-            {stakeNames[0]}
+          <Text
+            variant={TextVariants.Numerical}
+            color={direction === 0 ? Colors.neutral[1] : undefined}
+          >
+            {stakeNames[Math.abs(0 - direction)]}
           </Text>
         </View>
       </>
@@ -169,33 +317,7 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
           >
             <AppButton
               onPress={() => {
-                const { easting, northing, zoneNum, zoneLetter } =
-                  utm.fromLatLon(plot.latitude, plot.longitude);
-                const plotX = markerLocToMeters(
-                  sheetSize - markerPos.y,
-                  "HORIZONTAL"
-                );
-                const plotY = markerLocToMeters(markerPos.x, "VERTICAL");
-                const { latitude, longitude } = utm.toLatLon(
-                  easting +
-                    markerLocToMeters(sheetSize - markerPos.y, "HORIZONTAL"),
-                  northing - markerLocToMeters(markerPos.x, "VERTICAL"),
-                  zoneNum,
-                  zoneLetter
-                );
-                const tag = getRandomBytes(2).join("").substring(0, 5);
-                const newTree = {
-                  tag,
-                  plotId: plot.id,
-                  plotX,
-                  plotY,
-                  latitude,
-                  longitude,
-                };
-                dispatch(locallyDraftNewTree(newTree));
-                setMarkerPos(undefined);
-                dispatch(selectTree(tag));
-                expandDrawer();
+                createPlotAndCensus();
               }}
             >
               Plot tree
@@ -245,203 +367,226 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
         </>
       )}
 
-      {/* trees */}
-      <>
-        {trees
-          .filter((tree) => tree.plotId === plot.id)
-          .map((tree) => {
-            const isDraft = drafts.has(tree.tag);
-            const isCensusing = tree.tag in inProgressCensuses;
-            const { plotX, plotY } = tree;
-            if (!!plotX && !!plotY) {
-              const treePixelSize =
-                (tree.censuses?.[0]?.dbh ?? DEFAULT_DBH) *
-                0.01 *
-                (sheetSize /
-                  Math.sqrt(
-                    Math.pow(plot.length, 2) + Math.pow(plot.width, 2)
-                  )) *
-                FOLIAGE_MAGNIFICATION;
-              return (
-                <Pressable
-                  key={tree.tag}
-                  style={{
-                    ...styles.tree,
-                    top:
-                      sheetSize -
-                      plotX * (sheetSize / plot.width) -
-                      treePixelSize / 2,
-                    left: plotY * (sheetSize / plot.length) - treePixelSize / 2,
-                  }}
-                  onPress={() => {
-                    setMarkerPos(undefined);
-                    minimizeDrawer();
-                    dispatch(selectTree(tree.tag));
-                  }}
-                >
-                  <TreeMarker
-                    color={
-                      isDraft
-                        ? Colors.primary.normal
-                        : isCensusing
-                        ? "yellow"
-                        : Colors.primary.light
-                    }
-                    size={treePixelSize}
-                    selected={selected?.tag === tree.tag}
-                  />
-                </Pressable>
-              );
-            } else return null;
-          })}
-      </>
+      <Animated.View
+        style={{
+          position: "absolute",
+          width: "100%",
+          height: "100%",
+          backgroundColor: Colors.secondary.normal,
+          borderColor: "white",
+          borderWidth: 2,
+          transform: [{ rotate: rotationAnimation }],
+        }}
+      >
+        {/* trees */}
+        <>
+          {trees
+            .filter((tree) => tree.plotId === plot.id)
+            .map((tree) => {
+              const isDraft = drafts.has(tree.id);
+              const isCensusing = tree.id in inProgressCensuses;
+              const { plotX, plotY } = tree;
+              if (!!plotX && !!plotY) {
+                const treePixelSize =
+                  (tree.censuses?.[0]?.dbh ?? DEFAULT_DBH) *
+                  0.01 *
+                  (sheetSize /
+                    Math.sqrt(
+                      Math.pow(plot.length, 2) + Math.pow(plot.width, 2)
+                    )) *
+                  FOLIAGE_MAGNIFICATION;
+                return (
+                  <Pressable
+                    key={tree.id}
+                    style={{
+                      ...styles.tree,
+                      top:
+                        sheetSize -
+                        plotX * (sheetSize / plot.width) -
+                        treePixelSize / 2,
+                      left:
+                        plotY * (sheetSize / plot.length) - treePixelSize / 2,
+                    }}
+                    onPress={() => {
+                      setMarkerPos(undefined);
+                      minimizeDrawer();
+                      dispatch(selectTree(tree.id));
+                      if (byTreeActive[tree.id])
+                        dispatch(selectTreeCensus(byTreeActive[tree.id]));
+                      else {
+                        // createCensus();
+                      }
+                    }}
+                  >
+                    <TreeMarker
+                      color={
+                        isDraft
+                          ? Colors.primary.normal
+                          : isCensusing
+                          ? "yellow"
+                          : Colors.primary.light
+                      }
+                      size={treePixelSize}
+                      selected={selectedTree?.id === tree.id}
+                    />
+                  </Pressable>
+                );
+              } else return null;
+            })}
+        </>
 
-      {/* plot guidelines */}
-      <>
-        <DashedLine
+        {/* plot guidelines */}
+        <View
           style={{
-            ...styles.cross,
-            width: "100%",
-            bottom: sheetSize / 2,
+            position: "absolute",
             left: 0,
-          }}
-          dashLength={8}
-          dashThickness={2}
-          dashGap={16}
-          dashColor="white"
-        />
-        <DashedLine
-          style={{
-            ...styles.cross,
-            height: "100%",
             bottom: 0,
-            left: sheetSize / 2,
-          }}
-          axis="vertical"
-          dashLength={8}
-          dashThickness={2}
-          dashGap={16}
-          dashColor="white"
-        />
-
-        <DashedLine
-          style={{
-            ...styles.cross,
             width: "100%",
-            bottom: sheetSize * (1 / 4),
-            left: 0,
-          }}
-          dashLength={8}
-          dashThickness={2}
-          dashGap={16}
-          dashColor="white"
-        />
-        <DashedLine
-          style={{
-            ...styles.cross,
             height: "100%",
-            bottom: 0,
-            left: sheetSize * (1 / 4),
+            overflow: "hidden",
           }}
-          axis="vertical"
-          dashLength={8}
-          dashThickness={2}
-          dashGap={16}
-          dashColor="white"
-        />
-        <DashedLine
-          style={{
-            ...styles.cross,
-            width: "100%",
-            bottom: sheetSize * (3 / 4),
-            left: 0,
-          }}
-          dashLength={8}
-          dashThickness={2}
-          dashGap={16}
-          dashColor="white"
-        />
-        <DashedLine
-          style={{
-            ...styles.cross,
-            height: "100%",
-            bottom: 0,
-            left: sheetSize * (3 / 4),
-          }}
-          axis="vertical"
-          dashLength={8}
-          dashThickness={2}
-          dashGap={16}
-          dashColor="white"
-        />
+        >
+          <DashedLine
+            style={{
+              ...styles.cross,
+              width: "100%",
+              bottom: sheetSize / 2,
+              left: 0,
+            }}
+            dashLength={8}
+            dashThickness={2}
+            dashGap={16}
+            dashColor="white"
+          />
+          <DashedLine
+            style={{
+              ...styles.cross,
+              height: "100%",
+              bottom: 0,
+              left: sheetSize / 2,
+            }}
+            axis="vertical"
+            dashLength={8}
+            dashThickness={2}
+            dashGap={16}
+            dashColor="white"
+          />
 
-        <View
-          style={{
-            ...styles.x,
-            transform: [{ rotate: "45deg" }],
-            width: sheetSize * Math.SQRT2,
-            bottom: sheetSize / 2,
-            left: -((sheetSize * (Math.SQRT2 - 1)) / 2),
-          }}
-        ></View>
-        <View
-          style={{
-            ...styles.x,
-            transform: [{ rotate: "135deg" }],
-            width: sheetSize * Math.SQRT2,
-            bottom: sheetSize / 2,
-            left: -((sheetSize * (Math.SQRT2 - 1)) / 2),
-          }}
-        ></View>
+          <DashedLine
+            style={{
+              ...styles.cross,
+              width: "100%",
+              bottom: sheetSize * (1 / 4),
+              left: 0,
+            }}
+            dashLength={8}
+            dashThickness={2}
+            dashGap={16}
+            dashColor="white"
+          />
+          <DashedLine
+            style={{
+              ...styles.cross,
+              height: "100%",
+              bottom: 0,
+              left: sheetSize * (1 / 4),
+            }}
+            axis="vertical"
+            dashLength={8}
+            dashThickness={2}
+            dashGap={16}
+            dashColor="white"
+          />
+          <DashedLine
+            style={{
+              ...styles.cross,
+              width: "100%",
+              bottom: sheetSize * (3 / 4),
+              left: 0,
+            }}
+            dashLength={8}
+            dashThickness={2}
+            dashGap={16}
+            dashColor="white"
+          />
+          <DashedLine
+            style={{
+              ...styles.cross,
+              height: "100%",
+              bottom: 0,
+              left: sheetSize * (3 / 4),
+            }}
+            axis="vertical"
+            dashLength={8}
+            dashThickness={2}
+            dashGap={16}
+            dashColor="white"
+          />
 
-        <View
-          style={{
-            ...styles.x,
-            transform: [{ rotate: "45deg" }],
-            width: (sheetSize * Math.SQRT2) / 2,
-            bottom: sheetSize * (1 / 4),
-            left: -((sheetSize * (Math.SQRT2 - 1)) / 4),
-          }}
-        ></View>
-        <View
-          style={{
-            ...styles.x,
-            transform: [{ rotate: "45deg" }],
-            width: (sheetSize * Math.SQRT2) / 2,
-            bottom: sheetSize * (3 / 4),
-            left: sheetSize / 2 - (sheetSize * (Math.SQRT2 - 1)) / 4,
-          }}
-        ></View>
-        <View
-          style={{
-            ...styles.x,
-            transform: [{ rotate: "135deg" }],
-            width: (sheetSize * Math.SQRT2) / 2,
-            bottom: sheetSize * (3 / 4),
-            left: -((sheetSize * (Math.SQRT2 - 1)) / 4),
-          }}
-        ></View>
-        <View
-          style={{
-            ...styles.x,
-            transform: [{ rotate: "135deg" }],
-            width: (sheetSize * Math.SQRT2) / 2,
-            bottom: sheetSize * (1 / 4),
-            left: sheetSize / 2 - (sheetSize * (Math.SQRT2 - 1)) / 4,
-          }}
-        ></View>
-      </>
+          <View
+            style={{
+              ...styles.x,
+              transform: [{ rotate: "45deg" }],
+              width: sheetSize * Math.SQRT2,
+              bottom: sheetSize / 2,
+              left: -((sheetSize * (Math.SQRT2 - 1)) / 2),
+            }}
+          ></View>
+          <View
+            style={{
+              ...styles.x,
+              transform: [{ rotate: "135deg" }],
+              width: sheetSize * Math.SQRT2,
+              bottom: sheetSize / 2,
+              left: -((sheetSize * (Math.SQRT2 - 1)) / 2),
+            }}
+          ></View>
+
+          <View
+            style={{
+              ...styles.x,
+              transform: [{ rotate: "45deg" }],
+              width: (sheetSize * Math.SQRT2) / 2,
+              bottom: sheetSize * (1 / 4),
+              left: -((sheetSize * (Math.SQRT2 - 1)) / 4),
+            }}
+          ></View>
+          <View
+            style={{
+              ...styles.x,
+              transform: [{ rotate: "45deg" }],
+              width: (sheetSize * Math.SQRT2) / 2,
+              bottom: sheetSize * (3 / 4),
+              left: sheetSize / 2 - (sheetSize * (Math.SQRT2 - 1)) / 4,
+            }}
+          ></View>
+          <View
+            style={{
+              ...styles.x,
+              transform: [{ rotate: "135deg" }],
+              width: (sheetSize * Math.SQRT2) / 2,
+              bottom: sheetSize * (3 / 4),
+              left: -((sheetSize * (Math.SQRT2 - 1)) / 4),
+            }}
+          ></View>
+          <View
+            style={{
+              ...styles.x,
+              transform: [{ rotate: "135deg" }],
+              width: (sheetSize * Math.SQRT2) / 2,
+              bottom: sheetSize * (1 / 4),
+              left: sheetSize / 2 - (sheetSize * (Math.SQRT2 - 1)) / 4,
+            }}
+          ></View>
+        </View>
+      </Animated.View>
     </Pressable>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: Colors.secondary.normal,
     position: "relative",
-    borderColor: "white",
-    borderWidth: 2,
-    overflow: "hidden",
   },
   stakeLabel: {
     position: "absolute",

@@ -37,7 +37,7 @@ export const getForestForestCensuses = createAsyncThunk(
 
 export interface ForestCensusState {
   all: Record<string, ForestCensus>;
-  selected: ForestCensus | null;
+  selected: string | undefined;
   indices: {
     byForests: Record<string, Set<string>>;
   };
@@ -45,7 +45,7 @@ export interface ForestCensusState {
 
 const initialState: ForestCensusState = {
   all: {},
-  selected: null,
+  selected: undefined,
   indices: {
     byForests: {},
   },
@@ -55,29 +55,41 @@ export const forestCensusSlice = createSlice({
   name: "forestCensus",
   initialState,
   reducers: {
+    createForestCensus: (state, action) => {
+      const census = action.payload;
+      state.all[census.id] = census;
+      // add to plot index under forestCensus key
+      if (
+        !(census.forestId in state.indices.byForests) ||
+        !(state.indices.byForests[census.forestId] instanceof Set)
+      ) {
+        state.indices.byForests[census.forestId] = new Set();
+      }
+      state.indices.byForests[census.forestId].add(census.id);
+    },
     selectForestCensus: (state, action) => {
-      state.selected = state.all[action.payload];
+      state.selected = action.payload;
       return state;
     },
-    deselectForestCensus: (state, action) => {
-      state.selected = null;
+    deselectForestCensus: (state, _action) => {
+      state.selected = undefined;
       return state;
     },
   },
   extraReducers: (builder) => {
-    builder.addCase(getForestCensus.fulfilled, (state, action) => {});
+    builder.addCase(getForestCensus.fulfilled, (state, action) => {
+      forestCensusSlice.caseReducers.createForestCensus(state, action);
+    });
     builder.addCase(getForestForestCensuses.fulfilled, (state, action) => {
       action.payload.forEach((census) => {
-        state.all[census.id] = census;
-        // add to plot index under forestCensus key
-        if (!(census.forestId in state.indices.byForests)) {
-          state.indices.byForests[census.forestId] = new Set([]);
-        }
-        state.indices.byForests[census.forestId].add(census.id);
         // set selected to be active census
         if (census.active) {
-          state.selected = census;
-        }
+          state.selected = census.id;
+        }       
+          forestCensusSlice.caseReducers.createForestCensus(state, {
+          payload: census,
+          type: "forestCensus/createForestCensus",
+        });
       });
     });
   },

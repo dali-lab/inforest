@@ -1,6 +1,5 @@
 import { PlotCensusStatuses, TreeCensus } from "@ong-forestry/schema";
 import TreeCensusModel from "db/models/tree-census";
-import TreeModel from "db/models/tree";
 import { Op } from "sequelize";
 import {
   getPlotCensusAssignments,
@@ -8,6 +7,15 @@ import {
   getPlots,
   getTrees,
 } from "services";
+import { PlotCensus } from "db/models";
+
+export const bulkUpsertTreeCensuses = async (treeCensuses: TreeCensus[]) => {
+  return await TreeCensusModel.bulkCreate(treeCensuses, {
+    updateOnDuplicate: Object.keys(
+      TreeCensusModel.rawAttributes
+    ) as (keyof TreeCensus)[],
+  });
+};
 
 const validatePlotCensus = async (
   treeCensus: Omit<TreeCensus, "plotCensusId">
@@ -38,14 +46,14 @@ const validatePlotCensus = async (
     throw new Error("There is no active census on this plot");
   }
 
-  // check that user is assigned to this plot census
-  const assignment = await getPlotCensusAssignments({
-    plotCensusId: plotCensuses[0].id,
-    userId: treeCensus.authorId,
-  });
-  if (assignment.length == 0) {
-    throw new Error("You are not assigned to this plot.");
-  }
+  // // check that user is assigned to this plot census
+  // const assignment = await getPlotCensusAssignments({
+  //   plotCensusId: plotCensuses[0].id,
+  //   userId: treeCensus.authorId,
+  // });
+  // if (assignment.length == 0) {
+  //   throw new Error("You are not assigned to this plot.");
+  // }
 
   return plotCensuses[0].id;
 };
@@ -72,6 +80,7 @@ export const createTreeCensus = async (
 };
 
 export interface TreeCensusParams {
+  id?: string;
   treeIds?: string[];
   plotCensusId?: string;
   forestId?: string;
@@ -80,8 +89,11 @@ export interface TreeCensusParams {
 }
 
 const constructQuery = (params: TreeCensusParams) => {
-  const { treeIds, plotCensusId, authorId, flagged } = params;
+  const { id, treeIds, plotCensusId, authorId, flagged } = params;
   const query: any = { where: {} };
+  if (id) {
+    query.where.treeId = { [Op.eq]: id };
+  }
   if (treeIds) {
     query.where.treeId = { [Op.in]: treeIds };
   }
@@ -102,7 +114,13 @@ export const getTreeCensuses = async (params: TreeCensusParams) => {
   const query = constructQuery(params);
   return await TreeCensusModel.findAll({
     ...query,
-    include: [{ model: TreeModel, as: "tree" }],
+    include: [
+      {
+        model: PlotCensus,
+        attributes: ["status"],
+      },
+      { model: TreeCensusModel, as: "tree" },
+    ],
   });
 };
 
@@ -117,5 +135,5 @@ export const editTreeCensuses = async (
   // ^ throws error if census is not in_progress
 
   const query = constructQuery(params);
-  return await TreeCensusModel.update(treeCensus, query);
+  return (await TreeCensusModel.update(treeCensus, query))[1];
 };
