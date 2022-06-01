@@ -533,7 +533,7 @@ const ExploreView: React.FC<ExploreViewProps> = (props) => {
           }
         }}
         startCensus={async () => {
-          if (!isConnected) {
+          if (false) {
             alert(
               "You must be connected to the internet to assign yourself to a plot!"
             );

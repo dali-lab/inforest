@@ -37,7 +37,6 @@ export const createTree = createAsyncThunk(
   async (newTree: Partial<Tree>, thunkApi) => {
     // thunkApi.dispatch(locallyDraftNewTree(newTree));
     // todo handle failure
-    console.log("creatingtree");
     return await axios
       .post(`${BASE_URL}`, newTree)
       .then((response) => response.data);
@@ -99,7 +98,6 @@ export const upsertTrees = (state: WritableDraft<TreeState>, action: any) => {
   } else newTrees = action;
   if (!isArray(newTrees)) newTrees = [newTrees];
   newTrees.forEach((newTree, i) => {
-    if (i == 8) console.log(newTree);
     if (!newTree?.id) newTree.id = uuid.v4().toString();
     if (!action?.rehydrate) state.all[newTree.id] = newTree;
     // add to drafts
