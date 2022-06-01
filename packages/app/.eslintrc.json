@@ -25,7 +25,7 @@
     "react-hooks/exhaustive-deps": 1,
     "@typescript-eslint/no-empty-function": 0,
     "@typescript-eslint/no-unused-vars": [
-      "error",
+      "warn",
       { "argsIgnorePattern": "^_", "destructuredArrayIgnorePattern": "^_" }
     ]
   },

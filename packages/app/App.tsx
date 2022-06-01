@@ -8,8 +8,19 @@ import store from "./redux";
 import MapScreen from "./screens/MapScreen";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { HomeScreen } from "./screens/HomeScreen";
+import { MapScreenModes, MapScreenZoomLevels } from "./constants";
+import { Plot } from "@ong-forestry/schema";
 
-const Stack = createNativeStackNavigator();
+export type RootStackParamList = {
+  map: {
+    mode: MapScreenModes;
+    zoomLevel: MapScreenZoomLevels;
+    selectedPlot?: Plot;
+  };
+  home: any;
+};
+
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function App() {
   const isLoadingComplete = useCachedResources();
@@ -27,7 +38,14 @@ export default function App() {
               screenOptions={{ headerShown: false }}
             >
               <Stack.Screen name="home" component={HomeScreen} />
-              <Stack.Screen name="map" component={MapScreen} />
+              <Stack.Screen
+                name="map"
+                component={MapScreen}
+                initialParams={{
+                  mode: MapScreenModes.Explore,
+                  zoomLevel: MapScreenZoomLevels.Forest,
+                }}
+              />
             </Stack.Navigator>
           </NavigationContainer>
           <StatusBar />

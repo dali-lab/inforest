@@ -6,7 +6,11 @@ import { getRandomBytes } from "expo-random";
 import { Plot, PlotCensus } from "@ong-forestry/schema";
 import Colors from "../constants/Colors";
 import { Text, TextVariants } from "./Themed";
-import { DEFAULT_DBH, FOLIAGE_MAGNIFICATION } from "../constants";
+import {
+  DEFAULT_DBH,
+  FOLIAGE_MAGNIFICATION,
+  MapScreenModes,
+} from "../constants";
 import { TreeMarker } from "./TreeMarker";
 import useAppSelector, {
   useTreesByDensity,
@@ -25,6 +29,7 @@ import AppButton from "./AppButton";
 const SMALL_OFFSET = 8;
 
 interface PlottingSheetProps {
+  mode: MapScreenModes;
   plot: Plot;
   plotCensus: PlotCensus | undefined;
   stakeNames: string[];
@@ -37,6 +42,7 @@ const STAKE_LABEL_HEIGHT = 18 + 8;
 const STAKE_LABEL_WIDTH = 36 + 16;
 
 export const PlottingSheet: React.FC<PlottingSheetProps> = ({
+  mode,
   plot,
   plotCensus,
   stakeNames,
@@ -152,7 +158,7 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
       </>
 
       {/* markers */}
-      {!!markerPos && (
+      {mode === MapScreenModes.Plot && !!markerPos && (
         <>
           <View
             style={{

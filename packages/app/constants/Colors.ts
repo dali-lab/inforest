@@ -9,6 +9,12 @@ export default {
     normal: "#A7DBAA",
     dark: "#69CD6F",
   },
+  status: {
+    problem: "#DBB7A7",
+    ongoing: "#DADBA7",
+    waiting: "#A7D5DB",
+    done: "#A7DBB6",
+  },
   neutral: {
     1: "#E2E7EC",
     2: "#D6DDE4",

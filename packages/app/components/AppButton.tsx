@@ -7,6 +7,7 @@ import {
   ViewStyle,
   View,
 } from "react-native";
+import { Queue } from "react-native-spacing-system";
 import Colors from "../constants/Colors";
 import { Text, TextVariants } from "./Themed";
 
@@ -39,7 +40,12 @@ const AppButton: React.FC<AppButtonProps> = ({
       onPress={!disabled ? onPress : undefined}
     >
       <View style={{ flexDirection: "row", alignItems: "center" }}>
-        {icon}
+        {icon && (
+          <>
+            {icon}
+            <Queue size={8}></Queue>
+          </>
+        )}
         <Text
           variant={TextVariants.Label}
           style={[
@@ -57,11 +63,9 @@ const AppButton: React.FC<AppButtonProps> = ({
 
 const styles = StyleSheet.create({
   button: {
-    borderRadius: 11,
-    height: 48,
+    borderRadius: 12,
     alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 12,
+    paddingVertical: 8,
     paddingHorizontal: 16,
   },
   plainButton: {

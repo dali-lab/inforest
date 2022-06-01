@@ -1,28 +1,36 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { Dimensions, StyleSheet, View } from "react-native";
 import { Plot } from "@ong-forestry/schema";
 import { MapScreenModes, MapScreenZoomLevels } from "../../constants";
 import useAppDispatch from "../../hooks/useAppDispatch";
-import { getForest } from "../../redux/slices/forestSlice";
-import { getForestPlots } from "../../redux/slices/plotSlice";
-import { deselectTree, getForestTrees } from "../../redux/slices/treeSlice";
-import { FOREST_ID } from "../../constants/dev";
-import { getAllTreeSpecies } from "../../redux/slices/treeSpeciesSlice";
-import { getAllTreeLabels } from "../../redux/slices/treeLabelSlice";
+import { deselectTree } from "../../redux/slices/treeSlice";
 import PlotView from "./PlotView";
 import ForestView from "./ExploreView";
-import { getAllTreePhotoPurposes } from "../../redux/slices/treePhotoPurposeSlice";
-import { getForestForestCensuses } from "../../redux/slices/forestCensusSlice";
+import { RouteProp, useRoute } from "@react-navigation/native";
+import { RootStackParamList } from "../../App";
 
 export default function MapScreen() {
+  const route = useRoute<RouteProp<RootStackParamList, "map">>();
   const dispatch = useAppDispatch();
 
   const [zoomLevel, setZoomLevel] = useState<MapScreenZoomLevels>(
-    MapScreenZoomLevels.Forest
+    route.params.zoomLevel
   );
-  const [mode, setMode] = useState<MapScreenModes>(MapScreenModes.Explore);
+  const [mode, setMode] = useState<MapScreenModes>(route.params.mode);
+  const switchMode = useCallback(() => {
+    switch (mode) {
+      case MapScreenModes.Explore:
+        setMode(MapScreenModes.Plot);
+        break;
+      case MapScreenModes.Plot:
+        setMode(MapScreenModes.Explore);
+        break;
+    }
+  }, [mode]);
 
-  const [selectedPlot, setSelectedPlot] = useState<Plot>();
+  const [selectedPlot, setSelectedPlot] = useState<Plot | undefined>(
+    route.params.selectedPlot
+  );
 
   const selectPlot = useCallback(
     (plot: Plot) => {
@@ -35,9 +43,13 @@ export default function MapScreen() {
     setSelectedPlot(undefined);
   }, [setSelectedPlot]);
 
-  const beginPlotting = useCallback(() => {
-    setZoomLevel(MapScreenZoomLevels.Plot);
-  }, [setZoomLevel]);
+  const beginPlotting = useCallback(
+    (plot) => {
+      setZoomLevel(MapScreenZoomLevels.Plot);
+      setSelectedPlot(plot);
+    },
+    [setSelectedPlot, setZoomLevel]
+  );
 
   const endPlotting = useCallback(() => {
     dispatch(deselectTree());
@@ -48,18 +60,8 @@ export default function MapScreen() {
     <View style={styles.container}>
       {zoomLevel === "FOREST" && (
         <ForestView
-          // selectedForestCensus={}
           mode={mode}
-          switchMode={() => {
-            switch (mode) {
-              case MapScreenModes.Explore:
-                setMode(MapScreenModes.Plot);
-                break;
-              case MapScreenModes.Plot:
-                setMode(MapScreenModes.Explore);
-                break;
-            }
-          }}
+          switchMode={switchMode}
           selectedPlot={selectedPlot}
           selectPlot={selectPlot}
           deselectPlot={deselectPlot}
@@ -69,6 +71,7 @@ export default function MapScreen() {
       {zoomLevel === "PLOT" && selectedPlot && (
         <PlotView
           mode={mode}
+          switchMode={switchMode}
           selectedPlot={selectedPlot}
           onExit={endPlotting}
         />

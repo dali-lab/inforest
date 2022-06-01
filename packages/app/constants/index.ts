@@ -43,18 +43,27 @@ export type VisualizationConfigType = {
 
 export const convertToNaturalLanguage = (
   value?: PlotCensusStatuses,
-  capitalize = true
+  casing: "ALL_LOWER" | "ALL_UPPER" | "NORMAL" = "NORMAL"
 ) => {
+  let result = "";
   switch (value) {
     case PlotCensusStatuses.InProgress:
-      return capitalize ? "In Progress" : "in progress";
+      result = "In Progress";
+      break;
     case PlotCensusStatuses.Pending:
-      return capitalize ? "Pending" : "pending";
+      result = "Pending";
+      break;
     case PlotCensusStatuses.Approved:
-      return capitalize ? "Approved" : "approved";
-    default:
-      return "";
+      result = "Approved";
+      break;
   }
+  switch (casing) {
+    case "ALL_LOWER":
+      return result.toLowerCase();
+    case "ALL_UPPER":
+      return result.toUpperCase();
+  }
+  return result;
 };
 
 export const BLUR_VIEW_INTENSITY = 40;

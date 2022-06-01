@@ -74,6 +74,10 @@ export const forestCensusSlice = createSlice({
           state.indices.byForests[census.forestId] = new Set([]);
         }
         state.indices.byForests[census.forestId].add(census.id);
+        // set selected to be active census
+        if (census.active) {
+          state.selected = census;
+        }
       });
     });
   },

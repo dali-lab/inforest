@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import MapView, {
   Marker,
   Polygon,
@@ -12,6 +12,7 @@ import { PermissionStatus } from "expo-modules-core";
 import * as geolib from "geolib";
 import { Ionicons } from "@expo/vector-icons";
 import * as utm from "utm";
+import dateformat from "dateformat";
 import { Plot, PlotCensusStatuses, Tree } from "@ong-forestry/schema";
 
 import { Text, TextVariants } from "../../components/Themed";
@@ -37,13 +38,16 @@ import {
   DEFAULT_DBH,
   DrawerStates,
   MapScreenModes,
+  MapScreenZoomLevels,
   VisualizationConfigType,
 } from "../../constants";
 import { getForestCensusPlotCensuses } from "../../redux/slices/plotCensusSlice";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import { max, min } from "lodash";
 import { MapOverlay } from "../../components/MapOverlay";
 import { ModeSwitcher } from "./ModeSwitcher";
+import { Queue } from "react-native-spacing-system";
+import Color from "color";
 
 const O_FARM_LAT = 43.7348569458618;
 const O_FARM_LNG = -72.2519099587406;
@@ -52,9 +56,9 @@ const FOLIAGE_MAGNIFICATION = 3;
 const NUM_OF_SPECIES = 8;
 
 const plotCensusColorMap: { [key in PlotCensusStatuses]?: string } = {
-  IN_PROGRESS: "rgba(255, 240, 0, 0.3)",
-  PENDING: "rgba(0,0,250,0.3)",
-  APPROVED: "rgba(0,250,0,0.3)",
+  IN_PROGRESS: Color(Colors.status.ongoing).fade(0.8).string(),
+  PENDING: Color(Colors.status.waiting).fade(0.8).string(),
+  APPROVED: Color(Colors.status.done).fade(0.8).string(),
 };
 
 type ForestViewProps = {
@@ -63,7 +67,7 @@ type ForestViewProps = {
   selectedPlot?: Plot;
   selectPlot: (plot: Plot) => void;
   deselectPlot: () => void;
-  beginPlotting: () => void;
+  beginPlotting: (plot: Plot) => void;
   showUI?: boolean;
   showTrees?: boolean;
 };
@@ -112,6 +116,10 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
   const dispatch = useAppDispatch();
   const reduxState = useAppSelector((state: RootState) => state);
   const { all: allTrees, selected: selectedTree } = reduxState.trees;
+  const {
+    all: allTreeCensuses,
+    indices: { byPlotCensuses },
+  } = reduxState.treeCensuses;
   const { all: allPlots, indices: plotIndices } = reduxState.plots;
   const { all: allForestCensuses, selected: selectedForestCensus } =
     reduxState.forestCensuses;
@@ -119,15 +127,6 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
     indices: { byPlots: plotCensusesByPlot },
   } = reduxState.plotCensuses;
   const { colorMap } = reduxState.treeSpecies;
-  useEffect(() => {
-    for (const census of Object.values(allForestCensuses)) {
-      if (census.active) {
-        dispatch(selectForestCensus(census.id));
-        dispatch(getForestCensusPlotCensuses({ forestCensusId: census.id }));
-        break;
-      }
-    }
-  }, [allForestCensuses]);
 
   const plots = usePlotsInRegion(usePlots(reduxState), regionSnapshot);
   const forestBoundaries = useMemo(() => {
@@ -295,6 +294,26 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
     })();
   }, []);
 
+  const plotLastUpdatedDate = useMemo(() => {
+    let latestCensus: Date | undefined;
+    if (selectedPlot) {
+      Object.values(plotCensusesByPlot[selectedPlot.id]).forEach(
+        (plotCensus) => {
+          const treeCensuesIds = byPlotCensuses[plotCensus.id];
+          if (treeCensuesIds) {
+            for (const treeCensusId of treeCensuesIds) {
+              const { updatedAt } = allTreeCensuses[treeCensusId];
+              if (updatedAt && (!latestCensus || updatedAt > latestCensus)) {
+                latestCensus = updatedAt;
+              }
+            }
+          }
+        }
+      );
+    }
+    return latestCensus;
+  }, [selectedPlot, allTreeCensuses, plotCensusesByPlot, byPlotCensuses]);
+
   return (
     <>
       <MapView
@@ -383,11 +402,56 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
                 );
               })()}
             >
-              <View style={styles.plotCallout}>
-                <Text variant={TextVariants.Body}>
-                  Plot #{selectedPlot.number}
-                </Text>
-              </View>
+              <Pressable
+                style={{
+                  backgroundColor: "white",
+                  padding: 8,
+                  borderRadius: 8,
+                  flexDirection: "row",
+                  alignItems: "center",
+                }}
+                onPress={() => {
+                  if (selectedPlot) {
+                    const { easting, northing, zoneNum, zoneLetter } =
+                      utm.fromLatLon(
+                        selectedPlot.latitude,
+                        selectedPlot.longitude
+                      );
+                    const { width, length } = selectedPlot;
+                    const focusToPlotRegion = {
+                      ...utm.toLatLon(
+                        easting + width / 2,
+                        northing - length / 2,
+                        zoneNum,
+                        zoneLetter
+                      ),
+                      latitudeDelta: MIN_REGION_DELTA,
+                      longitudeDelta: MIN_REGION_DELTA,
+                    };
+                    mapRef.current?.animateToRegion(focusToPlotRegion, 500);
+                    setRegionSnapshot(focusToPlotRegion);
+                    setTimeout(() => {
+                      beginPlotting(selectedPlot);
+                    }, 500);
+                  }
+                }}
+              >
+                <View>
+                  <Text variant={TextVariants.Label}>
+                    Plot #{selectedPlot.number}
+                  </Text>
+                  <Text variant={TextVariants.Body}>
+                    {plotLastUpdatedDate
+                      ? `Last censused on ${dateformat(
+                          plotLastUpdatedDate,
+                          "mmm dS, yyyy"
+                        )}`
+                      : "Never censused"}
+                  </Text>
+                </View>
+                <Queue size={8}></Queue>
+                <Ionicons name="ios-create-outline" size={24}></Ionicons>
+              </Pressable>
             </Marker>
             <Polygon
               style={styles.plot}
@@ -403,22 +467,23 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
             />
           </>
         )}
-        {plots.map((plot) => {
-          return (
-            <Polygon
-              key={plot.number}
-              style={styles.plot}
-              coordinates={[...getPlotCorners(plot), getPlotCorners(plot)[0]]}
-              strokeWidth={2}
-              strokeColor="rgba(255, 255, 255, 0.6)"
-              fillColor={plotIdColorMap(plot.id)}
-              tappable={true}
-              onPress={() => {
-                plot && selectPlot(plot);
-              }}
-            />
-          );
-        })}
+        {mode === MapScreenModes.Plot &&
+          plots.map((plot) => {
+            return (
+              <Polygon
+                key={plot.number}
+                style={styles.plot}
+                coordinates={[...getPlotCorners(plot), getPlotCorners(plot)[0]]}
+                strokeWidth={2}
+                strokeColor="rgba(255, 255, 255, 0.6)"
+                fillColor={plotIdColorMap(plot.id)}
+                tappable={true}
+                onPress={() => {
+                  plot && selectPlot(plot);
+                }}
+              />
+            );
+          })}
         {showTrees && treeNodes}
       </MapView>
       {showUI && (
@@ -506,7 +571,8 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
       </View>
       {showUI && (
         <PlotDrawer
-          mode={MapScreenModes.Explore}
+          mode={mode}
+          zoom={MapScreenZoomLevels.Forest}
           drawerState={drawerState}
           setDrawerHeight={setDrawerHeight}
           plot={selectedPlot}
@@ -518,28 +584,6 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
               ]) ||
             undefined
           }
-          beginPlotting={() => {
-            if (selectedPlot) {
-              const { easting, northing, zoneNum, zoneLetter } = utm.fromLatLon(
-                selectedPlot.latitude,
-                selectedPlot.longitude
-              );
-              const { width, length } = selectedPlot;
-              const focusToPlotRegion = {
-                ...utm.toLatLon(
-                  easting + width / 2,
-                  northing - length / 2,
-                  zoneNum,
-                  zoneLetter
-                ),
-                latitudeDelta: MIN_REGION_DELTA,
-                longitudeDelta: MIN_REGION_DELTA,
-              };
-              mapRef.current?.animateToRegion(focusToPlotRegion, 500);
-              setRegionSnapshot(focusToPlotRegion);
-              setTimeout(() => beginPlotting(), 500);
-            }
-          }}
           expandDrawer={() => setDrawerState(DrawerStates.Expanded)}
           minimizeDrawer={() => setDrawerState(DrawerStates.Minimized)}
         ></PlotDrawer>
@@ -558,11 +602,6 @@ const styles = StyleSheet.create({
   },
   plot: {
     position: "relative",
-  },
-  plotCallout: {
-    backgroundColor: "white",
-    padding: 8,
-    borderRadius: 8,
   },
   mapOverlay: {
     position: "absolute",

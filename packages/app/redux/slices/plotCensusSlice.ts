@@ -9,6 +9,15 @@ type GetForestCensusPlotCensusesParams = {
   forestCensusId: string;
 };
 
+export const getPlotCensuses = createAsyncThunk(
+  "plotCensus/getPlotCensuses",
+  async () => {
+    return await axios.get<PlotCensus[]>(`${BASE_URL}`).then((response) => {
+      return response.data;
+    });
+  }
+);
+
 export const getForestCensusPlotCensuses = createAsyncThunk(
   "plotCensus/getForestPlotCensuses",
   async (params: GetForestCensusPlotCensusesParams) => {
@@ -25,6 +34,7 @@ export interface PlotState {
   current: PlotCensus | null;
   indices: {
     byPlots: Record<string, Record<string, PlotCensus>>;
+    byForestCensus: Record<string, Set<string>>;
   };
 }
 
@@ -33,6 +43,7 @@ const initialState: PlotState = {
   current: null,
   indices: {
     byPlots: {},
+    byForestCensus: {},
   },
 };
 
@@ -41,14 +52,22 @@ export const plotCensusSlice = createSlice({
   initialState,
   reducers: {},
   extraReducers: (builder) => {
-    builder.addCase(getForestCensusPlotCensuses.fulfilled, (state, action) => {
+    builder.addCase(getPlotCensuses.fulfilled, (state, action) => {
       action.payload.forEach((census) => {
         state.all[census.id] = census;
         // add to plot index under forestCensus key
         if (!(census.plotId in state.indices.byPlots)) {
           state.indices.byPlots[census.plotId] = {};
+        } else {
+          state.indices.byPlots[census.plotId][census.forestCensusId] = census;
         }
-        state.indices.byPlots[census.plotId][census.forestCensusId] = census;
+        if (!(census.forestCensusId in state.indices.byForestCensus)) {
+          state.indices.byForestCensus[census.forestCensusId] = new Set([
+            census.id,
+          ]);
+        } else {
+          state.indices.byForestCensus[census.forestCensusId].add(census.id);
+        }
       });
     });
   },

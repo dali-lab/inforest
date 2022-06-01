@@ -41,23 +41,24 @@ export const ModeSwitcher: React.FC<ModeSwitcherProps> = ({
     }
   });
   return (
-    <BlurView
+    <Pressable
       style={{
+        borderRadius: 16,
+        backgroundColor: Colors.blurViewBackground,
+        overflow: "hidden",
         position: "relative",
       }}
-      intensity={BLUR_VIEW_INTENSITY}
+      onPress={switchMode}
     >
-      <Pressable
+      <BlurView
         style={{
-          height: 64,
-          backgroundColor: Colors.blurViewBackground,
-          paddingHorizontal: 8,
-          borderRadius: 16,
           flexDirection: "row",
           justifyContent: "center",
           alignItems: "center",
+          paddingHorizontal: 8,
+          height: 64,
         }}
-        onPress={switchMode}
+        intensity={BLUR_VIEW_INTENSITY}
       >
         <Animated.View
           style={{
@@ -71,12 +72,12 @@ export const ModeSwitcher: React.FC<ModeSwitcherProps> = ({
           }}
         ></Animated.View>
         <Queue size={8}></Queue>
-        <Ionicons name="ios-eye-sharp" size={32} color={firstColor} />
+        <Ionicons name="ios-eye" size={32} color={firstColor} />
         <Queue size={8}></Queue>
         <Queue size={8}></Queue>
         <Ionicons name="ios-pencil" size={32} color={secondColor} />
         <Queue size={8}></Queue>
-      </Pressable>
-    </BlurView>
+      </BlurView>
+    </Pressable>
   );
 };

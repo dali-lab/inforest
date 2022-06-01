@@ -4,28 +4,34 @@ import { Ionicons } from "@expo/vector-icons";
 import { Plot } from "@ong-forestry/schema";
 import { PlottingSheet } from "../../components/PlottingSheet";
 import { PlotDrawer } from "../../components/PlotDrawer";
-import { DrawerStates, MapScreenModes } from "../../constants";
+import {
+  DrawerStates,
+  MapScreenModes,
+  MapScreenZoomLevels,
+} from "../../constants";
 import { formPlotNumber, parsePlotNumber } from "../../constants/plots";
 import useAppSelector from "../../hooks/useAppSelector";
 import { RootState } from "../../redux";
 import Colors from "../../constants/Colors";
+import { ModeSwitcher } from "./ModeSwitcher";
+import { MapOverlay } from "../../components/MapOverlay";
 
 interface PlotViewProps {
   mode: MapScreenModes;
+  switchMode: () => void;
   selectedPlot: Plot;
   onExit: () => void;
 }
 
 const PlotView: React.FC<PlotViewProps> = (props) => {
-  const { selectedPlot, onExit } = props;
+  const { mode, switchMode, selectedPlot, onExit } = props;
 
   const [drawerState, setDrawerState] = useState<DrawerStates>(
     DrawerStates.Minimized
   );
 
   const reduxState = useAppSelector((state: RootState) => state);
-  const { all: allForestCensuses, selected: selectedForestCensus } =
-    reduxState.forestCensuses;
+  const { selected: selectedForestCensus } = reduxState.forestCensuses;
   const {
     indices: { byPlots: plotCensusesByPlot },
   } = reduxState.plotCensuses;
@@ -46,11 +52,15 @@ const PlotView: React.FC<PlotViewProps> = (props) => {
   return (
     <>
       <View style={styles.map}>
-        <View style={{ ...styles.mapOverlay, top: 32, left: 32 }}>
+        <MapOverlay top={32} left={32}>
           <Ionicons name="ios-arrow-back" size={32} onPress={onExit} />
+        </MapOverlay>
+        <View style={{ position: "absolute", top: 32, right: 32 }}>
+          <ModeSwitcher mode={mode} switchMode={switchMode}></ModeSwitcher>
         </View>
         {!!selectedPlot && (
           <PlottingSheet
+            mode={mode}
             plot={selectedPlot}
             plotCensus={selectedPlotCensus}
             stakeNames={(() => {
@@ -81,7 +91,8 @@ const PlotView: React.FC<PlotViewProps> = (props) => {
         )}
       </View>
       <PlotDrawer
-        mode={MapScreenModes.Plot}
+        mode={mode}
+        zoom={MapScreenZoomLevels.Plot}
         drawerState={drawerState}
         plot={selectedPlot}
         plotCensus={selectedPlotCensus}
