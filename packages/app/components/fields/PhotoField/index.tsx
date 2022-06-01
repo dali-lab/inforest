@@ -88,9 +88,12 @@ const PhotoField: React.FC<PhotoFieldProps> = ({ census }) => {
           <Ionicons
             name="cloud-upload-outline"
             size={28}
-            style={{ marginVertical: 4 }}
+            style={{ marginVertical: 4, color: "#333333" }}
           />
-          <Text variant={TextVariants.Label} style={{ fontSize: 14 }}>
+          <Text
+            variant={TextVariants.Label}
+            style={{ fontSize: 14, color: "#333333" }}
+          >
             Tap to Upload
           </Text>
         </Pressable>
@@ -125,7 +128,7 @@ const styles = StyleSheet.create({
   },
   photoUploadContainer: {
     borderRightWidth: 2,
-    borderRightColor: "black",
+    borderRightColor: "#666666",
     paddingHorizontal: 24,
   },
   addedPhotosContainer: {
@@ -142,7 +145,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginVertical: 10,
-    borderColor: "#1F3527",
+    borderColor: "#666666",
     borderWidth: 2,
     padding: 24,
   },
