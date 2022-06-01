@@ -9,7 +9,13 @@ import {
 import { Queue, Stack } from "react-native-spacing-system";
 import { BlurView } from "expo-blur";
 import dateformat from "dateformat";
-import { Forest, Plot, PlotCensus, TreeCensus } from "@ong-forestry/schema";
+import {
+  Forest,
+  Plot,
+  PlotCensus,
+  PlotCensusStatuses,
+  TreeCensus,
+} from "@ong-forestry/schema";
 import { Ionicons } from "@expo/vector-icons";
 import RNPickerSelect from "react-native-picker-select";
 
@@ -116,21 +122,6 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
     }
   }, [drawerState]);
 
-  const computePlotLastUpdatedDate = useCallback(
-    (plotId: string) => {
-      const plotTrees = byPlots[plotId];
-      let latestCensus: Date | undefined;
-      for (const treeTag of plotTrees) {
-        const { updatedAt } = all[treeTag];
-        if (updatedAt && (!latestCensus || updatedAt > latestCensus)) {
-          latestCensus = updatedAt;
-        }
-      }
-      return latestCensus;
-    },
-    [byPlots, all]
-  );
-
   const [flagged, setFlagged] = useState<boolean>(
     (plotCensus &&
       selected &&
@@ -157,73 +148,57 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
         }}
       >
         <BlurView style={styles.blurContainer} intensity={BLUR_VIEW_INTENSITY}>
-          {zoom === MapScreenZoomLevels.Forest &&
-            mode === MapScreenModes.Plot &&
-            !!plot && (
-              <View>
-                <View style={styles.header}>
-                  <View style={{ flexDirection: "row", alignItems: "center" }}>
-                    <Text variant={TextVariants.H2}>Plot #{plot.number}</Text>
+          {zoom === MapScreenZoomLevels.Forest && (
+            <View style={{}}>
+              <View style={{ flexDirection: "row", alignItems: "center" }}>
+                <Text variant={TextVariants.H2}>{currentForest?.name}</Text>
+                {mode === MapScreenModes.Plot && (
+                  <>
                     <Queue size={36}></Queue>
-                    <>
-                      {(() => {
-                        const lastUpdated = computePlotLastUpdatedDate(plot.id);
-                        return (
-                          <Text variant={TextVariants.Body}>
-                            {lastUpdated
-                              ? `Last censused on ${dateformat(
-                                  lastUpdated,
-                                  "mmm dS, yyyy"
-                                )}`
-                              : "Never censused"}
-                          </Text>
-                        );
-                      })()}
-                    </>
-                  </View>
-                </View>
-                <Stack size={12}></Stack>
-                <SearchBar></SearchBar>
+                    <Text variant={TextVariants.Body}>
+                      {selectedForestCensus?.name || "No project selected"}
+                    </Text>
+                  </>
+                )}
               </View>
-            )}
-          {zoom === MapScreenZoomLevels.Forest &&
-            mode === MapScreenModes.Explore && (
-              <View style={[styles.header]}>
-                <View style={{ flexDirection: "row", alignItems: "center" }}>
-                  <Text variant={TextVariants.H2}>O-Farm</Text>
-                  <Queue size={36}></Queue>
-                  {/* <RNPickerSelect
-                  value={selectedForestCensus?.id}
-                  onValueChange={(value) => console.log(value)}
-                  items={Object.values(
-                    thisForestCensuses[currentForest.id]
-                  ).map((censusId) => ({
-                    label: allForestCensuses[censusId].name,
-                    value: allForestCensuses[censusId].id,
-                  }))}
-                /> */}
-                  <Text variant={TextVariants.Body}>
-                    Select any plot to begin
-                  </Text>
-                </View>
-              </View>
-            )}
+              <Stack size={24}></Stack>
+              <SearchBar></SearchBar>
+            </View>
+          )}
           {zoom === MapScreenZoomLevels.Plot && !!plot && (
             <>
               {drawerState === "MINIMIZED" && (
                 <View style={{}}>
-                  <View style={{ flexDirection: "row", alignItems: "center" }}>
-                    <Text variant={TextVariants.H2}>Plot #{plot.number}</Text>
-                    {mode === MapScreenModes.Plot && (
-                      <>
-                        <Queue size={36}></Queue>
-                        <Text variant={TextVariants.Body}>
-                          Tap anywhere to plot a new tree
-                        </Text>
-                      </>
-                    )}
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <View
+                      style={{ flexDirection: "row", alignItems: "center" }}
+                    >
+                      <Text variant={TextVariants.H2}>Plot #{plot.number}</Text>
+                      {mode === MapScreenModes.Plot && (
+                        <>
+                          <Queue size={36}></Queue>
+                          <Text variant={TextVariants.Body}>
+                            Tap anywhere to plot a new tree
+                          </Text>
+                        </>
+                      )}
+                    </View>
+                    <AppButton
+                      onPress={() => {}}
+                      disabled={
+                        plotCensus?.status !== PlotCensusStatuses.InProgress
+                      }
+                    >
+                      Submit for review
+                    </AppButton>
                   </View>
-                  <Stack size={12}></Stack>
+                  <Stack size={24}></Stack>
                   <SearchBar></SearchBar>
                 </View>
               )}

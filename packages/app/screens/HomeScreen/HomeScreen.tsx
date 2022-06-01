@@ -28,7 +28,10 @@ import { useNavigation } from "@react-navigation/native";
 import ForestView from "../MapScreen/ExploreView";
 import { Picker } from "@react-native-picker/picker";
 import { useDispatch } from "react-redux";
-import { selectTreeCensus } from "../../redux/slices/treeCensusSlice";
+import {
+  getForestTreeCensuses,
+  selectTreeCensus,
+} from "../../redux/slices/treeCensusSlice";
 import Colors from "../../constants/Colors";
 import { getAllTreeLabels } from "../../redux/slices/treeLabelSlice";
 import { getAllTreePhotoPurposes } from "../../redux/slices/treePhotoPurposeSlice";
@@ -124,6 +127,7 @@ export const HomeScreen = () => {
         forestId: FOREST_ID,
       })
     );
+    dispatch(getForestTreeCensuses({ forestId: FOREST_ID }));
     dispatch(getAllTreeSpecies());
     dispatch(getAllTreeLabels());
     dispatch(getAllTreePhotoPurposes());

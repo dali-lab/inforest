@@ -10,11 +10,26 @@ type GetPlotCensusTreeCensusesParams = {
   plotCensusId: string;
 };
 
+type GetForestTreeCensusesParams = {
+  forestId: string;
+};
+
 export const getPlotCensusTreeCensuses = createAsyncThunk(
   "treeCensus/getPlotCensusTreeCensuses",
   async (params: GetPlotCensusTreeCensusesParams) => {
     return await axios
       .get<TreeCensus[]>(`${BASE_URL}?plotCensusId=${params.plotCensusId}`)
+      .then((response) => {
+        return response.data;
+      });
+  }
+);
+
+export const getForestTreeCensuses = createAsyncThunk(
+  "treeCensus/getForestTreeCensuses",
+  async (params: GetForestTreeCensusesParams) => {
+    return await axios
+      .get<TreeCensus[]>(`${BASE_URL}?forestId=${params.forestId}`)
       .then((response) => {
         return response.data;
       });
@@ -42,6 +57,7 @@ export interface TreeCensusState {
   all: Record<string, TreeCensus>;
   indices: {
     byPlotCensuses: Record<string, Set<string>>;
+    byTrees: Record<string, Set<string>>;
   };
   drafts: Set<string>;
   selected?: string;
@@ -52,6 +68,7 @@ const initialState: TreeCensusState = {
   all: {},
   indices: {
     byPlotCensuses: {},
+    byTrees: {},
   },
   drafts: new Set(),
   selected: undefined,
@@ -97,7 +114,7 @@ export const treeCensusSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    builder.addCase(getPlotCensusTreeCensuses.fulfilled, (state, action) => {
+    builder.addCase(getForestTreeCensuses.fulfilled, (state, action) => {
       action.payload.forEach((census: TreeCensus) => {
         state.all[census.id] = census;
         // initialize plot census index key if needed
@@ -106,6 +123,9 @@ export const treeCensusSlice = createSlice({
         }
         // add to plots census index
         state.indices.byPlotCensuses[census.plotCensusId].add(census.id);
+        if (!(census.treeId in state.indices.byTrees)) {
+          state.indices.byTrees[census.treeId] = new Set();
+        }
       });
       return state;
     });

@@ -74,6 +74,7 @@ export const createTreeCensus = async (
 export interface TreeCensusParams {
   treeIds?: string[];
   plotCensusId?: string;
+  forestId?: string;
   authorId?: string;
   flagged?: boolean;
 }
@@ -101,7 +102,7 @@ export const getTreeCensuses = async (params: TreeCensusParams) => {
   const query = constructQuery(params);
   return await TreeCensusModel.findAll({
     ...query,
-    include: [{ model: TreeModel, as: "treeId" }],
+    include: [{ model: TreeModel, as: "tree" }],
   });
 };
 

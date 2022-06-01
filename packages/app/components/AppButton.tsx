@@ -31,11 +31,15 @@ const AppButton: React.FC<AppButtonProps> = ({
   return (
     <Pressable
       style={[
-        styles.button,
-        type === "PLAIN" && styles.plainButton,
-        type === "COLOR" && styles.colorButton,
-        type === "RED" && styles.redButton,
         style,
+        styles.button,
+        ...(!disabled
+          ? [
+              type === "PLAIN" && styles.plainButton,
+              type === "COLOR" && styles.colorButton,
+              type === "RED" && styles.redButton,
+            ]
+          : [styles.disabledButton]),
       ]}
       onPress={!disabled ? onPress : undefined}
     >
@@ -48,11 +52,9 @@ const AppButton: React.FC<AppButtonProps> = ({
         )}
         <Text
           variant={TextVariants.Label}
-          style={[
-            type === "PLAIN" && styles.plainText,
-            (type === "COLOR" || type === "RED") && styles.colorText,
-            disabled && styles.disabledText,
-          ]}
+          color={
+            disabled ? Colors.neutral[4] : type === "PLAIN" ? "black" : "white"
+          }
         >
           {children}
         </Text>
@@ -77,6 +79,9 @@ const styles = StyleSheet.create({
   redButton: {
     backgroundColor: Colors.error,
   },
+  disabledButton: {
+    backgroundColor: Colors.neutral[1],
+  },
   text: {
     fontWeight: "bold",
   },
@@ -85,9 +90,6 @@ const styles = StyleSheet.create({
   },
   colorText: {
     color: "white",
-  },
-  disabledText: {
-    color: Colors.neutral[4],
   },
 });
 

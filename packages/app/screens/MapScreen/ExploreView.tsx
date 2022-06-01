@@ -56,9 +56,9 @@ const FOLIAGE_MAGNIFICATION = 3;
 const NUM_OF_SPECIES = 8;
 
 const plotCensusColorMap: { [key in PlotCensusStatuses]?: string } = {
-  IN_PROGRESS: Color(Colors.status.ongoing).fade(0.8).string(),
-  PENDING: Color(Colors.status.waiting).fade(0.8).string(),
-  APPROVED: Color(Colors.status.done).fade(0.8).string(),
+  IN_PROGRESS: Color(Colors.status.ongoing).fade(0.5).string(),
+  PENDING: Color(Colors.status.waiting).fade(0.5).string(),
+  APPROVED: Color(Colors.status.done).fade(0.5).string(),
 };
 
 type ForestViewProps = {
@@ -115,7 +115,11 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
 
   const dispatch = useAppDispatch();
   const reduxState = useAppSelector((state: RootState) => state);
-  const { all: allTrees, selected: selectedTree } = reduxState.trees;
+  const {
+    all: allTrees,
+    selected: selectedTree,
+    indices: { byPlots },
+  } = reduxState.trees;
   const {
     all: allTreeCensuses,
     indices: { byPlotCensuses },
@@ -278,7 +282,22 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
       }
       return "rgba(255, 255, 255, 0.3)";
     },
-    [allForestCensuses, selectedForestCensus, plotCensusesByPlot]
+    [selectedForestCensus, plotCensusesByPlot]
+  );
+
+  const computePlotLastUpdatedDate = useCallback(
+    (plotId: string) => {
+      const plotTrees = byPlots[plotId];
+      let latestCensus: Date | undefined;
+      for (const treeTag of plotTrees) {
+        const { updatedAt } = allTrees[treeTag];
+        if (updatedAt && (!latestCensus || updatedAt > latestCensus)) {
+          latestCensus = updatedAt;
+        }
+      }
+      return latestCensus;
+    },
+    [byPlots, allTrees]
   );
 
   useEffect(() => {
@@ -297,19 +316,20 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
   const plotLastUpdatedDate = useMemo(() => {
     let latestCensus: Date | undefined;
     if (selectedPlot) {
-      Object.values(plotCensusesByPlot[selectedPlot.id]).forEach(
-        (plotCensus) => {
-          const treeCensuesIds = byPlotCensuses[plotCensus.id];
-          if (treeCensuesIds) {
-            for (const treeCensusId of treeCensuesIds) {
-              const { updatedAt } = allTreeCensuses[treeCensusId];
-              if (updatedAt && (!latestCensus || updatedAt > latestCensus)) {
-                latestCensus = updatedAt;
-              }
-            }
-          }
-        }
-      );
+      latestCensus = computePlotLastUpdatedDate(selectedPlot.id);
+      // Object.values(plotCensusesByPlot[selectedPlot.id]).forEach(
+      //   (plotCensus) => {
+      //     const treeCensuesIds = byPlotCensuses[plotCensus.id];
+      //     if (treeCensuesIds) {
+      //       for (const treeCensusId of treeCensuesIds) {
+      //         const { updatedAt } = allTreeCensuses[treeCensusId];
+      //         if (updatedAt && (!latestCensus || updatedAt > latestCensus)) {
+      //           latestCensus = updatedAt;
+      //         }
+      //       }
+      //     }
+      //   }
+      // );
     }
     return latestCensus;
   }, [selectedPlot, allTreeCensuses, plotCensusesByPlot, byPlotCensuses]);
@@ -405,7 +425,7 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
               <Pressable
                 style={{
                   backgroundColor: "white",
-                  padding: 8,
+                  padding: 12,
                   borderRadius: 8,
                   flexDirection: "row",
                   alignItems: "center",
@@ -436,11 +456,13 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
                   }
                 }}
               >
+                <Ionicons name="ios-create-outline" size={24}></Ionicons>
+                <Queue size={12}></Queue>
                 <View>
                   <Text variant={TextVariants.Label}>
                     Plot #{selectedPlot.number}
                   </Text>
-                  <Text variant={TextVariants.Body}>
+                  <Text variant={TextVariants.SmallLabel}>
                     {plotLastUpdatedDate
                       ? `Last censused on ${dateformat(
                           plotLastUpdatedDate,
@@ -449,8 +471,6 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
                       : "Never censused"}
                   </Text>
                 </View>
-                <Queue size={8}></Queue>
-                <Ionicons name="ios-create-outline" size={24}></Ionicons>
               </Pressable>
             </Marker>
             <Polygon
@@ -467,6 +487,7 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
             />
           </>
         )}
+        {showTrees && treeNodes}
         {mode === MapScreenModes.Plot &&
           plots.map((plot) => {
             return (
@@ -484,7 +505,6 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
               />
             );
           })}
-        {showTrees && treeNodes}
       </MapView>
       {showUI && (
         <MapOverlay bottom={drawerHeight + 32} right={32}>
