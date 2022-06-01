@@ -5,7 +5,7 @@ import { RootState } from "..";
 import SERVER_URL from "../../constants/Url";
 import { clearTreeDrafts } from "./treeSlice";
 import { clearTreeCensusDrafts } from "./treeCensusSlice";
-import { clearTreePhotoDrafts } from "./treePhotoSlice";
+import { clearTreePhotoDrafts, uploadTreePhoto } from "./treePhotoSlice";
 
 const BASE_URL = SERVER_URL + "sync";
 
@@ -21,18 +21,23 @@ export const uploadCensusData = createAsyncThunk(
     } = thunkApi.getState() as RootState;
     const trees: Tree[] = [];
     const treeCensuses: TreeCensus[] = [];
-    const treePhotos: TreePhoto[] = [];
+    const treePhotos: (TreePhoto & { buffer: string })[] = [];
     treeDrafts.forEach((treeId) => trees.push(allTrees[treeId]));
     treeCensusDrafts.forEach((treeCensusId) =>
       treeCensuses.push(allTreeCensuses[treeCensusId])
     );
     treePhotoDrafts.forEach((treePhotoId) =>
-      treePhotos.push(allTreePhotos[treePhotoId])
+      treePhotos.push(
+        allTreePhotos[treePhotoId] as TreePhoto & { buffer: string }
+      )
     );
     return await axios
-      .post(BASE_URL, { trees, treeCensuses, treePhotos })
-      .then((response) => {
-        return response.data;
+      .post(BASE_URL, { trees, treeCensuses })
+      .then(async (response) => {
+        const uploadPhotos = treePhotos.map(async (photo) => {
+          return thunkApi.dispatch(uploadTreePhoto(photo));
+        });
+        return await Promise.all(uploadPhotos);
       });
   }
 );
@@ -45,7 +50,6 @@ export const syncSlice = createSlice({
     builder.addCase(uploadCensusData.fulfilled, (state, action) => {
       clearTreeDrafts();
       clearTreeCensusDrafts();
-      clearTreePhotoDrafts();
     });
   },
 });

@@ -1,6 +1,6 @@
 import express from "express";
 import { requireAuth } from "middleware";
-import { sync, SyncData } from "../util/sync";
+import { sync, SyncData } from "../services/sync-service";
 
 const syncRouter = express.Router();
 

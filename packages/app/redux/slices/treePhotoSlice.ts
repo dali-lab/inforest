@@ -1,25 +1,41 @@
 import { TreePhoto } from "@ong-forestry/schema";
-import { createSlice } from "@reduxjs/toolkit";
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { isArray } from "lodash";
 import uuid from "uuid";
+import axios from "axios";
+import { decode } from "base64-arraybuffer";
+import SERVER_URL from "../../constants/Url";
+
+const BASE_URL = SERVER_URL + "trees/photos";
 
 export interface TreePhotoState {
-  all: Record<string, TreePhoto>;
+  all: Record<string, TreePhoto & { buffer?: string }>;
   indices: {
-    byTreeCensuses: Record<string, Set<string>>;
+    byTreeCensus: Record<string, Set<string>>;
   };
   drafts: Set<string>;
+  rehydrated: boolean;
 }
 
 const initialState: TreePhotoState = {
   all: {},
   indices: {
-    byTreeCensuses: {},
+    byTreeCensus: {},
   },
   drafts: new Set(),
+  rehydrated: false,
 };
 
-const addTreePhotos = (state: TreePhotoState, action: any) => {
+export const uploadTreePhoto = createAsyncThunk(
+  "treePhoto/uploadTreePhoto",
+  async (params: TreePhoto & { buffer: string }, thunkApi) => {
+    return await axios.post(BASE_URL, params, {}).then((response) => {
+      return response.data;
+    });
+  }
+);
+
+export const upsertTreePhotos = (state: TreePhotoState, action: any) => {
   let newPhotos: TreePhoto[];
   if (action?.draft || action?.rehydrate) {
     newPhotos = action.data;
@@ -31,13 +47,14 @@ const addTreePhotos = (state: TreePhotoState, action: any) => {
     // add to drafts
     if (action?.draft) state.drafts.add(newPhoto.id);
     if (
-      !(newPhoto.treeCensusId in state.indices.byTreeCensuses) ||
-      !state.indices.byTreeCensuses[newPhoto.treeCensusId]?.add
+      !(newPhoto.treeCensusId in state.indices.byTreeCensus) ||
+      !state.indices.byTreeCensus[newPhoto.treeCensusId]?.add
     ) {
-      state.indices.byTreeCensuses[newPhoto.treeCensusId] = new Set();
+      state.indices.byTreeCensus[newPhoto.treeCensusId] = new Set();
     }
-    state.indices.byTreeCensuses[newPhoto.treeCensusId].add(newPhoto.id);
+    state.indices.byTreeCensus[newPhoto.treeCensusId].add(newPhoto.id);
   });
+  if (action?.rehydrate) state.rehydrated = true;
   return state;
 };
 
@@ -46,18 +63,52 @@ export const treePhotoSlice = createSlice({
   initialState,
   reducers: {
     createTreePhoto: (state, action) => {
-      return addTreePhotos(state, action.payload);
+      return upsertTreePhotos(state, action.payload);
     },
     locallyDraftNewPhoto: (state, action) => {
-      return addTreePhotos(state, { data: action.payload, draft: true });
+      return upsertTreePhotos(state, { data: action.payload, draft: true });
+    },
+    locallyDeletePhoto: (state, action) => {
+      const photoId = action.payload;
+      const censusId = state.all[photoId].treeCensusId;
+      delete state.all[photoId];
+      state.indices.byTreeCensus[censusId].delete(photoId);
+      state.drafts.delete(photoId);
+      return state;
+    },
+    locallyUpdatePhoto: (state, action) => {
+      const { updated } = action.payload;
+      state.all[updated.id] = updated;
+      return state;
+    },
+    rehydrateTreePhotos: (state) => {
+      state.indices = initialState.indices;
+      return upsertTreePhotos(state, {
+        data: Object.values(state.all),
+        rehydrate: true,
+      });
     },
     clearTreePhotoDrafts: (state) => {
       return { ...state, drafts: initialState.drafts };
     },
   },
+  extraReducers: (builder) => {
+    builder.addCase(uploadTreePhoto.fulfilled, (state, action: any) => {
+      return upsertTreePhotos(state, action.payload.data);
+    });
+    builder.addCase(uploadTreePhoto.rejected, (state, action) => {
+      console.log("rejected");
+    });
+  },
 });
 
-export const { createTreePhoto, locallyDraftNewPhoto, clearTreePhotoDrafts } =
-  treePhotoSlice.actions;
+export const {
+  createTreePhoto,
+  locallyDraftNewPhoto,
+  locallyDeletePhoto,
+  locallyUpdatePhoto,
+  rehydrateTreePhotos,
+  clearTreePhotoDrafts,
+} = treePhotoSlice.actions;
 
 export default treePhotoSlice.reducer;

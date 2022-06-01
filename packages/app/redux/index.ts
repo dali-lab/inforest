@@ -21,7 +21,7 @@ import { enableMapSet } from "immer";
 import { UserState } from "./slices/userSlice";
 import { ForestState } from "./slices/forestSlice";
 import { PlotState } from "./slices/plotSlice";
-import { TreeState, rehydrateTrees } from "./slices/treeSlice";
+import { TreeState, rehydrateTrees, upsertTrees } from "./slices/treeSlice";
 import { TreeLabelState } from "./slices/treeLabelSlice";
 import { TreeSpeciesState } from "./slices/treeSpeciesSlice";
 import { TeamState } from "./slices/teamSlice";
@@ -31,9 +31,14 @@ import { PlotCensusState } from "./slices/plotCensusSlice";
 import {
   TreeCensusState,
   rehydrateTreeCensuses,
+  upsertTreeCensuses,
 } from "./slices/treeCensusSlice";
 import useAppDispatch from "../hooks/useAppDispatch";
-import { TreePhotoState } from "./slices/treePhotoSlice";
+import {
+  rehydrateTreePhotos,
+  TreePhotoState,
+  upsertTreePhotos,
+} from "./slices/treePhotoSlice";
 
 enableMapSet();
 
@@ -71,11 +76,38 @@ const rootReducer = combineReducers<RootState>({
 });
 
 const DraftSetTransform = createTransform(
-  (inboundState: TreeState | TreeCensusState, key) => {
+  (inboundState: TreeState | TreeCensusState | TreePhotoState, key) => {
     return { ...inboundState, drafts: [...inboundState.drafts] };
   },
   (outboundState, key) => {
     return { ...outboundState, drafts: new Set(outboundState.drafts) };
+  },
+  { whitelist: ["trees", "treeCensuses", "treePhotos"] }
+);
+
+const IndicesTransform = createTransform(
+  (inboundState: any, key) => {
+    let indices;
+    let state = Object.assign({}, inboundState);
+    if (key == "trees")
+      indices = upsertTrees(
+        state as TreeState,
+        Object.values(state.all)
+      ).indices;
+    else if (key == "treeCensuses")
+      indices = upsertTreeCensuses(
+        state as TreeCensusState,
+        Object.values(state.all)
+      ).indices;
+    else if (key == "treePhotos")
+      indices = upsertTreePhotos(
+        state as TreePhotoState,
+        Object.values(state.all)
+      ).indices;
+    return { ...inboundState, indices };
+  },
+  (outboundState: any, key) => {
+    return outboundState;
   },
   { whitelist: ["trees", "treeCensuses", "treePhotos"] }
 );
@@ -92,17 +124,18 @@ const persistedReducer = persistReducer<RootState, AnyAction>(
   rootReducer
 );
 
-const rehydrationCallback = () => {
-  rehydrateTrees();
-  rehydrateTreeCensuses();
-};
-
 export const store = configureStore({
   // reducer: rootReducer,
   reducer: persistedReducer,
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({ serializableCheck: false, immutableCheck: false }),
 });
+
+const rehydrationCallback = () => {
+  // store.dispatch(rehydrateTrees());
+  // store.dispatch(rehydrateTreeCensuses());
+  // store.dispatch(rehydrateTreePhotos());
+};
 
 export const persistor = persistStore(store, {}, rehydrationCallback);
 

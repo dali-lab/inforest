@@ -3,23 +3,20 @@ import { sequelize } from "index";
 import {
   bulkUpsertTrees,
   bulkUpsertTreeCensuses,
-  bulkUpsertTreePhotos,
+  bulkInsertTreePhotos,
 } from "services";
 
 export interface SyncData {
   trees: Tree[];
   treeCensuses: TreeCensus[];
-  treePhotos: TreePhoto[];
 }
 
 export const sync = async (data: SyncData) => {
   const transaction = await sequelize.transaction();
   try {
-    const { trees, treeCensuses, treePhotos } = data;
-    console.log(trees, treeCensuses, treePhotos);
-    console.log("treeUpsert", await bulkUpsertTrees(trees));
-    console.log("treeCensusUpsert", await bulkUpsertTreeCensuses(treeCensuses));
-    console.log("treePhotoUpsert", await bulkUpsertTreePhotos(treePhotos));
+    const { trees, treeCensuses } = data;
+    await bulkUpsertTrees(trees);
+    await bulkUpsertTreeCensuses(treeCensuses);
     transaction.commit();
     return {};
   } catch (e: any) {

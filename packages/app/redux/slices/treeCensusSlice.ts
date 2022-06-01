@@ -24,18 +24,22 @@ export const getPlotCensusTreeCensuses = createAsyncThunk(
 
 export const createTreeCensus = createAsyncThunk(
   "treeCensus/createTreeCensus",
-  async (newCensus: Omit<TreeCensus, "id">) => {
-    return await axios.post(`${BASE_URL}`, newCensus);
+  async (newCensus: Partial<TreeCensus>) => {
+    return await axios
+      .post(`${BASE_URL}`, newCensus)
+      .then((response) => response.data);
   }
 );
 
 export const updateTreeCensus = createAsyncThunk(
   "treeCensus/updateTreeCensus",
   async (censusUpdates: Partial<TreeCensus>) => {
-    return await axios.patch(
-      `${BASE_URL}?ids=${censusUpdates.id}`,
-      censusUpdates
-    );
+    const { id, ...updates } = censusUpdates;
+    return await axios
+      .patch(`${BASE_URL}?ids=${id}`, updates)
+      .then((response) => {
+        return JSON.parse(response.config.data);
+      });
   }
 );
 
@@ -47,9 +51,9 @@ export const updateTreeCensus = createAsyncThunk(
 // );
 
 // takes the state and the action payload(!!) and returns the updated state with the payload's censuses added. used for downloading, drafting, and rehydrating
-const upsertTreeCensuses = (state: TreeCensusState, action: any) => {
+export const upsertTreeCensuses = (state: TreeCensusState, action: any) => {
   let newCensuses;
-  if (action?.draft || action?.rehydrate) {
+  if (action?.data) {
     newCensuses = action.data;
   } else newCensuses = action;
   if (!isArray(newCensuses)) newCensuses = [newCensuses];
@@ -73,8 +77,10 @@ const upsertTreeCensuses = (state: TreeCensusState, action: any) => {
     }
     state.indices.byTrees[newCensus.treeId].add(newCensus.id);
     state.indices.byTreeActive[newCensus.treeId] = newCensus.id;
-    if (action?.draft) state.selected = newCensus.id;
+    if (action?.selectFinal) state.selected = newCensus.id;
   });
+  if (action?.rehydrate) state.rehydrated = true;
+
   return state;
 };
 
@@ -87,6 +93,7 @@ export interface TreeCensusState {
   };
   drafts: Set<string>;
   selected: string | undefined;
+  rehydrated: boolean;
 }
 
 const initialState: TreeCensusState = {
@@ -98,21 +105,19 @@ const initialState: TreeCensusState = {
   },
   drafts: new Set(),
   selected: undefined,
+  rehydrated: false,
 };
 
 export const treeCensusSlice = createSlice({
   name: "treeCensus",
   initialState,
   reducers: {
-    createTreeCensus: (state, action) => {
-      return upsertTreeCensuses(state, action.payload);
-    },
     locallyDraftNewTreeCensus: (state, action) => {
-      treeCensusSlice.caseReducers.createTreeCensus(state, {
-        payload: { data: action.payload, draft: true },
-        type: "treeCensus/createTreeCensus",
+      return upsertTreeCensuses(state, {
+        data: action.payload,
+        draft: true,
+        selectFinal: true,
       });
-      return state;
     },
     locallyDeleteTreeCensus: (state, action) => {
       const censusId = action.payload;
@@ -138,6 +143,7 @@ export const treeCensusSlice = createSlice({
     },
     rehydrateTreeCensuses: (state) => {
       state.indices = initialState.indices;
+      state.selected = undefined;
       return upsertTreeCensuses(state, {
         data: Object.values(state.all),
         rehydrate: true,
@@ -149,6 +155,15 @@ export const treeCensusSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder.addCase(getPlotCensusTreeCensuses.fulfilled, (state, action) => {
+      return upsertTreeCensuses(state, action.payload);
+    });
+    builder.addCase(createTreeCensus.fulfilled, (state, action) => {
+      return upsertTreeCensuses(state, {
+        data: action.payload,
+        selectFinal: true,
+      });
+    });
+    builder.addCase(updateTreeCensus.fulfilled, (state, action) => {
       return upsertTreeCensuses(state, action.payload);
     });
   },

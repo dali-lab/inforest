@@ -7,11 +7,7 @@ import { Forest, Plot, PlotCensus, TreeCensus } from "@ong-forestry/schema";
 import { Ionicons } from "@expo/vector-icons";
 import { MapScreenModes, DrawerStates } from "../../constants";
 import useAppSelector from "../../hooks/useAppSelector";
-import {
-  locallyDeleteTree,
-  deselectTree,
-  createTree,
-} from "../../redux/slices/treeSlice";
+import { locallyDeleteTree, deselectTree } from "../../redux/slices/treeSlice";
 import AppButton from "../AppButton";
 import { Text, TextVariants } from "../Themed";
 import useAppDispatch from "../../hooks/useAppDispatch";
@@ -22,9 +18,12 @@ import {
   deselectTreeCensus,
   locallyDraftNewTreeCensus,
   locallyUpdateTreeCensus,
+  updateTreeCensus,
 } from "../../redux/slices/treeCensusSlice";
 import { createPlotCensus } from "../../redux/slices/plotCensusSlice";
 import { useIsConnected } from "react-native-offline";
+import { AUTHOR_ID } from "../../constants/dev";
+import useForceRerender from "../../hooks/useForceRerender";
 
 const blankTreeCensus: Omit<
   TreeCensus,
@@ -47,12 +46,14 @@ type PlotDrawerProps = {
   | {
       mode: MapScreenModes.Select | MapScreenModes.Explore;
       beginPlotting: () => void;
+      startCensus: () => void;
       endPlotting?: undefined;
       setDrawerHeight: (height: number) => void;
     }
   | {
       mode: MapScreenModes.Plot;
       beginPlotting?: undefined;
+      startCensus?: undefined;
       endPlotting: () => void;
       setDrawerHeight?: (height: number) => void;
     }
@@ -65,6 +66,7 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
   plotCensus,
   setDrawerHeight,
   beginPlotting,
+  startCensus,
   expandDrawer,
   minimizeDrawer,
 }) => {
@@ -96,6 +98,8 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
       undefined,
     [selectedTreeCensusId, allTreeCensuses]
   );
+
+  useEffect(() => {}, [selectedTreeCensusId]);
   const selectedForestCensus = useMemo(
     () =>
       (selectedForestCensusId && allForestCensuses?.[selectedForestCensusId]) ||
@@ -103,7 +107,9 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
     [selectedForestCensusId, allForestCensuses]
   );
 
-  const isConnected = useIsConnected();
+  // const isConnected = useIsConnected();
+  const isConnected = false;
+  const forceRerender = useForceRerender();
 
   const setStyle = useCallback(() => {
     switch (drawerState) {
@@ -133,41 +139,39 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
     [byPlots, allTrees]
   );
 
-  const startCensus = useCallback(() => {
-    if (plot && selectedForestCensus) {
-      dispatch(createPlotCensus(plot.id));
-      // dispatch(deselectPlotCensus());
-    }
-  }, [dispatch, selectedForestCensus, plot]);
-
-  const toggleFlagged = useCallback(() => {
+  const toggleFlagged = useCallback(async () => {
     if (selectedTreeCensus?.id) {
-      dispatch(
-        locallyUpdateTreeCensus({
-          updated: {
-            ...selectedTreeCensus,
-            flagged: !selectedTreeCensus?.flagged,
-          },
-        })
-      );
+      const updated = {
+        id: selectedTreeCensus.id,
+        flagged: !selectedTreeCensus?.flagged,
+      };
+      isConnected
+        ? await dispatch(updateTreeCensus(updated))
+        : dispatch(
+            locallyUpdateTreeCensus({
+              updated,
+            })
+          );
     }
-  }, [dispatch, selectedTreeCensus]);
+  }, [dispatch, selectedTreeCensus, isConnected]);
 
   useEffect(() => {
     if (
       selectedTree?.plotId &&
       selectedTree?.id &&
       plotCensus?.id &&
-      !byTreeActive[selectedTree.id]
+      !byTreeActive?.[selectedTree.id]
     ) {
       try {
-        dispatch(
-          locallyDraftNewTreeCensus({
-            ...blankTreeCensus,
-            treeId: selectedTree?.id,
-            plotCensusId: plotCensus.id,
-          })
-        );
+        const newCensus = {
+          ...blankTreeCensus,
+          treeId: selectedTree?.id,
+          plotCensusId: plotCensus.id,
+          authorId: AUTHOR_ID,
+        };
+        isConnected
+          ? dispatch(createTreeCensus(newCensus))
+          : dispatch(locallyDraftNewTreeCensus(newCensus));
       } catch (err: any) {
         alert(err?.message || "An unknown error occurred.");
       }

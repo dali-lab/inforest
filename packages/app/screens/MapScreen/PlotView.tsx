@@ -37,6 +37,9 @@ const PlotView: React.FC<PlotViewProps> = (props) => {
     selected: selectedPlotId,
     indices: { byNumber },
   } = reduxState.plots;
+  const { selected: selectedTreeCensusId } = useAppSelector(
+    (state) => state.treeCensuses
+  );
 
   const selectedPlot = useMemo(
     () =>

@@ -11,13 +11,13 @@ import SelectField from "../SelectField";
 import Colors from "../../../constants/Colors";
 import { Text, TextVariants } from "../../Themed";
 import { Ionicons } from "@expo/vector-icons";
-import { TreePhoto } from "@ong-forestry/schema";
+import { TreePhoto, TreePhotoPurpose } from "@ong-forestry/schema";
 
 interface PhotoItemProps {
   item: ListRenderItemInfo<TreePhoto>;
-  removePhoto: (url: string) => void;
+  removePhoto: (id: string) => void;
   options: { label: string; value: string }[];
-  setPurpose: (newValue: string) => void;
+  setPurpose: (newValue: TreePhotoPurpose) => void;
 }
 
 const PhotoItem: React.FC<PhotoItemProps> = ({
@@ -49,7 +49,8 @@ const PhotoItem: React.FC<PhotoItemProps> = ({
         <FieldController
           value={item.purposeName}
           onConfirm={(newValue) => {
-            setPurpose(newValue);
+            //@ts-ignore
+            setPurpose(newValue as TreePhotoPurpose);
           }}
           formComponent={
             <Text variant={TextVariants.Label} style={{ marginVertical: 4 }}>
@@ -63,7 +64,7 @@ const PhotoItem: React.FC<PhotoItemProps> = ({
       </View>
       <Pressable
         onPress={() => {
-          removePhoto(item.fullUrl);
+          removePhoto(item.id);
         }}
         style={styles.photoRemove}
       >

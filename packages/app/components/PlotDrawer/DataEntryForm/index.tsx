@@ -4,7 +4,7 @@ import { View, StyleSheet, ScrollView } from "react-native";
 import useAppDispatch from "../../../hooks/useAppDispatch";
 import useAppSelector from "../../../hooks/useAppSelector";
 import { RootState } from "../../../redux";
-import { locallyUpdateTree } from "../../../redux/slices/treeSlice";
+import { locallyUpdateTree, updateTree } from "../../../redux/slices/treeSlice";
 import AppButton from "../../AppButton";
 import { Text, TextVariants } from "../../Themed";
 import FormProgress from "../FormProgress";
@@ -13,7 +13,11 @@ import FieldController from "../../fields/FieldController";
 import SelectField from "../../fields/SelectField";
 import PhotoField from "../../fields/PhotoField";
 import LabelPillRow from "./LabelPillRow";
-import { locallyUpdateTreeCensus } from "../../../redux/slices/treeCensusSlice";
+import {
+  locallyUpdateTreeCensus,
+  updateTreeCensus,
+} from "../../../redux/slices/treeCensusSlice";
+import { useIsConnected } from "react-native-offline";
 
 export type FormStages = "META" | "DATA" | "REVIEW";
 
@@ -32,6 +36,9 @@ const DataEntryForm: React.FC<DataEntryFormProps & View["props"]> = ({
   selectedTree,
   selectedTreeCensus,
 }) => {
+  // const isConnected = useIsConnected();
+  const isConnected = false;
+
   const dispatch = useAppDispatch();
 
   const [stage, setStage] = useState<number>(0);
@@ -40,34 +47,43 @@ const DataEntryForm: React.FC<DataEntryFormProps & View["props"]> = ({
     (updatedFields) => {
       if (selectedTree) {
         try {
-          dispatch(
-            locallyUpdateTree({
-              updated: { ...selectedTree, ...updatedFields },
-            })
-          );
+          const updated: Tree = { ...selectedTree, ...updatedFields };
+          isConnected
+            ? dispatch(updateTree(updated))
+            : dispatch(
+                locallyUpdateTree({
+                  updated,
+                })
+              );
         } catch (err: any) {
           alert(err?.message || "An unknown error occurred.");
         }
       }
     },
-    [dispatch, selectedTree]
+    [dispatch, selectedTree, isConnected]
   );
 
   const updateCensusDraft = useCallback(
     async (updatedFields) => {
       if (selectedTreeCensus?.id) {
         try {
-          dispatch(
-            locallyUpdateTreeCensus({
-              updated: { ...selectedTreeCensus, ...updatedFields },
-            })
-          );
+          const updated: TreeCensus = {
+            ...selectedTreeCensus,
+            ...updatedFields,
+          };
+          isConnected
+            ? dispatch(updateTreeCensus(updated))
+            : dispatch(
+                locallyUpdateTreeCensus({
+                  updated: { ...selectedTreeCensus, ...updatedFields },
+                })
+              );
         } catch (err: any) {
           alert(err?.message || "An unknown error occurred.");
         }
       }
     },
-    [dispatch, selectedTreeCensus]
+    [dispatch, selectedTreeCensus, isConnected]
   );
 
   if (!selectedTree || !selectedTreeCensus) {
@@ -287,12 +303,7 @@ const DataForm: React.FC<DataFormProps> = ({
         />
       </View>
       <View style={{ marginTop: 12 }}>
-        <PhotoField
-          census={selectedCensus}
-          onUpdate={(photos) => {
-            updateCensusDraft({ photos });
-          }}
-        />
+        <PhotoField census={selectedCensus} />
       </View>
       <View style={styles.formRow}>
         <FieldController

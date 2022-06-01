@@ -41,11 +41,13 @@ import {
 } from "../../constants";
 import { selectPlot, deselectPlot } from "../../redux/slices/plotSlice";
 import {
+  createPlotCensus,
   deselectPlotCensus,
   getForestCensusPlotCensuses,
   selectPlotCensus,
 } from "../../redux/slices/plotCensusSlice";
 import { deselectTreeCensus } from "../../redux/slices/treeCensusSlice";
+import { useIsConnected } from "react-native-offline";
 
 const O_FARM_LAT = 43.7348569458618;
 const O_FARM_LNG = -72.2519099587406;
@@ -93,12 +95,17 @@ const ExploreView: React.FC<ExploreViewProps> = (props) => {
     });
 
   const mapRef = useRef<MapView>(null);
+  // const isConnected = useIsConnected();
+  const isConnected = false;
 
   const dispatch = useAppDispatch();
   const reduxState = useAppSelector((state) => state);
   const { all: allTrees, selected: selectedTreeId } = useAppSelector(
     (state: RootState) => state.trees
   );
+  const {
+    indices: { byTrees },
+  } = useAppSelector((state: RootState) => state.treeCensuses);
   const { all: allPlots, selected: selectedPlotId } = useAppSelector(
     (state: RootState) => state.plots
   );
@@ -246,7 +253,7 @@ const ExploreView: React.FC<ExploreViewProps> = (props) => {
             }
           }
           const treePixelSize =
-            (tree?.censuses?.[0]?.dbh ?? DEFAULT_DBH) *
+            (tree?.censuses?.[0].dbh ?? DEFAULT_DBH) *
             0.01 *
             0.5 *
             FOLIAGE_MAGNIFICATION;
@@ -273,6 +280,7 @@ const ExploreView: React.FC<ExploreViewProps> = (props) => {
     visualizationConfig.satellite,
     colorMap,
     selectedTreeId,
+    byTrees,
   ]);
 
   const plotIdColorMap = useCallback(
@@ -283,7 +291,7 @@ const ExploreView: React.FC<ExploreViewProps> = (props) => {
       }
       return "rgba(255, 255, 255, 0.3)";
     },
-    [allPlotCensuses, plotCensusesByActivePlot]
+    [allPlotCensuses, plotCensusesByActivePlot, selectedPlotCensus]
   );
 
   useEffect(() => {
@@ -522,6 +530,19 @@ const ExploreView: React.FC<ExploreViewProps> = (props) => {
             mapRef.current?.animateToRegion(focusToPlotRegion, 500);
             setRegionSnapshot(focusToPlotRegion);
             setTimeout(() => beginPlotting(), 500);
+          }
+        }}
+        startCensus={async () => {
+          if (!isConnected) {
+            alert(
+              "You must be connected to the internet to assign yourself to a plot!"
+            );
+            return;
+          }
+          if (selectedPlot) {
+            await dispatch(createPlotCensus(selectedPlot.id));
+            // forceRerender();
+            // dispatch(deselectPlotCensus());
           }
         }}
         expandDrawer={() => setDrawerState(DrawerStates.Expanded)}

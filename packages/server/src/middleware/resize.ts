@@ -1,4 +1,5 @@
 import sharp from "sharp";
+import { resizeImage } from "../util/resize";
 
 type ImageObject = {
   full: {
@@ -11,39 +12,19 @@ type ImageObject = {
   };
 };
 
-export const imageResize = async (req: any, res: any, next: any) => {
+export const resizeMiddleware = async (req: any, res: any, next: any) => {
   const images: ImageObject[] = [];
-
-  if (!req.files) res.status(400).send("No files sent");
+  if (!req.body.buffer) res.status(400).send("No files sent");
   else {
-    const resizePromises = req.files.map(async (file: any) => {
-      // TODO: error handling for sharp calls?
-      const largeBuffer = await sharp(file.buffer)
-        .resize(2000)
-        .jpeg({ quality: 50 })
-        .toBuffer();
-
-      const thumbBuffer = await sharp(file.buffer)
-        .resize(100)
-        .jpeg({ quality: 30 })
-        .toBuffer();
-
-      images.push({
-        full: {
-          key: Date.now().toString() + "_full.jpeg",
-          buffer: largeBuffer,
-        },
-        thumb: {
-          key: Date.now().toString() + "_thumb.jpeg",
-          buffer: thumbBuffer,
-        },
-      });
+    const resizePromises = [req.body.buffer].map(async (fileBuffer: any) => {
+      console.log(fileBuffer);
+      images.push(await resizeImage(fileBuffer));
     });
 
     await Promise.all([...resizePromises]);
 
     req.images = images;
-
+    delete req.body.buffer;
     next();
   }
 };

@@ -46,14 +46,14 @@ const validatePlotCensus = async (
     throw new Error("There is no active census on this plot");
   }
 
-  // check that user is assigned to this plot census
-  const assignment = await getPlotCensusAssignments({
-    plotCensusId: plotCensuses[0].id,
-    userId: treeCensus.authorId,
-  });
-  if (assignment.length == 0) {
-    throw new Error("You are not assigned to this plot.");
-  }
+  // // check that user is assigned to this plot census
+  // const assignment = await getPlotCensusAssignments({
+  //   plotCensusId: plotCensuses[0].id,
+  //   userId: treeCensus.authorId,
+  // });
+  // if (assignment.length == 0) {
+  //   throw new Error("You are not assigned to this plot.");
+  // }
 
   return plotCensuses[0].id;
 };
@@ -117,9 +117,7 @@ export const getTreeCensuses = async (params: TreeCensusParams) => {
     include: [
       {
         model: PlotCensus,
-        through: {
-          attributes: ["status"],
-        },
+        attributes: ["status"],
       },
     ],
   });
