@@ -8,6 +8,7 @@ import Colors from "../constants/Colors";
 import { Text, TextVariants } from "./Themed";
 import {
   DEFAULT_DBH,
+  DrawerStates,
   FOLIAGE_MAGNIFICATION,
   MapScreenModes,
 } from "../constants";
@@ -31,6 +32,8 @@ import {
   selectTreeCensus,
 } from "../redux/slices/treeCensusSlice";
 import { useIsConnected } from "react-native-offline";
+import { Ionicons } from "@expo/vector-icons";
+import { Queue } from "react-native-spacing-system";
 
 const SMALL_OFFSET = 8;
 const PLOT_SHEET_MARGINS = 36;
@@ -42,6 +45,7 @@ interface PlottingSheetProps {
   stakeNames: string[];
   mapWidth: number;
   direction?: number;
+  drawerState: DrawerStates;
   expandDrawer: () => void;
   minimizeDrawer: () => void;
 }
@@ -66,6 +70,7 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
   stakeNames,
   mapWidth,
   direction = 0,
+  drawerState,
   expandDrawer,
   minimizeDrawer,
 }) => {
@@ -367,6 +372,28 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
         </>
       )}
 
+      {selectedTree && drawerState !== DrawerStates.Expanded && (
+        <Pressable
+          style={{
+            position: "absolute",
+            top: sheetSize - selectedTree.plotX * (sheetSize / plot.width) - 2,
+            left: selectedTree.plotY * (sheetSize / plot.length) - 2,
+            backgroundColor: "white",
+            zIndex: 1,
+            padding: 12,
+            borderRadius: 12,
+            flexDirection: "row",
+            alignItems: "center",
+          }}
+          onPress={() => {
+            expandDrawer();
+          }}
+        >
+          <Text variant={TextVariants.Label}>Tree #{selectedTree.tag}</Text>
+          <Queue size={8}></Queue>
+          <Ionicons name="ios-pencil" size={16}></Ionicons>
+        </Pressable>
+      )}
       <Animated.View
         style={{
           position: "absolute",
@@ -411,9 +438,10 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
                       setMarkerPos(undefined);
                       minimizeDrawer();
                       dispatch(selectTree(tree.id));
-                      if (byTreeActive[tree.id])
+
+                      if (byTreeActive[tree.id]) {
                         dispatch(selectTreeCensus(byTreeActive[tree.id]));
-                      else {
+                      } else {
                         // createCensus();
                       }
                     }}

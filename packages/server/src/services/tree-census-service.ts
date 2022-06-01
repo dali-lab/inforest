@@ -119,7 +119,6 @@ export const getTreeCensuses = async (params: TreeCensusParams) => {
         model: PlotCensus,
         attributes: ["status"],
       },
-      { model: TreeCensusModel, as: "tree" },
     ],
   });
 };

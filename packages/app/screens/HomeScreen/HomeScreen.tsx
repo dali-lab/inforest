@@ -11,6 +11,7 @@ import {
 import { Text, TextStyles, TextVariants } from "../../components/Themed";
 import useAppDispatch from "../../hooks/useAppDispatch";
 import useAppSelector from "../../hooks/useAppSelector";
+import { useIsConnected } from "react-native-offline";
 import { RootState } from "../../redux";
 import {
   changeForest,
@@ -49,6 +50,7 @@ import AppButton from "../../components/AppButton";
 import { Ionicons } from "@expo/vector-icons";
 import { PlotCensusStatuses } from "@ong-forestry/schema";
 import RNPickerSelect from "react-native-picker-select";
+import { uploadCensusData } from "../../redux/slices/syncSlice";
 
 const TABLE_COLUMN_WIDTHS = {
   PLOT_NUMBER: 96,
@@ -56,69 +58,30 @@ const TABLE_COLUMN_WIDTHS = {
   ACTION: 96,
 };
 
-const ProjectSelector = () => {
-  const dispatch = useDispatch();
-  const reduxState = useAppSelector((state: RootState) => state);
-  const { all, selected } = reduxState.forestCensuses;
-
-  const [selecting, setSelecting] = React.useState(false);
-  return (
-    <View style={{ position: "relative" }}>
-      <RNPickerSelect
-        value={selected?.id}
-        onValueChange={(value) => console.log(value)}
-        items={Object.values(all).map((project) => ({
-          label: project.name,
-          value: project.id,
-        }))}
-      />
-      {/* <Pressable onPress={() => setSelecting(true)}>
-        <Text variant={TextVariants.Label}>
-          {selected?.name ?? "No project"}
-        </Text>
-      </Pressable>
-      {selecting && (
-        <Picker
-          selectedValue={selected?.id}
-          onValueChange={(newProjectId) => {
-            setSelecting(false);
-            dispatch(selectTreeCensus(newProjectId));
-          }}
-          style={{
-            position: "absolute",
-            top: 32,
-            right: 0,
-            backgroundColor: "white",
-            borderRadius: 12,
-            padding: 6,
-            width: "100%",
-          }}
-          itemStyle={{
-            fontSize: 16,
-          }}
-        >
-          {Object.values(all).map((project) => {
-            return (
-              <Picker.Item
-                key={project.id}
-                value={project.id}
-                label={project.name}
-              >
-                <Text variant={TextVariants.Label}>{project.name}</Text>
-              </Picker.Item>
-            );
-          })}
-        </Picker>
-      )} */}
-    </View>
-  );
-};
-
 export const HomeScreen = () => {
   const navigation = useNavigation();
 
+  // const isConnected = useIsConnected();
+  const isConnected = false;
+  const { rehydrated: treeRehydrated } = useAppSelector((state) => state.trees);
+  const { rehydrated: treeCensusRehydrated } = useAppSelector(
+    (state) => state.treeCensuses
+  );
+  const { rehydrated: treePhotosRehydrated } = useAppSelector(
+    (state) => state.treePhotos
+  );
+
   const dispatch = useDispatch();
   useEffect(() => {
+    if (
+      isConnected &&
+      treeRehydrated &&
+      treeCensusRehydrated &&
+      treePhotosRehydrated
+    ) {
+      // dispatch(uploadCensusData()).then(() => {
+      // });
+    }
     dispatch(getForests());
     dispatch(getForest({ id: FOREST_ID }));
     dispatch(getForestPlots({ forestId: FOREST_ID }));
@@ -133,7 +96,13 @@ export const HomeScreen = () => {
     dispatch(getAllTreePhotoPurposes());
     dispatch(getForestForestCensuses({ forestId: FOREST_ID }));
     dispatch(getPlotCensuses());
-  }, [dispatch]);
+  }, [
+    dispatch,
+    isConnected,
+    treeRehydrated,
+    treeCensusRehydrated,
+    treePhotosRehydrated,
+  ]);
 
   const reduxState = useAppSelector((state: RootState) => state);
   const { currentForest, currentTeamForests: allForests } = reduxState.forest;
@@ -176,6 +145,7 @@ export const HomeScreen = () => {
       <Stack size={12}></Stack>
       <View style={{ flexDirection: "row" }}>
         <RNPickerSelect
+          itemKey="id"
           value={currentForest?.id}
           onValueChange={(value) => console.log(value)}
           items={allForests.map(({ name, id }) => ({
@@ -203,7 +173,8 @@ export const HomeScreen = () => {
         <Text variant={TextVariants.H3}>/</Text>
         <Queue size={TextStyles[TextVariants.H3].fontSize / 2}></Queue>
         <RNPickerSelect
-          value={selected?.id}
+          itemKey="id"
+          value={selected && allForestCensuses[selected]?.id}
           onValueChange={(value) => console.log(value)}
           items={Object.values(allForestCensuses).map(({ name, id }) => ({
             label: name,
@@ -266,9 +237,7 @@ export const HomeScreen = () => {
           <ForestView
             mode={MapScreenModes.Plot}
             switchMode={() => {}}
-            selectPlot={() => {}}
             beginPlotting={() => {}}
-            deselectPlot={() => {}}
             showUI={false}
             showTrees={false}
           ></ForestView>

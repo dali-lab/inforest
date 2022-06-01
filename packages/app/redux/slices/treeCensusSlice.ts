@@ -72,7 +72,7 @@ export const upsertTreeCensuses = (state: TreeCensusState, action: any) => {
     newCensuses = action.data;
   } else newCensuses = action;
   if (!isArray(newCensuses)) newCensuses = [newCensuses];
-  newCensuses.forEach((newCensus) => {
+  newCensuses.forEach((newCensus, i) => {
     if (!newCensus?.id) newCensus.id = uuid.v4();
     if (!action?.rehydrate) state.all[newCensus.id] = newCensus;
     // add to drafts
@@ -170,18 +170,7 @@ export const treeCensusSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder.addCase(getForestTreeCensuses.fulfilled, (state, action) => {
-      action.payload.forEach((census: TreeCensus) => {
-        state.all[census.id] = census;
-        // initialize plot census index key if needed
-        if (!(census.plotCensusId in state.indices.byPlotCensuses)) {
-          state.indices.byPlotCensuses[census.plotCensusId] = new Set();
-        }
-        // add to plots census index
-        state.indices.byPlotCensuses[census.plotCensusId].add(census.id);
-        if (!(census.treeId in state.indices.byTrees)) {
-          state.indices.byTrees[census.treeId] = new Set();
-        }
-      });
+      return upsertTreeCensuses(state, action.payload);
     });
     builder.addCase(getPlotCensusTreeCensuses.fulfilled, (state, action) => {
       return upsertTreeCensuses(state, action.payload);

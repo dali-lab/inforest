@@ -45,9 +45,10 @@ export default function MapScreen() {
   const [photoPermissionStatus, setPhotoPermissionStatus] =
     useState<PermissionStatus>(defaultPhotoPermissionContext.status);
 
-  const { all, selected: selectedPlotId } = useAppSelector((state) => state.plots);
+  const { all, selected: selectedPlotId } = useAppSelector(
+    (state) => state.plots
+  );
   const selectedPlot = selectedPlotId ? all[selectedPlotId] : undefined;
-
 
   const beginPlotting = useCallback(
     (plot) => {
@@ -62,7 +63,6 @@ export default function MapScreen() {
     dispatch(deselectTreeCensus());
     setZoomLevel(MapScreenZoomLevels.Forest);
   }, [setMode, dispatch, setZoomLevel]);
-  
 
   return (
     <PhotoPermissionContext.Provider
@@ -79,26 +79,18 @@ export default function MapScreen() {
           </Text>
         </View>
       )} */}
-    <View style={styles.container}>
-      {zoomLevel === "FOREST" && (
-        <ForestView
-          mode={mode}
-          switchMode={switchMode}
-          selectedPlot={selectedPlot}
-          selectPlot={selectPlot}
-          deselectPlot={deselectPlot}
-          beginPlotting={beginPlotting}
-        />
-      )}
-      {zoomLevel === "PLOT" && selectedPlot && (
-        <PlotView
-          mode={mode}
-          switchMode={switchMode}
-          selectedPlot={selectedPlot}
-          onExit={endPlotting}
-        />
-      )}
-    </View>
+      <View style={styles.container}>
+        {zoomLevel === "FOREST" && (
+          <ForestView
+            mode={mode}
+            switchMode={switchMode}
+            beginPlotting={beginPlotting}
+          />
+        )}
+        {zoomLevel === "PLOT" && selectedPlot && (
+          <PlotView mode={mode} switchMode={switchMode} onExit={endPlotting} />
+        )}
+      </View>
     </PhotoPermissionContext.Provider>
   );
 }

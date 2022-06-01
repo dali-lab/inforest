@@ -17,7 +17,6 @@ export const resizeMiddleware = async (req: any, res: any, next: any) => {
   if (!req.body.buffer) res.status(400).send("No files sent");
   else {
     const resizePromises = [req.body.buffer].map(async (fileBuffer: any) => {
-      console.log(fileBuffer);
       images.push(await resizeImage(fileBuffer));
     });
 

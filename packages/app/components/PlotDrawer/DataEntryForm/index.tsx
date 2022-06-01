@@ -24,8 +24,8 @@ export type FormStages = "META" | "DATA" | "REVIEW";
 export const StageList: FormStages[] = ["META", "DATA", "REVIEW"];
 
 interface DataEntryFormProps {
-  selectedTree: Tree | undefined;
-  selectedTreeCensus: TreeCensus | undefined;
+  selectedTree: Tree;
+  selectedTreeCensus: TreeCensus;
   cancel: () => void;
   finish: (newTreeCensus: TreeCensus) => void;
 }
@@ -86,9 +86,6 @@ const DataEntryForm: React.FC<DataEntryFormProps & View["props"]> = ({
     [dispatch, selectedTreeCensus, isConnected]
   );
 
-  if (!selectedTree || !selectedTreeCensus) {
-    return null;
-  }
   return (
     <>
       <View style={[style, styles.container]}>

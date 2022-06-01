@@ -29,7 +29,7 @@ const PlotView: React.FC<PlotViewProps> = (props) => {
   const [drawerState, setDrawerState] = useState<DrawerStates>(
     DrawerStates.Minimized
   );
-  const [_, setDrawerHeight] = useState(0);
+  const [drawerHeight, setDrawerHeight] = useState(0);
 
   const [direction, setDirection] = useState(0);
   const rotate = useCallback(() => {
@@ -73,7 +73,9 @@ const PlotView: React.FC<PlotViewProps> = (props) => {
         <View style={{ position: "absolute", top: 32, right: 32 }}>
           <ModeSwitcher mode={mode} switchMode={switchMode}></ModeSwitcher>
         </View>
-        <View style={{ ...styles.mapOverlay, top: 32, right: 32 }}>
+        <View
+          style={{ ...styles.mapOverlay, bottom: drawerHeight + 32, right: 32 }}
+        >
           <Ionicons name="ios-refresh" size={32} onPress={rotate} />
         </View>
         {!!selectedPlot && (
@@ -104,6 +106,7 @@ const PlotView: React.FC<PlotViewProps> = (props) => {
             })()}
             mapWidth={Dimensions.get("window").width}
             direction={direction}
+            drawerState={drawerState}
             expandDrawer={() => setDrawerState(DrawerStates.Expanded)}
             minimizeDrawer={() => setDrawerState(DrawerStates.Minimized)}
           />

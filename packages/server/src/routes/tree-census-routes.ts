@@ -45,7 +45,6 @@ treeCensusRouter.patch<{}, any, TreeCensus>(
         req.body,
         parseParams(req.query)
       );
-      console.log(treeCensuses);
       res.status(200).send(treeCensuses);
     } catch (e: any) {
       console.error(e);

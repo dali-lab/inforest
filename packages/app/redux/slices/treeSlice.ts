@@ -195,7 +195,6 @@ export const treeSlice = createSlice({
       return upsertTrees(state, action.payload);
     });
     builder.addCase(createTree.fulfilled, (state, action) => {
-      // console.log(action.payload);
       state.selected = action.payload.id;
       return upsertTrees(state, action.payload);
     });

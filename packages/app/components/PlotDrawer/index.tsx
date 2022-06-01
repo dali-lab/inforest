@@ -34,7 +34,6 @@ import DataEntryForm from "./DataEntryForm";
 import FlagIcon from "../../assets/icons/flag-icon.svg";
 import Colors from "../../constants/Colors";
 
-
 import {
   createTreeCensus,
   deselectTreeCensus,
@@ -320,9 +319,9 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
               )}
               {drawerState === "EXPANDED" && !!selectedTree && (
                 <>
-                  <Stack size={24}></Stack>
-                  <View>
-                    {plotCensus && (
+                  {!!selectedTreeCensus && (
+                    <>
+                      <Stack size={24}></Stack>
                       <DataEntryForm
                         selectedTree={selectedTree}
                         selectedTreeCensus={selectedTreeCensus}
@@ -337,8 +336,8 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
                         }}
                         style={{ flex: 1 }}
                       />
-                    )}
-                  </View>
+                    </>
+                  )}
                 </>
               )}
             </>
