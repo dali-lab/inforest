@@ -43,26 +43,26 @@ export default function MapScreen() {
       // treeCensusRehydrated &&
       // treePhotosRehydrated
     ) {
-      dispatch(uploadCensusData()).then(() => {
-        dispatch(getForest({ id: FOREST_ID }));
-        dispatch(getForestPlots({ forestId: FOREST_ID }));
-        dispatch(
-          getForestTrees({
-            forestId: FOREST_ID,
-          })
-        );
-        dispatch(getAllTreeSpecies());
-        dispatch(getAllTreeLabels());
-        dispatch(getAllTreePhotoPurposes());
-        dispatch(getForestForestCensuses({ forestId: FOREST_ID }));
-      });
+      // dispatch(uploadCensusData()).then(() => {
+      dispatch(getForest({ id: FOREST_ID }));
+      dispatch(getForestPlots({ forestId: FOREST_ID }));
+      dispatch(
+        getForestTrees({
+          forestId: FOREST_ID,
+        })
+      );
+      dispatch(getAllTreeSpecies());
+      dispatch(getAllTreeLabels());
+      dispatch(getAllTreePhotoPurposes());
+      dispatch(getForestForestCensuses({ forestId: FOREST_ID }));
+      // });
     }
   }, [
     dispatch,
-    isConnected,
-    treeRehydrated,
-    treeCensusRehydrated,
-    treePhotosRehydrated,
+    // isConnected,
+    // treeRehydrated,
+    // treeCensusRehydrated,
+    // treePhotosRehydrated,
   ]);
 
   const [photoPermissionStatus, setPhotoPermissionStatus] =
