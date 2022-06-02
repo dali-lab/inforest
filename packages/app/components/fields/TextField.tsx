@@ -9,6 +9,7 @@ export type TextFieldProps = CommonFieldProps & {
   prefixComponent?: ReactNode;
   textType: "SHORT_TEXT" | "LONG_TEXT" | "INTEGER" | "DECIMAL";
   suffix?: string;
+  secure?: boolean;
   placeholder?: string;
 } & (
     | {
@@ -27,8 +28,9 @@ const TextField: React.FC<TextFieldProps> = ({
   value = "",
   setValue = () => {},
   textType,
-  suffix,
+  suffix = "",
   disabled,
+  secure = false,
   placeholder,
   wrapperDisabled,
   label,
@@ -76,6 +78,7 @@ const TextField: React.FC<TextFieldProps> = ({
               height: textType === "LONG_TEXT" ? 128 : undefined,
             }}
             focusable={true}
+            secureTextEntry={secure}
             keyboardType={keyboardType}
             onSubmitEditing={(e) => {
               setValue(e.nativeEvent.text);

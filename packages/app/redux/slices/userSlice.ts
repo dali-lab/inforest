@@ -8,9 +8,10 @@ const BASE_URL = SERVER_URL + "users/";
 interface AuthParams {
   email: string;
   password: string;
+  name?: string;
 }
 
-type LoginResponse = { token: string; user: User };
+type LoginResponse = { token?: string; user?: User };
 
 export const login = createAsyncThunk(
   "user/login",
@@ -19,7 +20,14 @@ export const login = createAsyncThunk(
     return await axios
       .post<LoginResponse>(`${BASE_URL}login`, credentials)
       .then((response) => {
-        return response.data;
+        if (response.status == 403) {
+          // forbidden - not verified
+          return {
+            user: { email: credentials.email },
+            verified: false,
+          };
+        }
+        return { ...response.data, verified: true };
       })
       .catch((error) => {
         console.error("Error when logging in", error);
@@ -39,6 +47,35 @@ export const signUp = createAsyncThunk(
       .catch((error) => {
         console.error("Error when signing up", error);
         return false;
+      });
+  }
+);
+
+export const verify = createAsyncThunk(
+  "user/verify",
+  async (credentials: { email: string; code: string }) => {
+    return await axios
+      .post<LoginResponse>(`${BASE_URL}verify`, credentials)
+      .then((response) => {
+        return response.data;
+      })
+      .catch((error) => {
+        console.error("Error when verifying", error);
+      });
+  }
+);
+
+export const resendCode = createAsyncThunk(
+  "user/resend-code",
+  async (credentials: { email: string }) => {
+    // const { dispatch } = thunkApi;
+    return await axios
+      .post<LoginResponse>(`${BASE_URL}resend-code`, credentials)
+      .then(() => {
+        return true;
+      })
+      .catch((error) => {
+        console.error("Error when sending code", error);
       });
   }
 );
@@ -97,6 +134,13 @@ export const userSlice = createSlice({
         state.currentUser = action.payload[0];
       }
     });
+    builder.addCase(verify.fulfilled, (state, action) => {
+      if (action.payload) {
+        state.token = action.payload.token;
+        state.currentUser = action.payload.user;
+      }
+    });
+    builder.addCase(resendCode.fulfilled, () => {});
   },
 });
 
