@@ -132,7 +132,7 @@ export const requireMembership = (
       }
 
       // check for membership
-      const membership = await getMemberships({ id: req.user.id, teamId });
+      const membership = await getMemberships({ userId: req.user.id, teamId });
       if (membership.length == 0)
         throw new Error(
           "You must be a member of this forest's team to perform this action."
