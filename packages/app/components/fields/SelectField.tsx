@@ -23,7 +23,7 @@ const SelectField: React.FC<SelectFieldProps> = ({
   return (
     <FieldWrapper label={label}>
       <Picker
-        selectedValue={value}
+        selectedValue={value === "" ? sortedPickerOptions[0].value : value}
         onValueChange={(itemValue, _itemIndex) => {
           setValue(itemValue);
         }}

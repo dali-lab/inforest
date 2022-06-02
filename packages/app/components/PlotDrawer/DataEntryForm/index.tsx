@@ -28,6 +28,8 @@ interface DataEntryFormProps {
   selectedTreeCensus: TreeCensus;
   cancel: () => void;
   finish: (newTreeCensus: TreeCensus) => void;
+  updateTreeDraft: (updated: Partial<Tree>) => void;
+  updateCensusDraft: (updated: Partial<TreeCensus>) => void;
 }
 
 const DataEntryForm: React.FC<DataEntryFormProps & View["props"]> = ({
@@ -35,57 +37,14 @@ const DataEntryForm: React.FC<DataEntryFormProps & View["props"]> = ({
   style,
   selectedTree,
   selectedTreeCensus,
+  updateTreeDraft,
+  updateCensusDraft,
 }) => {
-  // const isConnected = useIsConnected();
-  const isConnected = false;
-
-  const dispatch = useAppDispatch();
-
   const [stage, setStage] = useState<number>(0);
 
-  const updateTreeDraft = useCallback(
-    (updatedFields) => {
-      if (selectedTree) {
-        try {
-          const updated: Tree = { ...selectedTree, ...updatedFields };
-          isConnected
-            ? dispatch(updateTree(updated))
-            : dispatch(
-                locallyUpdateTree({
-                  updated,
-                })
-              );
-        } catch (err: any) {
-          alert(err?.message || "An unknown error occurred.");
-        }
-      }
-    },
-    [dispatch, selectedTree, isConnected]
-  );
-
-  const updateCensusDraft = useCallback(
-    async (updatedFields) => {
-      if (selectedTreeCensus?.id) {
-        try {
-          const updated: TreeCensus = {
-            ...selectedTreeCensus,
-            ...updatedFields,
-          };
-          isConnected
-            ? dispatch(updateTreeCensus(updated))
-            : dispatch(
-                locallyUpdateTreeCensus({
-                  updated: { ...selectedTreeCensus, ...updatedFields },
-                })
-              );
-        } catch (err: any) {
-          alert(err?.message || "An unknown error occurred.");
-        }
-      }
-    },
-    [dispatch, selectedTreeCensus, isConnected]
-  );
-
+  if (!selectedTree || !selectedTreeCensus) {
+    return null;
+  }
   return (
     <>
       <View style={[style, styles.container]}>
@@ -244,7 +203,8 @@ const DataForm: React.FC<DataFormProps> = ({
   );
   const addLabel = useCallback(
     (code: string) => {
-      if (!(code in pills.map((label) => label?.code)))
+      if (!code) code = labelsOptions[0].value;
+      if (!pills.map((label) => label?.code).includes(code))
         setPills((prev) => [...prev, allLabels[code]]);
     },
     [allLabels, pills, setPills]
@@ -264,6 +224,7 @@ const DataForm: React.FC<DataFormProps> = ({
       <View style={styles.formRow}>
         <FieldController
           value={selectedCensus?.dbh?.toString() || "0"}
+          style={{ width: 120 }}
           onConfirm={(newValue) => {
             updateCensusDraft({ dbh: Number(newValue) });
           }}
@@ -304,10 +265,18 @@ const DataForm: React.FC<DataFormProps> = ({
       </View>
       <View style={styles.formRow}>
         <FieldController
-          value={""}
-          onConfirm={() => {}}
+          value={selectedCensus.notes || ""}
+          onConfirm={(newValue) => {
+            updateCensusDraft({ notes: newValue });
+          }}
           style={{ flex: 1 }}
-          formComponent={<TextField label="Notes" textType="LONG_TEXT" />}
+          formComponent={
+            <TextField
+              label="Notes"
+              textType="LONG_TEXT"
+              placeholder="Add miscellaneous notes here"
+            />
+          }
         />
       </View>
     </View>

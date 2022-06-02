@@ -14,6 +14,7 @@ import {
   Plot,
   PlotCensus,
   PlotCensusStatuses,
+  Tree,
   TreeCensus,
 } from "@ong-forestry/schema";
 import { Ionicons } from "@expo/vector-icons";
@@ -26,7 +27,12 @@ import {
   MapScreenZoomLevels,
 } from "../../constants";
 import useAppSelector from "../../hooks/useAppSelector";
-import { locallyDeleteTree, deselectTree } from "../../redux/slices/treeSlice";
+import {
+  locallyDeleteTree,
+  deselectTree,
+  updateTree,
+  locallyUpdateTree,
+} from "../../redux/slices/treeSlice";
 import AppButton from "../AppButton";
 import { Text, TextStyles, TextVariants } from "../Themed";
 import useAppDispatch from "../../hooks/useAppDispatch";
@@ -173,19 +179,52 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
     [byPlots, allTrees]
   );
 
+  const updateTreeDraft = useCallback(
+    (updatedFields) => {
+      if (selectedTree) {
+        try {
+          const updated: Tree = { ...selectedTree, ...updatedFields };
+          isConnected
+            ? dispatch(updateTree(updated))
+            : dispatch(
+                locallyUpdateTree({
+                  updated,
+                })
+              );
+        } catch (err: any) {
+          alert(err?.message || "An unknown error occurred.");
+        }
+      }
+    },
+    [dispatch, selectedTree, isConnected]
+  );
+
+  const updateCensusDraft = useCallback(
+    async (updatedFields) => {
+      if (selectedTreeCensus?.id) {
+        try {
+          const updated: TreeCensus = {
+            ...selectedTreeCensus,
+            ...updatedFields,
+          };
+          isConnected
+            ? dispatch(updateTreeCensus(updated))
+            : dispatch(
+                locallyUpdateTreeCensus({
+                  updated: { ...selectedTreeCensus, ...updatedFields },
+                })
+              );
+        } catch (err: any) {
+          alert(err?.message || "An unknown error occurred.");
+        }
+      }
+    },
+    [dispatch, selectedTreeCensus, isConnected]
+  );
+
   const toggleFlagged = useCallback(async () => {
     if (selectedTreeCensus?.id) {
-      const updated = {
-        id: selectedTreeCensus.id,
-        flagged: !selectedTreeCensus?.flagged,
-      };
-      isConnected
-        ? await dispatch(updateTreeCensus(updated))
-        : dispatch(
-            locallyUpdateTreeCensus({
-              updated,
-            })
-          );
+      updateCensusDraft({ flagged: !selectedTreeCensus.flagged });
     }
   }, [dispatch, selectedTreeCensus, isConnected]);
 
@@ -325,6 +364,8 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
                       <DataEntryForm
                         selectedTree={selectedTree}
                         selectedTreeCensus={selectedTreeCensus}
+                        updateTreeDraft={updateTreeDraft}
+                        updateCensusDraft={updateCensusDraft}
                         cancel={() => {
                           dispatch(locallyDeleteTree(selectedTree.id));
                           dispatch(deselectTreeCensus());
