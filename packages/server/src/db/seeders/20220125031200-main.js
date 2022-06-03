@@ -15,7 +15,7 @@ const DATA_SEEDER_TRIP_ID = "f03c4244-55d2-4f59-b5b1-0ea595982476";
 const DATA_SEEDER_AUTHOR_ID = "24ea9f85-5352-4f69-b642-23291a27ff1e";
 const DATA_SEEDER_FOREST_CENSUS_ID = "7488abd6-4b1a-41ad-a5a8-042b7bc4afb2";
 
-const INPROGRESS_FOREST_CENSUS_ID = uuid();
+const DEMO_FOREST_ID = uuid();
 
 module.exports = {
   async up(queryInterface, Sequelize) {
@@ -24,7 +24,7 @@ module.exports = {
       /**
        * User Data
        */
-      const rebeccaTestUserId = uuid();
+      const demoUserIds = [uuid(), uuid(), uuid()];
       const users = [
         {
           id: DATA_SEEDER_AUTHOR_ID,
@@ -35,12 +35,28 @@ module.exports = {
           verified: true,
         },
         {
-          id: rebeccaTestUserId,
-          email: "fakeemail@emails.net",
-          password: "asdasfgasdsdgkajsnjsndadasd",
-          firstName: "Rebecca",
-          lastName: "Test",
-          verified: false,
+          id: demoUserIds[0],
+          email: "ziray.hao@dali.dartmouth.edu",
+          password: "foo",
+          firstName: "Ziray",
+          lastName: "Hao",
+          verified: true,
+        },
+        {
+          id: demoUserIds[1],
+          email: "julian.george@dali.dartmouth.edu",
+          password: "foo",
+          firstName: "Julian",
+          lastName: "George",
+          verified: true,
+        },
+        {
+          id: demoUserIds[2],
+          email: "miruna.palaghean@dali.dartmouth.edu",
+          password: "foo",
+          firstName: "Miruna",
+          lastName: "Palaghean",
+          verified: true,
         },
       ];
       await queryInterface.bulkInsert(
@@ -53,6 +69,7 @@ module.exports = {
         { transaction }
       );
       const dataSeederTeamId = uuid();
+      const demoTeamId = uuid();
       await queryInterface.bulkInsert(
         "teams",
         [
@@ -61,6 +78,14 @@ module.exports = {
             name: "Data Seeder Team",
             description:
               "Default seed data. Do not delete. This team is used to seed the database with data.",
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+          {
+            id: demoTeamId,
+            name: "Demo Team",
+            description:
+              "Demo team for the O-Farm, conducting the 2022 demo census.",
             createdAt: new Date(),
             updatedAt: new Date(),
           },
@@ -78,6 +103,14 @@ module.exports = {
             createdAt: new Date(),
             updatedAt: new Date(),
           },
+          ...demoUserIds.map((id) => ({
+            id: uuid(),
+            teamId: demoTeamId,
+            userId: id,
+            role: "ADMIN",
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          })),
         ],
         { transaction }
       );
@@ -99,19 +132,6 @@ module.exports = {
         ],
         { transaction }
       );
-      // await queryInterface.bulkInsert(
-      //   "trips",
-      //   [
-      //     {
-      //       id: DATA_SEEDER_TRIP_ID,
-      //       name: "Data Seeder Trip",
-      //       forestId: DATA_SEEDER_FOREST_ID,
-      //       createdAt: new Date(),
-      //       updatedAt: new Date(),
-      //     },
-      //   ],
-      //   { transaction }
-      // );
 
       const rows = await csv().fromFile(
         path.resolve(__dirname, "initial-forest-data.csv")
@@ -215,10 +235,10 @@ module.exports = {
           tree.labelCodes = Code in labels ? [Code] : ["P"];
           tree.tripId = DATA_SEEDER_TRIP_ID;
           tree.authorId = DATA_SEEDER_AUTHOR_ID;
-          if (!!trees[tree.tag]) {
+          if (!!trees[tree.id]) {
             console.error("Duplicate tree entry", tree.tag);
           }
-          trees[tree.tag] = tree;
+          trees[tree.id] = tree;
         }
       });
 
@@ -282,15 +302,15 @@ module.exports = {
       const initial_forest_census = [
         {
           id: DATA_SEEDER_FOREST_CENSUS_ID,
-          name: "Imported O-Farm Data",
+          name: "Census 2021",
           active: false,
           forestId: DATA_SEEDER_FOREST_ID,
           createdAt: new Date(),
           updatedAt: new Date(),
         },
         {
-          id: INPROGRESS_FOREST_CENSUS_ID,
-          name: "Seeder In Progress",
+          id: DEMO_FOREST_ID,
+          name: "Census 2022 (demo)",
           active: true,
           forestId: DATA_SEEDER_FOREST_ID,
           createdAt: new Date(),
@@ -302,66 +322,98 @@ module.exports = {
         transaction,
       });
 
-      const plot_censuses = {};
+      const plotCensuses = {};
       for (const plot of Object.values(plots)) {
-        plot_censuses[plot.id] = {
+        const censuses = [];
+        censuses.push({
           id: uuid(),
           status: "APPROVED",
           plotId: plot.id,
           forestCensusId: DATA_SEEDER_FOREST_CENSUS_ID,
           createdAt: new Date(),
           updatedAt: new Date(),
-        };
-      }
+        });
 
-      const inprogress_plot_censuses = {};
-      for (let i = 12; i < Math.floor(Object.values(plots).length / 2); i++) {
-        const plot = Object.values(plots)[i];
-        inprogress_plot_censuses[plot.id] = {
-          id: uuid(),
-          status: "IN_PROGRESS",
-          plotId: plot.id,
-          forestCensusId: INPROGRESS_FOREST_CENSUS_ID,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        };
+        const random = Math.random();
+
+        if (random < 0.4) {
+        } else if (random < 0.6) {
+          censuses.push({
+            id: uuid(),
+            status: "IN_PROGRESS",
+            plotId: plot.id,
+            forestCensusId: DEMO_FOREST_ID,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          });
+        } else if (random < 0.7) {
+          censuses.push({
+            id: uuid(),
+            status: "PENDING",
+            plotId: plot.id,
+            forestCensusId: DEMO_FOREST_ID,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          });
+        } else {
+          censuses.push({
+            id: uuid(),
+            status: "APPROVED",
+            plotId: plot.id,
+            forestCensusId: DEMO_FOREST_ID,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          });
+        }
+        plotCensuses[plot.id] = censuses;
       }
 
       await queryInterface.bulkInsert(
         "plot_census",
-        Object.values(plot_censuses),
+        Object.values(plotCensuses).flatMap((v) => v),
         {
           transaction,
         }
       );
 
-      await queryInterface.bulkInsert(
-        "plot_census",
-        Object.values(inprogress_plot_censuses),
-        {
-          transaction,
-        }
-      );
-
-      const treeTagToTreeCensusId = {};
-
-      const tree_censuses = Object.values(trees).map((tree) => {
-        treeTagToTreeCensusId[tree.tag] = uuid();
-        return {
-          id: treeTagToTreeCensusId[tree.tag],
-          treeId: tree.id,
-          dbh: tree.dbh,
-          authorId: DATA_SEEDER_AUTHOR_ID,
-          plotCensusId: plot_censuses[tree.plotId].id,
-          createdAt: tree.createdAt,
-          updatedAt: tree.updatedAt,
-        };
+      const treeCensuses = [];
+      Object.values(trees).forEach((tree) => {
+        const plotCensusesForTree = plotCensuses[tree.plotId];
+        plotCensusesForTree.forEach((plotCensus) => {
+          switch (plotCensus.status) {
+            case "PENDING":
+            case "APPROVED":
+              treeCensuses.push({
+                id: uuid(),
+                treeId: tree.id,
+                dbh: tree.dbh,
+                authorId: DATA_SEEDER_AUTHOR_ID,
+                plotCensusId: plotCensuses[tree.plotId].id,
+                createdAt: tree.createdAt,
+                updatedAt: tree.updatedAt,
+              });
+              break;
+            case "IN_PROGRESS":
+              if (Math.random() < 0.5) {
+                treeCensuses.push({
+                  id: uuid(),
+                  treeId: tree.id,
+                  dbh: tree.dbh,
+                  authorId: DATA_SEEDER_AUTHOR_ID,
+                  plotCensusId: plotCensuses[tree.plotId].id,
+                  createdAt: tree.createdAt,
+                  updatedAt: tree.updatedAt,
+                });
+              }
+              break;
+          }
+        });
       });
 
       /**
        * Seed census entries.
        */
-      await queryInterface.bulkInsert("tree_census", tree_censuses, {
+      await queryInterface.bulkInsert("tree_census", treeCensuses, {
         transaction,
       });
 
@@ -370,12 +422,12 @@ module.exports = {
        */
       await queryInterface.bulkInsert(
         "tree_census_labels",
-        Object.values(trees).map((tree) => ({
+        treeCensuses.map((treeCensus) => ({
           id: uuid(),
-          treeCensusId: treeTagToTreeCensusId[tree.tag],
-          treeLabelCode: tree.labelCodes[0],
-          createdAt: tree.createdAt,
-          updatedAt: tree.updatedAt,
+          treeCensusId: treeCensus.id,
+          treeLabelCode: trees[treeCensus.treeId].labelCodes[0],
+          createdAt: treeCensus.createdAt,
+          updatedAt: treeCensus.updatedAt,
         })),
         { transaction }
       );
