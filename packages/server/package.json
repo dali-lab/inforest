@@ -41,7 +41,7 @@
     "sequelize": "^6.14.0",
     "sequelize-cli": "^6.4.1",
     "sequelize-typescript": "^2.1.2",
-    "sharp": "^0.30.4",
+    "sharp": "^0.30.5",
     "ts-node": "^10.7.0",
     "tsconfig-paths": "^3.12.0",
     "utm": "^1.1.1",
