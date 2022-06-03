@@ -105,22 +105,7 @@ export const plotCensusSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder.addCase(getPlotCensuses.fulfilled, (state, action) => {
-      action.payload.forEach((census) => {
-        state.all[census.id] = census;
-        // add to plot index under forestCensus key
-        if (!(census.plotId in state.indices.byPlots)) {
-          state.indices.byPlots[census.plotId] = new Set([]);
-        } else {
-          state.indices.byPlots[census.plotId].add(census.id);
-        }
-        if (!(census.forestCensusId in state.indices.byForestCensuses)) {
-          state.indices.byForestCensuses[census.forestCensusId] = new Set([
-            census.id,
-          ]);
-        } else {
-          state.indices.byForestCensuses[census.forestCensusId].add(census.id);
-        }
-      });
+      return upsertPlotCensuses(state, action.payload);
     });
     builder.addCase(getForestCensusPlotCensuses.fulfilled, (state, action) => {
       return upsertPlotCensuses(state, action.payload);

@@ -74,10 +74,10 @@ export const HomeScreen = () => {
   const dispatch = useDispatch();
   useEffect(() => {
     if (
-      isConnected &&
-      treeRehydrated &&
-      treeCensusRehydrated &&
-      treePhotosRehydrated
+      isConnected
+      // && treeRehydrated &&
+      // treeCensusRehydrated &&
+      // treePhotosRehydrated
     ) {
       // dispatch(uploadCensusData()).then(() => {
       // });
@@ -96,25 +96,28 @@ export const HomeScreen = () => {
     dispatch(getAllTreePhotoPurposes());
     dispatch(getForestForestCensuses({ forestId: FOREST_ID }));
     dispatch(getPlotCensuses());
-  }, [
-    dispatch,
-    isConnected,
-    treeRehydrated,
-    treeCensusRehydrated,
-    treePhotosRehydrated,
-  ]);
-
-  const reduxState = useAppSelector((state: RootState) => state);
-  const { currentForest, currentTeamForests: allForests } = reduxState.forest;
-  const { selected, all: allForestCensuses } = reduxState.forestCensuses;
-  const { all: allPlots } = reduxState.plots;
-  const { all: allPlotCensus } = reduxState.plotCensuses;
+  }, [dispatch, isConnected]);
+  const { currentForest, currentTeamForests: allForests } = useAppSelector(
+    (state: RootState) => state.forest
+  );
+  const { selected, all: allForestCensuses } = useAppSelector(
+    (state: RootState) => state.forestCensuses
+  );
+  const { all: allPlots } = useAppSelector((state: RootState) => state.plots);
+  const { all: allPlotCensus } = useAppSelector(
+    (state: RootState) => state.plotCensuses
+  );
 
   const { height: windowHeight, width: windowWidth } = useWindowDimensions();
 
   if (!currentForest) {
-    return null;
+    return (
+      <View>
+        <Text>Loading...</Text>
+      </View>
+    );
   }
+
   return (
     <ScrollView
       contentContainerStyle={{
@@ -152,7 +155,7 @@ export const HomeScreen = () => {
             label: name,
             value: id,
           }))}
-          placeholder="Select a forest..."
+          placeholder={{ label: "Select a forest...", value: undefined }}
           style={{
             inputIOS: {
               ...TextStyles[TextVariants.H3],
@@ -180,7 +183,7 @@ export const HomeScreen = () => {
             label: name,
             value: id,
           }))}
-          placeholder="Select a project..."
+          placeholder={{ label: "Select a project...", value: undefined }}
           style={{
             inputIOS: {
               ...TextStyles[TextVariants.H3],
@@ -364,6 +367,7 @@ export const HomeScreen = () => {
                   <AppButton
                     // @ts-ignore
                     onPress={() =>
+                      // @ts-ignore
                       navigation.navigate("map", {
                         mode: MapScreenModes.Plot,
                         zoomLevel: MapScreenZoomLevels.Plot,

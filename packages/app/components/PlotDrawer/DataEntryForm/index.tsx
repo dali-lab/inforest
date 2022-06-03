@@ -207,13 +207,13 @@ const DataForm: React.FC<DataFormProps> = ({
       if (!pills.map((label) => label?.code).includes(code))
         setPills((prev) => [...prev, allLabels[code]]);
     },
-    [allLabels, pills, setPills]
+    [allLabels, pills, setPills, labelsOptions]
   );
   const removeLabel = useCallback(
     (code: string) => {
       setPills((prev) => prev.filter((label) => label?.code !== code));
     },
-    [setPills]
+    [setPills, updateCensusDraft]
   );
 
   useEffect(() => {

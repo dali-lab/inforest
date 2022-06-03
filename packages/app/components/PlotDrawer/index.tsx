@@ -147,8 +147,8 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
     [selectedForestCensusId, allForestCensuses]
   );
 
-  // const isConnected = useIsConnected();
-  const isConnected = false;
+  const isConnected = useIsConnected();
+  // const isConnected = false;
   const forceRerender = useForceRerender();
 
   const setStyle = useCallback(() => {
@@ -226,15 +226,17 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
     if (selectedTreeCensus?.id) {
       updateCensusDraft({ flagged: !selectedTreeCensus.flagged });
     }
-  }, [dispatch, selectedTreeCensus, isConnected]);
+  }, [dispatch, selectedTreeCensus, isConnected, updateCensusDraft]);
 
   useEffect(() => {
+    console.log(selectedTree, plotCensus);
     if (
       selectedTree?.plotId &&
       selectedTree?.id &&
       plotCensus?.id &&
       !byTreeActive?.[selectedTree.id]
     ) {
+      console.log("dispatching");
       try {
         const newCensus = {
           ...blankTreeCensus,
@@ -249,7 +251,7 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
         alert(err?.message || "An unknown error occurred.");
       }
     }
-  }, [selectedTree, plotCensus, dispatch, byTreeActive]);
+  }, [selectedTree, plotCensus, dispatch, isConnected, byTreeActive]);
 
   if (drawerState === DrawerStates.Closed) {
     return null;

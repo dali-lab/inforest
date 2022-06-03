@@ -5,6 +5,7 @@ import uuid from "uuid";
 import axios from "axios";
 import { decode } from "base64-arraybuffer";
 import SERVER_URL from "../../constants/Url";
+import { produce } from "immer";
 
 const BASE_URL = SERVER_URL + "trees/photos";
 
@@ -95,9 +96,6 @@ export const treePhotoSlice = createSlice({
   extraReducers: (builder) => {
     builder.addCase(uploadTreePhoto.fulfilled, (state, action: any) => {
       return upsertTreePhotos(state, action.payload.data);
-    });
-    builder.addCase(uploadTreePhoto.rejected, (state, action) => {
-      console.log("rejected");
     });
   },
 });

@@ -17,11 +17,9 @@ import { getForestForestCensuses } from "../../redux/slices/forestCensusSlice";
 import useAppSelector from "../../hooks/useAppSelector";
 import { deselectTreeCensus } from "../../redux/slices/treeCensusSlice";
 import { uploadCensusData } from "../../redux/slices/syncSlice";
-import PhotoPermissionContext, {
-  defaultPhotoPermissionContext,
-} from "../../context/PhotoPermissionContext";
 import Colors from "../../constants/Colors";
 import { Text } from "../../components/Themed";
+import { selectPlotCensus } from "../../redux/slices/plotCensusSlice";
 
 export default function MapScreen() {
   const route = useRoute<RouteProp<RootStackParamList, "map">>();
@@ -42,35 +40,33 @@ export default function MapScreen() {
     }
   }, [mode]);
 
-  const [photoPermissionStatus, setPhotoPermissionStatus] =
-    useState<PermissionStatus>(defaultPhotoPermissionContext.status);
-
   const { all, selected: selectedPlotId } = useAppSelector(
     (state) => state.plots
   );
+  const {
+    indices: { byPlotActive },
+  } = useAppSelector((state) => state.plotCensuses);
   const selectedPlot = selectedPlotId ? all[selectedPlotId] : undefined;
 
   const beginPlotting = useCallback(
     (plot) => {
       setZoomLevel(MapScreenZoomLevels.Plot);
       dispatch(selectPlot(plot.id));
+      if (plot.id in byPlotActive) {
+        dispatch(selectPlotCensus(byPlotActive[plot.id]));
+      }
     },
-    [selectPlot, setZoomLevel]
+    [selectPlot, setZoomLevel, dispatch]
   );
 
   const endPlotting = useCallback(() => {
     dispatch(deselectTree());
     dispatch(deselectTreeCensus());
     setZoomLevel(MapScreenZoomLevels.Forest);
-  }, [setMode, dispatch, setZoomLevel]);
+  }, [dispatch, setZoomLevel]);
 
   return (
-    <PhotoPermissionContext.Provider
-      value={{
-        status: photoPermissionStatus,
-        setStatus: setPhotoPermissionStatus,
-      }}
-    >
+    <>
       {/* {!isConnected && (
         <View style={styles.offlineBar}>
           <Text style={styles.offlineText}>
@@ -91,7 +87,7 @@ export default function MapScreen() {
           <PlotView mode={mode} switchMode={switchMode} onExit={endPlotting} />
         )}
       </View>
-    </PhotoPermissionContext.Provider>
+    </>
   );
 }
 

@@ -61,7 +61,7 @@ const PhotoField: React.FC<PhotoFieldProps> = ({ census }) => {
       };
       dispatch(locallyDraftNewPhoto(parsedPhoto));
     }
-  }, [census.id, dispatch]);
+  }, [census.id, dispatch, requestPermission, status]);
   const removePhoto = useCallback(
     async (id: string) => {
       dispatch(locallyDeletePhoto(id));

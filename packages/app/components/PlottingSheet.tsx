@@ -74,8 +74,8 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
   expandDrawer,
   minimizeDrawer,
 }) => {
-  const isConnected = false;
-  // const isConnected = useIsConnected();
+  // const isConnected = false;
+  const isConnected = useIsConnected();
 
   const sheetSize =
     mapWidth - (STAKE_LABEL_WIDTH + 2 * SMALL_OFFSET + PLOT_SHEET_MARGINS) * 2;
@@ -210,15 +210,12 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
   }, [
     // createCensus,
     dispatch,
-    expandDrawer,
     isConnected,
     markerLocToMeters,
     markerPos,
     plot.id,
     plot.latitude,
     plot.longitude,
-    plotCensus,
-    selectedTree,
     sheetSize,
   ]);
 

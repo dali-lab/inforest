@@ -29,32 +29,32 @@ export default function App() {
   const isLoadingComplete = useCachedResources();
   useEffect(() => {
     persistor.purge();
-  }, [persistor]);
+  }, []);
   return (
     <Provider store={store}>
       <NetworkProvider>
         <PersistGate loading={null} persistor={persistor}>
           {isLoadingComplete && (
-        <SafeAreaProvider>
-          <NavigationContainer>
-            <Stack.Navigator
-              initialRouteName="home"
-              screenOptions={{ headerShown: false }}
-            >
-              <Stack.Screen name="home" component={HomeScreen} />
-              <Stack.Screen
-                name="map"
-                component={MapScreen}
-                initialParams={{
-                  mode: MapScreenModes.Explore,
-                  zoomLevel: MapScreenZoomLevels.Forest,
-                }}
-              />
-            </Stack.Navigator>
-          </NavigationContainer>
-          <StatusBar />
-        </SafeAreaProvider>
-      )}
+            <SafeAreaProvider>
+              <NavigationContainer>
+                <Stack.Navigator
+                  initialRouteName="home"
+                  screenOptions={{ headerShown: false }}
+                >
+                  <Stack.Screen name="home" component={HomeScreen} />
+                  <Stack.Screen
+                    name="map"
+                    component={MapScreen}
+                    initialParams={{
+                      mode: MapScreenModes.Explore,
+                      zoomLevel: MapScreenZoomLevels.Forest,
+                    }}
+                  />
+                </Stack.Navigator>
+              </NavigationContainer>
+              <StatusBar />
+            </SafeAreaProvider>
+          )}
         </PersistGate>
       </NetworkProvider>
     </Provider>

@@ -39,6 +39,7 @@ import {
   TreePhotoState,
   upsertTreePhotos,
 } from "./slices/treePhotoSlice";
+import { isArray } from "lodash";
 
 enableMapSet();
 
@@ -76,47 +77,63 @@ const rootReducer = combineReducers<RootState>({
 });
 
 const DraftSetTransform = createTransform(
-  (inboundState: TreeState | TreeCensusState | TreePhotoState, key) => {
-    return { ...inboundState, drafts: [...inboundState.drafts] };
+  (inboundState: RootState[keyof RootState], key) => {
+    if (inboundState?.drafts) {
+      return { ...inboundState, drafts: Array.from(inboundState.drafts) };
+    }
+    return inboundState;
   },
-  (outboundState, key) => {
-    return { ...outboundState, drafts: new Set(outboundState.drafts) };
+  (outboundState: RootState[keyof RootState], key) => {
+    if (outboundState?.drafts) {
+      return { ...outboundState, drafts: new Set(outboundState.drafts) };
+    }
+    return outboundState;
   },
   { whitelist: ["trees", "treeCensuses", "treePhotos"] }
 );
 
+// This function will need to be edited if the structure of our indices changes
 const IndicesTransform = createTransform(
   (inboundState: any, key) => {
-    let indices;
-    let state = Object.assign({}, inboundState);
-    if (key == "trees")
-      indices = upsertTrees(
-        state as TreeState,
-        Object.values(state.all)
-      ).indices;
-    else if (key == "treeCensuses")
-      indices = upsertTreeCensuses(
-        state as TreeCensusState,
-        Object.values(state.all)
-      ).indices;
-    else if (key == "treePhotos")
-      indices = upsertTreePhotos(
-        state as TreePhotoState,
-        Object.values(state.all)
-      ).indices;
+    const indices: RootState[keyof RootState]["indices"] = {};
+    if (inboundState?.indices) {
+      for (const index of Object.keys(inboundState.indices)) {
+        indices[index] = {};
+        for (const [key, value] of Object.entries(
+          inboundState.indices[index]
+        ) as [string, string[]][]) {
+          if (value.hasOwnProperty("add")) {
+            indices[index][key] = Array.from(value);
+          } else indices[index][key] = value;
+        }
+      }
+    }
     return { ...inboundState, indices };
   },
-  (outboundState: any, key) => {
-    return outboundState;
-  },
-  { whitelist: ["trees", "treeCensuses", "treePhotos"] }
+  (outboundState: RootState[keyof RootState], key) => {
+    const indices: RootState[keyof RootState]["indices"] = {};
+    if (outboundState?.indices) {
+      for (const index of Object.keys(outboundState.indices)) {
+        indices[index] = {};
+        for (const [key, value] of Object.entries(
+          outboundState.indices[index]
+        ) as [string, string | Set<string>][]) {
+          if (isArray(value)) {
+            indices[index][key] = new Set(value);
+          } else indices[index][key] = value;
+        }
+      }
+    }
+
+    return { ...outboundState, indices };
+  }
 );
 
 const persistConfig = {
   key: "root",
   storage: ExpoFileSystemStorage,
   stateReconciler: hardSet,
-  transforms: [DraftSetTransform],
+  transforms: [DraftSetTransform, IndicesTransform],
 };
 
 const persistedReducer = persistReducer<RootState, AnyAction>(
@@ -131,12 +148,6 @@ export const store = configureStore({
     getDefaultMiddleware({ serializableCheck: false, immutableCheck: false }),
 });
 
-const rehydrationCallback = () => {
-  // store.dispatch(rehydrateTrees());
-  // store.dispatch(rehydrateTreeCensuses());
-  // store.dispatch(rehydrateTreePhotos());
-};
-
-export const persistor = persistStore(store, {}, rehydrationCallback);
+export const persistor = persistStore(store, {});
 
 export type AppDispatch = typeof store.dispatch;

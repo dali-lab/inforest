@@ -5,6 +5,7 @@ import uuid from "react-native-uuid";
 import { isArray } from "lodash";
 import SERVER_URL from "../../constants/Url";
 import { WritableDraft } from "immer/dist/internal";
+import { produce } from "immer";
 
 const BASE_URL = SERVER_URL + "trees";
 
@@ -57,7 +58,7 @@ type TreeNumericalIndexItem = {
   id: string;
 };
 
-type TreeNumericalIndex = TreeNumericalIndexItem[];
+type TreeNumericalIndex = Set<TreeNumericalIndexItem>;
 
 const treeNumericalIndexComparator = (
   a: TreeNumericalIndexItem,
@@ -68,8 +69,8 @@ export interface TreeState {
   all: Record<string, Tree>;
   indices: {
     byPlots: Record<string, Set<string>>;
-    byLatitude: TreeNumericalIndex;
-    byLongitude: TreeNumericalIndex;
+    // byLatitude: TreeNumericalIndex;
+    // byLongitude: TreeNumericalIndex;
     bySpecies: Record<string, Set<string>>;
   };
   drafts: Set<string>;
@@ -81,8 +82,8 @@ const initialState: TreeState = {
   all: {},
   indices: {
     byPlots: {},
-    byLatitude: [],
-    byLongitude: [],
+    // byLatitude: [],
+    // byLongitude: [],
     bySpecies: {},
   },
   drafts: new Set([]),
@@ -103,33 +104,41 @@ export const upsertTrees = (state: WritableDraft<TreeState>, action: any) => {
     // add to drafts
     if (action?.draft) state.drafts.add(newTree.id);
     // update plots index
-    if (!state?.indices?.byPlots?.[newTree.plotId]?.add)
-      state.indices.byPlots[newTree.plotId] = new Set();
-    state.indices.byPlots[newTree.plotId].add(newTree.id);
-    if (newTree.speciesCode) {
-      if (!state?.indices?.bySpecies[newTree.speciesCode]?.add)
-        state.indices.bySpecies[newTree.speciesCode] = new Set();
-      state.indices.bySpecies[newTree.speciesCode].add(newTree.id);
+    try {
+      if (!state?.indices?.byPlots?.[newTree.plotId]?.add)
+        state.indices.byPlots[newTree.plotId] = new Set();
+      state.indices.byPlots[newTree.plotId].add(newTree.id);
+    } catch (e) {
+      console.log(e);
+    }
+    try {
+      if (newTree.speciesCode) {
+        if (!state?.indices?.bySpecies[newTree.speciesCode]?.add)
+          state.indices.bySpecies[newTree.speciesCode] = new Set();
+        state.indices.bySpecies[newTree.speciesCode].add(newTree.id);
+      }
+    } catch (e) {
+      console.log(e);
     }
 
-    // update latitude index
-    if (newTree.latitude) {
-      state.indices.byLatitude.push({
-        value: newTree.latitude,
-        id: newTree.id,
-      });
-    }
-    // update longitude index
-    if (newTree.longitude) {
-      state.indices.byLongitude.push({
-        value: newTree.longitude,
-        id: newTree.id,
-      });
-    }
+    // // update latitude index
+    // if (newTree.latitude) {
+    //   state.indices.byLatitude.push({
+    //     value: newTree.latitude,
+    //     id: newTree.id,
+    //   });
+    // }
+    // // update longitude index
+    // if (newTree.longitude) {
+    //   state.indices.byLongitude.push({
+    //     value: newTree.longitude,
+    //     id: newTree.id,
+    //   });
+    // }
     if (action?.draft) state.selected = newTree.id;
   });
-  state.indices.byLatitude.sort(treeNumericalIndexComparator);
-  state.indices.byLongitude.sort(treeNumericalIndexComparator);
+  // state.indices.byLatitude.sort(treeNumericalIndexComparator);
+  // state.indices.byLongitude.sort(treeNumericalIndexComparator);
   if (action?.rehydrate) state.rehydrated = true;
 
   return state;
@@ -158,11 +167,11 @@ export const treeSlice = createSlice({
       // remove from plots index
       state.indices.byPlots[plotId]?.delete(treeId);
       // remove from latitude index
-      state.indices.byLatitude.splice(state.indices.byLatitude.indexOf(treeId));
-      // remove from longitude index
-      state.indices.byLongitude.splice(
-        state.indices.byLongitude.indexOf(treeId)
-      );
+      // state.indices.byLatitude.splice(state.indices.byLatitude.indexOf(treeId));
+      // // remove from longitude index
+      // state.indices.byLongitude.splice(
+      //   state.indices.byLongitude.indexOf(treeId)
+      // );
       return state;
     },
     locallyUpdateTree: (state, action) => {
@@ -179,11 +188,14 @@ export const treeSlice = createSlice({
       return state;
     },
     rehydrateTrees: (state) => {
-      state.indices = initialState.indices;
-      state.selected = undefined;
-      return upsertTrees(state, {
-        data: Object.values(state.all),
-        rehydrate: true,
+      // we use produce here because redux-persist passes an immutable immer state as opposed to the mutable rtk state
+      return produce(state, (draftState) => {
+        draftState.indices = initialState.indices;
+        draftState.selected = undefined;
+        draftState = upsertTrees(draftState, {
+          data: Object.values(draftState.all),
+          rehydrate: true,
+        });
       });
     },
     clearTreeDrafts: (state) => {

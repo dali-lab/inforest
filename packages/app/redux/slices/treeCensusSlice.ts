@@ -4,6 +4,7 @@ import SERVER_URL from "../../constants/Url";
 import axios from "axios";
 import uuid from "react-native-uuid";
 import { isArray } from "lodash";
+import { produce } from "immer";
 
 const BASE_URL = SERVER_URL + "trees/census";
 
@@ -157,11 +158,13 @@ export const treeCensusSlice = createSlice({
       return state;
     },
     rehydrateTreeCensuses: (state) => {
-      state.indices = initialState.indices;
-      state.selected = undefined;
-      return upsertTreeCensuses(state, {
-        data: Object.values(state.all),
-        rehydrate: true,
+      return produce(state, (draftState) => {
+        draftState.indices = initialState.indices;
+        draftState.selected = undefined;
+        draftState = upsertTreeCensuses(draftState, {
+          data: Object.values(draftState.all),
+          rehydrate: true,
+        });
       });
     },
     clearTreeCensusDrafts: (state) => {

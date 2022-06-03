@@ -128,16 +128,20 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
     all: allTreeCensuses,
     indices: { byTrees, byPlotCensuses },
   } = useAppSelector((state: RootState) => state.treeCensuses);
-  const { all: allPlots, indices: plotIndices, selected: selectedPlotId } = useAppSelector(
-    (state: RootState) => state.plots
-  );
-  const { all: allForestCensuses, selected: selectedForestCensus } = useAppSelector(
-    (state: RootState) => state.forestCensuses
-  );
+  const {
+    all: allPlots,
+    indices: plotIndices,
+    selected: selectedPlotId,
+  } = useAppSelector((state: RootState) => state.plots);
+  const { all: allForestCensuses, selected: selectedForestCensus } =
+    useAppSelector((state: RootState) => state.forestCensuses);
   const {
     all: allPlotCensuses,
     selected: selectedPlotCensusId,
-    indices: { byPlotActive: plotCensusesByActivePlot, byPlots: plotCensusesByPlot },
+    indices: {
+      byPlotActive: plotCensusesByActivePlot,
+      byPlots: plotCensusesByPlot,
+    },
   } = useAppSelector((state: RootState) => state.plotCensuses);
   const { colorMap } = useAppSelector((state: RootState) => state.treeSpecies);
 
@@ -206,6 +210,7 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
   const selectPlotAndCensus = useCallback(
     async (plotId: string) => {
       dispatch(selectPlot(plotId));
+      console.log(plotId);
       if (plotId in plotCensusesByActivePlot) {
         dispatch(selectPlotCensus(plotCensusesByActivePlot[plotId]));
       }
@@ -213,7 +218,7 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
     [plotCensusesByActivePlot, dispatch]
   );
 
-  const deselectPlotAndCensus = useCallback(() => {
+  const deselectPlotAndCensus = useCallback(async () => {
     dispatch(deselectPlot());
     dispatch(deselectPlotCensus());
   }, [dispatch]);
@@ -315,7 +320,6 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
     visualizationConfig.satellite,
     colorMap,
     selectedTreeId,
-    byTrees,
   ]);
 
   const plotIdColorMap = useCallback(
@@ -326,12 +330,12 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
       }
       return "rgba(255, 255, 255, 0.3)";
     },
-    [allPlotCensuses, plotCensusesByActivePlot, selectedPlotCensus]
+    [allPlotCensuses, plotCensusesByActivePlot]
   );
 
   const computePlotLastUpdatedDate = useCallback(
     (plotId: string) => {
-      const plotTrees = byPlots[plotId];
+      const plotTrees = byPlots?.[plotId] || [];
       let latestCensus: Date | undefined;
       for (const treeTag of plotTrees) {
         const { updatedAt } = allTrees[treeTag];
@@ -376,7 +380,13 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
       // );
     }
     return latestCensus;
-  }, [selectedPlot, allTreeCensuses, plotCensusesByPlot, byPlotCensuses]);
+  }, [
+    selectedPlot,
+    allTreeCensuses,
+    plotCensusesByPlot,
+    byPlotCensuses,
+    computePlotLastUpdatedDate,
+  ]);
 
   return (
     <>
@@ -537,18 +547,18 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
           plots.map((plot) => {
             return (
               <Polygon
-              key={plot.id}
-              style={styles.plot}
-              coordinates={[...getPlotCorners(plot), getPlotCorners(plot)[0]]}
-              strokeWidth={2}
-              strokeColor="rgba(255, 255, 255, 0.6)"
-              fillColor={plotIdColorMap(plot.id)}
-              tappable={true}
-              onPress={() => {
-                deselectPlotAndCensus();
-                plot?.id && selectPlotAndCensus(plot.id);
-              }}
-            />
+                key={plot.id}
+                style={styles.plot}
+                coordinates={[...getPlotCorners(plot), getPlotCorners(plot)[0]]}
+                strokeWidth={2}
+                strokeColor="rgba(255, 255, 255, 0.6)"
+                fillColor={plotIdColorMap(plot.id)}
+                tappable={true}
+                onPress={() => {
+                  deselectPlotAndCensus();
+                  plot?.id && selectPlotAndCensus(plot.id);
+                }}
+              />
             );
           })}
       </MapView>

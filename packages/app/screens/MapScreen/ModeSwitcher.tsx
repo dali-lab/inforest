@@ -19,7 +19,7 @@ export const ModeSwitcher: React.FC<ModeSwitcherProps> = ({
   const [secondColor, setSecondColor] = useState<string>("white");
   const animatedSlideOffset = useMemo(
     () => new Animated.Value(mode === MapScreenModes.Explore ? 0 : 32 + 16),
-    []
+    [mode]
   );
 
   useEffect(() => {
