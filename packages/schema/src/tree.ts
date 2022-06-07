@@ -115,6 +115,11 @@ export interface TreeSpecies {
   commonName: string;
 
   /**
+   * Dots representing trees of this species will be colored in this color
+   */
+  color: string;
+
+  /**
    * Species type
    */
   type?: TreeSpeciesTypes;
