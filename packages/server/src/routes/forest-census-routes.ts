@@ -9,7 +9,7 @@ import { requireAuth } from "util/auth";
 
 const forestCensusRouter = express.Router();
 
-forestCensusRouter.post<{}, any, ForestCensus>(
+forestCensusRouter.post<{}, any, Omit<ForestCensus, "active">>(
   "/",
   requireAuth,
   async (req, res) => {

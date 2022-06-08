@@ -4,7 +4,9 @@ import { Op } from "sequelize";
 import { getPlotCensuses, getPlots } from "services";
 import { getForests } from "./forest-service";
 
-export const createForestCensus = async (forestCensus: ForestCensus) => {
+export const createForestCensus = async (
+  forestCensus: Omit<ForestCensus, "active">
+) => {
   // check for active census on this forest
   const activeCensuses = await getForestCensuses({
     forestId: forestCensus.forestId,
@@ -14,7 +16,7 @@ export const createForestCensus = async (forestCensus: ForestCensus) => {
     throw new Error("An active forest census already exists on this forest.");
   }
 
-  return await ForestCensusModel.create(forestCensus);
+  return await ForestCensusModel.create({ ...forestCensus, active: true });
 };
 
 export interface GetForestCensusesParams {
