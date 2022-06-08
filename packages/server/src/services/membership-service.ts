@@ -8,6 +8,7 @@ const uuid = require("uuid4");
 export const createMembership = async (membership: {
   email: string;
   teamId: string;
+  role: MembershipRoles;
 }) => {
   // check whether user with this email exists
   const users = await getUsers({ email: membership.email });
@@ -21,6 +22,7 @@ export const createMembership = async (membership: {
     id: uuid(),
     userId: users[0].id,
     teamId: membership.teamId,
+    role: membership.role,
   });
 };
 
