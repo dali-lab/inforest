@@ -1,8 +1,13 @@
-import { Tree } from "@ong-forestry/schema";
+import {
+  MembershipRoles,
+  PlotCensusStatuses,
+  Tree,
+} from "@ong-forestry/schema";
 import TreeCensusModel from "db/models/tree-census";
 import TreeModel from "db/models/tree";
 import { Op } from "sequelize";
-import { getPlots } from "services";
+import { getPlotCensuses, getPlots, getTreeCensuses } from "services";
+import { AuthUser } from "../util";
 
 export const createTree = async (tree: Tree) => {
   // ensure tag unique in this forest
@@ -152,4 +157,51 @@ export const getTrees = async (params: TreeParams) => {
     ...query,
     include: [{ model: TreeCensusModel, as: "censuses" }],
   });
+};
+
+export const deleteTrees = async (params: TreeParams, user?: AuthUser) => {
+  if (!params.ids) {
+    throw new Error("You must specify the ids of trees to be deleted.");
+  }
+  if (!user) {
+    throw new Error("Unauthorized");
+  }
+
+  const validate = async (id: string) => {
+    // check that tree was created in this plot census
+    // find tree censuses on this tree
+    const treeCensuses = await getTreeCensuses({ treeIds: params.ids });
+    if (treeCensuses.length > 1) {
+      throw new Error(
+        "You can only delete trees in the census they were created in."
+      );
+    }
+
+    // check that plot census the only tree census is on is not approved
+    const plotCensus = (
+      await getPlotCensuses({ id: treeCensuses[0].plotCensusId })
+    )[0];
+    if (plotCensus.status == PlotCensusStatuses.Approved) {
+      throw new Error("You cannot delete trees on approved plots.");
+    }
+
+    // check that tree was created by this user or that user is admin
+    if (
+      !(
+        treeCensuses[0].authorId == user.id ||
+        user.role == MembershipRoles.Admin
+      )
+    ) {
+      throw new Error("You cannot delete someone else's tree.");
+    }
+  };
+
+  // repeat check for each tree
+  await Promise.all(
+    params.ids.map((id) => {
+      return validate(id);
+    })
+  );
+
+  await TreeModel.destroy({ where: { id: { [Op.in]: params.ids } } });
 };

@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import { User, VerificationCode } from "@ong-forestry/schema";
+import { MembershipRoles, User, VerificationCode } from "@ong-forestry/schema";
 import {
   getUsers,
   createVerificationCode,
@@ -8,6 +8,10 @@ import {
   deleteVerificationCode,
 } from "services";
 import { emailCode } from "../util";
+
+export interface AuthUser extends User {
+  role: MembershipRoles;
+}
 
 export const createToken = (user: User) => {
   const userData = { id: user.id, email: user.email };

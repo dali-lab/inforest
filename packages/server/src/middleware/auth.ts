@@ -145,6 +145,8 @@ export const requireMembership = (
         );
       }
 
+      req.user.role = membership[0].role;
+
       next();
     } catch (e: any) {
       console.log(e);

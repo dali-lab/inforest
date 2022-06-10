@@ -5,7 +5,7 @@ import { Sequelize } from "sequelize-typescript";
 import passport from "passport";
 import bodyParser from "body-parser";
 import morgan from "morgan";
-import { User as CustomUser } from "@ong-forestry/schema";
+import { AuthUser } from "./util";
 
 import * as models from "db/models";
 import {
@@ -21,7 +21,7 @@ import {
 
 declare global {
   namespace Express {
-    interface User extends CustomUser {}
+    interface User extends AuthUser {}
   }
 }
 
