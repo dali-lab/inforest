@@ -2,7 +2,6 @@ import { ForestCensus, PlotCensusStatuses } from "@ong-forestry/schema";
 import ForestCensusModel from "db/models/forest-census";
 import { Op } from "sequelize";
 import { getPlotCensuses, getPlots } from "services";
-import { getForests } from "./forest-service";
 
 export const createForestCensus = async (
   forestCensus: Omit<ForestCensus, "active">
@@ -20,6 +19,7 @@ export const createForestCensus = async (
 };
 
 export interface GetForestCensusesParams {
+  id?: string;
   forestId?: string;
   active?: boolean;
   limit?: number;
@@ -55,41 +55,34 @@ export const getForestCensuses = async (params: GetForestCensusesParams) => {
   return await ForestCensusModel.findAll(query);
 };
 
-export const closeForestCensus = async (
-  params: Pick<ForestCensus, "forestId">
-) => {
-  const { forestId } = params;
+export const closeForestCensus = async (params: Pick<ForestCensus, "id">) => {
+  const { id } = params;
 
-  if (forestId == null) {
-    throw new Error("You must specify a forest.");
-  }
-  const forest = await getForests({ id: forestId });
-  if (forest.length == 0) {
-    throw new Error("This forest does not exist.");
+  if (id == null) {
+    throw new Error("You must specify a census.");
   }
 
-  // find active forest census
-  const activeCensuses = await getForestCensuses({
-    forestId,
-    active: true,
+  // find forest census
+  const censuses = await getForestCensuses({
+    id,
   });
-  if (activeCensuses.length > 1) {
-    throw new Error("Error: more than one active census");
+  if (censuses.length == 0) {
+    throw new Error("This census does not exist.");
   }
-  if (activeCensuses.length == 0) {
-    throw new Error("There is no active forest census.");
+  if (!censuses[0].active) {
+    throw new Error("This census is already closed.");
   }
 
   // ensure all plots in this forest have approved plot censuses
   // select all plots in the forest
-  const plots = await getPlots({ forestId });
+  const plots = await getPlots({ forestId: censuses[0].forestId });
 
   // select approved plot censuses in this forest census for each plot
   const plotPlotCensuses = await Promise.all(
     plots.map((plot) => {
       return getPlotCensuses({
         plotId: plot.id,
-        forestCensusId: activeCensuses[0].id,
+        forestCensusId: censuses[0].id,
         statuses: [PlotCensusStatuses.Approved],
       });
     })
@@ -106,6 +99,6 @@ export const closeForestCensus = async (
 
   return await ForestCensusModel.update(
     { active: false },
-    { where: { id: { [Op.eq]: activeCensuses[0].id } } }
+    { where: { id: { [Op.eq]: censuses[0].id } } }
   );
 };
