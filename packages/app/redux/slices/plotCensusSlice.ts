@@ -69,19 +69,12 @@ const upsertPlotCensuses = (state: PlotCensusState, action: any) => {
   newCensuses.forEach((newCensus) => {
     if (!newCensus?.id) newCensus.id = uuid.v4();
     if (!action?.rehydrate) state.all[newCensus.id] = newCensus;
-    if (
-      !(newCensus.forestCensusId in state.indices.byForestCensuses) ||
-      !(state.indices.byForestCensuses[newCensus.forestCensusId] instanceof Set)
-    ) {
-      state.indices.byForestCensuses[newCensus.forestCensusId] = new Set();
-    }
+    if (!(newCensus.forestCensusId in state.indices.byForestCensuses))
+      state.indices.byForestCensuses[newCensus.forestCensusId] = new Set([]);
+
     state.indices.byForestCensuses[newCensus.forestCensusId].add(newCensus.id);
-    if (
-      !(newCensus.plotId in state.indices.byPlots) ||
-      !(state.indices.byPlots[newCensus.plotId] instanceof Set)
-    ) {
-      state.indices.byPlots[newCensus.plotId] = new Set();
-    }
+    if (!(newCensus.plotId in state.indices.byPlots))
+      state.indices.byPlots[newCensus.plotId] = new Set([]);
     state.indices.byPlots[newCensus.plotId].add(newCensus.id);
     if (newCensus.status != "APPROVED")
       state.indices.byPlotActive[newCensus.plotId] = newCensus.id;

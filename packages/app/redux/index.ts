@@ -11,35 +11,28 @@ import {
   forestCensusReducer,
   plotCensusReducer,
   treeCensusReducer,
+  treeCensusLabelReducer,
   syncReducer,
   treePhotoReducer,
+  UserState,
+  ForestState,
+  PlotState,
+  TreeState,
+  TreeLabelState,
+  TreeSpeciesState,
+  TreePhotoState,
+  TeamState,
+  ForestCensusState,
+  PlotCensusState,
+  TreeCensusState,
+  TreePhotoPurposeState,
+  TreeCensusLabelState,
 } from "./slices";
 import { createTransform, persistReducer, persistStore } from "redux-persist";
 import hardSet from "redux-persist/lib/stateReconciler/hardSet";
 import ExpoFileSystemStorage from "redux-persist-expo-filesystem";
 import { enableMapSet } from "immer";
-import { UserState } from "./slices/userSlice";
-import { ForestState } from "./slices/forestSlice";
-import { PlotState } from "./slices/plotSlice";
-import { TreeState, rehydrateTrees, upsertTrees } from "./slices/treeSlice";
-import { TreeLabelState } from "./slices/treeLabelSlice";
-import { TreeSpeciesState } from "./slices/treeSpeciesSlice";
-import { TeamState } from "./slices/teamSlice";
-import { TreePhotoPurposeState } from "./slices/treePhotoPurposeSlice";
-import { ForestCensusState } from "./slices/forestCensusSlice";
-import { PlotCensusState } from "./slices/plotCensusSlice";
-import {
-  TreeCensusState,
-  rehydrateTreeCensuses,
-  upsertTreeCensuses,
-} from "./slices/treeCensusSlice";
-import useAppDispatch from "../hooks/useAppDispatch";
-import {
-  rehydrateTreePhotos,
-  TreePhotoState,
-  upsertTreePhotos,
-} from "./slices/treePhotoSlice";
-import { isArray } from "lodash";
+import { isArray, isObject } from "lodash";
 
 enableMapSet();
 
@@ -56,6 +49,7 @@ export type RootState = {
   forestCensuses: ForestCensusState;
   plotCensuses: PlotCensusState;
   treeCensuses: TreeCensusState;
+  treeCensusLabels: TreeCensusLabelState;
   sync: any;
 };
 
@@ -73,6 +67,7 @@ const rootReducer = combineReducers<RootState>({
   forestCensuses: forestCensusReducer,
   plotCensuses: plotCensusReducer,
   treeCensuses: treeCensusReducer,
+  treeCensusLabels: treeCensusLabelReducer,
   sync: syncReducer,
 });
 
@@ -92,9 +87,11 @@ const DraftSetTransform = createTransform(
   { whitelist: ["trees", "treeCensuses", "treePhotos"] }
 );
 
-// This function will need to be edited if the structure of our indices changes
+// This transform converts
+// This function will need to be edited if the structure of our indices changes,
+// since it assumes that all
 const IndicesTransform = createTransform(
-  (inboundState: any, key) => {
+  (inboundState: RootState[keyof RootState], key) => {
     const indices: RootState[keyof RootState]["indices"] = {};
     if (inboundState?.indices) {
       for (const index of Object.keys(inboundState.indices)) {
@@ -107,8 +104,9 @@ const IndicesTransform = createTransform(
           } else indices[index][key] = value;
         }
       }
+      return { ...inboundState, indices };
     }
-    return { ...inboundState, indices };
+    return inboundState;
   },
   (outboundState: RootState[keyof RootState], key) => {
     const indices: RootState[keyof RootState]["indices"] = {};
@@ -123,9 +121,18 @@ const IndicesTransform = createTransform(
           } else indices[index][key] = value;
         }
       }
+      return { ...outboundState, indices };
     }
 
-    return { ...outboundState, indices };
+    return outboundState;
+  }
+);
+
+// This transformer deselects any selected trees, plots, etc so they aren't selected upon re-opening app
+const SelectedTransformer = createTransform(
+  (inboundState: RootState[keyof RootState]) => {
+    if (inboundState?.selected) return { ...inboundState, selected: undefined };
+    return inboundState;
   }
 );
 
@@ -133,7 +140,7 @@ const persistConfig = {
   key: "root",
   storage: ExpoFileSystemStorage,
   stateReconciler: hardSet,
-  transforms: [DraftSetTransform, IndicesTransform],
+  transforms: [DraftSetTransform, IndicesTransform, SelectedTransformer],
 };
 
 const persistedReducer = persistReducer<RootState, AnyAction>(

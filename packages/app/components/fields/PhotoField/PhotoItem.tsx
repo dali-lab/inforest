@@ -12,13 +12,12 @@ import Colors from "../../../constants/Colors";
 import { Text, TextVariants } from "../../Themed";
 import { Ionicons } from "@expo/vector-icons";
 import { TreePhoto, TreePhotoPurpose } from "@ong-forestry/schema";
-import ImagePicker from "expo-image-picker";
 
 interface PhotoItemProps {
   item: ListRenderItemInfo<TreePhoto>;
   removePhoto: (id: string) => void;
   options: { label: string; value: string }[];
-  setPurpose: (newValue: TreePhotoPurpose) => void;
+  setPurpose: (newValue: string) => void;
 }
 
 const PhotoItem: React.FC<PhotoItemProps> = ({
@@ -37,7 +36,7 @@ const PhotoItem: React.FC<PhotoItemProps> = ({
           borderTopRightRadius: 10,
         }}
         source={{
-          uri: item.fullUrl,
+          uri: item.thumbUrl,
         }}
       />
       <View
@@ -48,7 +47,7 @@ const PhotoItem: React.FC<PhotoItemProps> = ({
         }}
       >
         <FieldController
-          value={item.purposeName}
+          value={item?.purposeName || ""}
           onConfirm={(newValue) => {
             //@ts-ignore
             setPurpose(newValue as TreePhotoPurpose);

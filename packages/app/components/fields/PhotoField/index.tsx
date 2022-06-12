@@ -15,10 +15,14 @@ import PhotoItem from "./PhotoItem";
 import { TreeCensus, TreePhoto, TreePhotoPurpose } from "@ong-forestry/schema";
 import useAppDispatch from "../../../hooks/useAppDispatch";
 import {
-  locallyDeletePhoto,
-  locallyDraftNewPhoto,
-  locallyUpdatePhoto,
+  locallyDeleteTreePhoto,
+  locallyCreateTreePhoto,
+  locallyUpdateTreePhoto,
+  createTreePhoto,
+  deleteTreePhoto,
+  updateTreePhoto,
 } from "../../../redux/slices/treePhotoSlice";
+import { useIsConnected } from "react-native-offline";
 
 const imageLibraryOptions: ImagePickerOptions = {
   base64: true,
@@ -31,6 +35,8 @@ export type PhotoFieldProps = {
 const PhotoField: React.FC<PhotoFieldProps> = ({ census }) => {
   const dispatch = useAppDispatch();
   const [status, requestPermission] = useCameraPermissions();
+
+  const isConnected = useIsConnected();
 
   const { all: allPurposes } = useAppSelector(
     (state: RootState) => state.treePhotoPurposes
@@ -50,27 +56,34 @@ const PhotoField: React.FC<PhotoFieldProps> = ({ census }) => {
   const addPhoto = useCallback(async () => {
     if (!status) await requestPermission();
     const photo = await launchCameraAsync(imageLibraryOptions);
-    if (!photo?.cancelled) {
+    if (!photo?.cancelled && photo?.base64) {
       const parsedPhoto = {
-        id: "",
-        thumbUrl: "",
-        fullUrl: photo?.uri,
+        thumbUrl: photo?.uri || "",
+        fullUrl: "",
         treeCensusId: census.id,
-        purposeName: "",
+        purposeName: null,
         buffer: photo.base64,
       };
-      dispatch(locallyDraftNewPhoto(parsedPhoto));
+      dispatch(
+        isConnected
+          ? createTreePhoto(parsedPhoto)
+          : locallyCreateTreePhoto(parsedPhoto)
+      );
     }
   }, [census.id, dispatch, requestPermission, status]);
   const removePhoto = useCallback(
     async (id: string) => {
-      dispatch(locallyDeletePhoto(id));
+      dispatch(isConnected ? deleteTreePhoto(id) : locallyDeleteTreePhoto(id));
     },
     [dispatch]
   );
   const setPhotoPurpose = useCallback(
-    async (photo: TreePhoto, purposeName: TreePhotoPurpose) => {
-      dispatch(locallyUpdatePhoto({ updated: { ...photo, purposeName } }));
+    async (photo: TreePhoto, purposeName: string) => {
+      dispatch(
+        isConnected
+          ? updateTreePhoto({ ...photo, purposeName })
+          : locallyUpdateTreePhoto({ ...photo, purposeName })
+      );
     },
     [dispatch]
   );

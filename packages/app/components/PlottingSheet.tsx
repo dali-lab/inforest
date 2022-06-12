@@ -28,7 +28,7 @@ import AppButton from "./AppButton";
 import {
   createTreeCensus,
   deselectTreeCensus,
-  locallyDraftNewTreeCensus,
+  locallyCreateTreeCensus,
   selectTreeCensus,
 } from "../redux/slices/treeCensusSlice";
 import { useIsConnected } from "react-native-offline";
@@ -139,11 +139,11 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
     new Set([plot.id])
   );
   const {
-    indices: { byPlotCensuses },
+    indices: { byPlotCensus },
   } = useAppSelector((state) => state.treeCensuses);
   const inProgressCensuses = useMemo(
-    () => Object.keys(byPlotCensuses),
-    [byPlotCensuses]
+    () => Object.keys(byPlotCensus),
+    [byPlotCensus]
   );
 
   const animatedPlotRotationAngle = useMemo(
@@ -174,7 +174,7 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
   //   };
   //   isConnected
   //     ? await dispatch(createTreeCensus(newCensus))
-  //     : dispatch(locallyDraftNewTreeCensus(newCensus));
+  //     : dispatch(locallyCreateTreeCensus(newCensus));
   //   setMarkerPos(undefined);
   //   expandDrawer();
   // }, [dispatch, expandDrawer, isConnected, plotCensus, selectedTree]);

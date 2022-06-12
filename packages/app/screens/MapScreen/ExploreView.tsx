@@ -114,8 +114,8 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
     });
 
   const mapRef = useRef<MapView>(null);
-  // const isConnected = useIsConnected();
-  const isConnected = false;
+  const isConnected = useIsConnected();
+  // const isConnected = false;
 
   const dispatch = useAppDispatch();
   const reduxState = useAppSelector((state: RootState) => state);
@@ -126,10 +126,12 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
   } = useAppSelector((state: RootState) => state.trees);
   const {
     all: allTreeCensuses,
-    indices: { byTrees, byPlotCensuses },
+    indices: { byTrees, byPlotCensus, byTreeActive },
   } = useAppSelector((state: RootState) => state.treeCensuses);
   const {
     all: allPlots,
+    latitude,
+    longitude,
     indices: plotIndices,
     selected: selectedPlotId,
   } = useAppSelector((state: RootState) => state.plots);
@@ -146,15 +148,15 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
   const { colorMap } = useAppSelector((state: RootState) => state.treeSpecies);
 
   const forestBoundaries = useMemo(() => {
-    if (plotIndices.latitude.length && plotIndices.longitude.length) {
+    if (latitude.length && longitude.length) {
       return {
         latitude: {
-          min: min(plotIndices.latitude.map(({ value }) => value)) as number,
-          max: max(plotIndices.latitude.map(({ value }) => value)) as number,
+          min: min(latitude.map(({ value }) => value)) as number,
+          max: max(latitude.map(({ value }) => value)) as number,
         },
         longitude: {
-          min: min(plotIndices.longitude.map(({ value }) => value)) as number,
-          max: max(plotIndices.longitude.map(({ value }) => value)) as number,
+          min: min(longitude.map(({ value }) => value)) as number,
+          max: max(longitude.map(({ value }) => value)) as number,
         },
       };
     } else return;
@@ -210,7 +212,6 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
   const selectPlotAndCensus = useCallback(
     async (plotId: string) => {
       dispatch(selectPlot(plotId));
-      console.log(plotId);
       if (plotId in plotCensusesByActivePlot) {
         dispatch(selectPlotCensus(plotCensusesByActivePlot[plotId]));
       }
@@ -283,6 +284,7 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
           (tree.id !== selectedTreeId || i !== trees.length)
         ) {
           const selected = selectedTreeId === tree.id;
+          const activeCensus = allTreeCensuses[byTreeActive[tree.id]];
           let nodeColor = visualizationConfig.satellite
             ? Colors.neutral[1]
             : Colors.primary.normal;
@@ -293,7 +295,7 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
             }
           }
           const treePixelSize =
-            (tree?.censuses?.[0]?.dbh ?? DEFAULT_DBH) *
+            (activeCensus?.dbh ?? DEFAULT_DBH) *
             0.01 *
             0.5 *
             FOLIAGE_MAGNIFICATION;
@@ -320,6 +322,7 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
     visualizationConfig.satellite,
     colorMap,
     selectedTreeId,
+    byTreeActive,
   ]);
 
   const plotIdColorMap = useCallback(
@@ -367,7 +370,7 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
       latestCensus = computePlotLastUpdatedDate(selectedPlot.id);
       // Object.values(plotCensusesByPlot[selectedPlot.id]).forEach(
       //   (plotCensus) => {
-      //     const treeCensuesIds = byPlotCensuses[plotCensus.id];
+      //     const treeCensuesIds = byPlotCensus[plotCensus.id];
       //     if (treeCensuesIds) {
       //       for (const treeCensusId of treeCensuesIds) {
       //         const { updatedAt } = allTreeCensuses[treeCensusId];
@@ -384,7 +387,7 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
     selectedPlot,
     allTreeCensuses,
     plotCensusesByPlot,
-    byPlotCensuses,
+    byPlotCensus,
     computePlotLastUpdatedDate,
   ]);
 

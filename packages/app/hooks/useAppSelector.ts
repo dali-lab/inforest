@@ -4,9 +4,11 @@ import { TypedUseSelectorHook, useSelector } from "react-redux";
 import type { RootState } from "../redux";
 import { createDraftSafeSelector as createSelector } from "@reduxjs/toolkit";
 import { getPlotCorners } from "../constants/plots";
+import { PersistPartial } from "redux-persist/es/persistReducer";
 
 //This hook allows for the selector hook to use typescript types
-const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
+const useAppSelector: TypedUseSelectorHook<RootState & PersistPartial> =
+  useSelector;
 
 /**
  * Selects trees from store at a designated density level.

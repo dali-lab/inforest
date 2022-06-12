@@ -43,7 +43,7 @@ import Colors from "../../constants/Colors";
 import {
   createTreeCensus,
   deselectTreeCensus,
-  locallyDraftNewTreeCensus,
+  locallyCreateTreeCensus,
   locallyUpdateTreeCensus,
   updateTreeCensus,
 } from "../../redux/slices/treeCensusSlice";
@@ -229,14 +229,12 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
   }, [dispatch, selectedTreeCensus, isConnected, updateCensusDraft]);
 
   useEffect(() => {
-    console.log(selectedTree, plotCensus);
     if (
       selectedTree?.plotId &&
       selectedTree?.id &&
       plotCensus?.id &&
       !byTreeActive?.[selectedTree.id]
     ) {
-      console.log("dispatching");
       try {
         const newCensus = {
           ...blankTreeCensus,
@@ -246,7 +244,7 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
         };
         isConnected
           ? dispatch(createTreeCensus(newCensus))
-          : dispatch(locallyDraftNewTreeCensus(newCensus));
+          : dispatch(locallyCreateTreeCensus(newCensus));
       } catch (err: any) {
         alert(err?.message || "An unknown error occurred.");
       }

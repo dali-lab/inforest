@@ -81,18 +81,26 @@ export const createTreeCensus = async (
 
 export interface TreeCensusParams {
   id?: string;
+  ids?: string[];
   treeIds?: string[];
   plotCensusId?: string;
   forestId?: string;
   authorId?: string;
   flagged?: boolean;
+
+  limit?: number;
+  offset?: number;
 }
 
 const constructQuery = (params: TreeCensusParams) => {
-  const { id, treeIds, plotCensusId, authorId, flagged } = params;
-  const query: any = { where: {} };
+  const { id, ids, treeIds, plotCensusId, authorId, flagged, limit, offset } =
+    params;
+  const query: any = { where: {}, returning: true };
   if (id) {
-    query.where.treeId = { [Op.eq]: id };
+    query.where.id = { [Op.eq]: id };
+  }
+  if (ids) {
+    query.where.id = { [Op.in]: ids };
   }
   if (treeIds) {
     query.where.treeId = { [Op.in]: treeIds };
@@ -105,6 +113,12 @@ const constructQuery = (params: TreeCensusParams) => {
   }
   if (flagged) {
     query.where.flagged = { [Op.eq]: flagged };
+  }
+  if (limit) {
+    query.limit = limit;
+  }
+  if (offset) {
+    query.offset = offset;
   }
 
   return query;
@@ -123,16 +137,18 @@ export const getTreeCensuses = async (params: TreeCensusParams) => {
   });
 };
 
-export const editTreeCensuses = async (
+export const editTreeCensus = async (
   treeCensus: Omit<TreeCensus, "plotCensusId">,
   params: TreeCensusParams
 ) => {
-  // the author of the census is the person who last updated
-  // frontend should include id of editor in the request body
+  const result = (
+    await TreeCensusModel.update(treeCensus, constructQuery(params))
+  )[1][0].get();
 
-  await validatePlotCensus(treeCensus);
-  // ^ throws error if census is not in_progress
+  return result;
+};
 
-  const query = constructQuery(params);
-  return (await TreeCensusModel.update(treeCensus, query))[1];
+export const deleteTreeCensuses = async (params: TreeCensusParams) => {
+  const result = await TreeCensusModel.destroy(constructQuery(params));
+  return result;
 };

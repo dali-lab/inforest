@@ -5,15 +5,16 @@ module.exports = {
     const transaction = await queryInterface.sequelize.transaction();
 
     try {
-      await queryInterface.addColumn(
-        "tree_census",
-        "notes",
+      await queryInterface.changeColumn(
+        "tree_photos",
+        "purposeName",
         {
           type: Sequelize.STRING,
           allowNull: true,
         },
         { transaction }
       );
+      console.log("CHANGED!!");
       await transaction.commit();
     } catch (err) {
       console.error(err);
@@ -25,9 +26,23 @@ module.exports = {
   async down(queryInterface, Sequelize) {
     const transaction = await queryInterface.sequelize.transaction();
     try {
-      await queryInterface.removeColumn("tree_census", "notes", {
-        transaction,
-      });
+      await queryInterface.sequelize.query(
+        `UPDATE tree_photos SET "purposeName" = 'FULL' WHERE "purposeName" = NULL`,
+        { transaction }
+      );
+      await queryInterface.changeColumn(
+        "tree_photos",
+        "purposeName",
+        {
+          type: Sequelize.STRING,
+          allowNull: false,
+          references: {
+            model: "tree_photo_purposes",
+            key: "name",
+          },
+        },
+        { transaction }
+      );
       await transaction.commit();
     } catch (err) {
       console.error(err);

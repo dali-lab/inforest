@@ -1,7 +1,8 @@
 import { TreeCensus } from "@ong-forestry/schema";
 import express from "express";
-import { createTreeCensus, editTreeCensuses, getTreeCensuses } from "services";
+import { createTreeCensus, editTreeCensus, getTreeCensuses } from "services";
 import { requireAuth } from "util/auth";
+import { treeCensusLabelRouter } from "./tree-census-label-routes";
 
 const treeCensusRouter = express.Router();
 
@@ -36,15 +37,12 @@ treeCensusRouter.get<{}, any, any>("/", requireAuth, async (req, res) => {
   }
 });
 
-treeCensusRouter.patch<{}, any, TreeCensus>(
-  "/",
+treeCensusRouter.patch<{ id: string }, any, TreeCensus>(
+  "/:id",
   requireAuth,
   async (req, res) => {
     try {
-      const treeCensuses = await editTreeCensuses(
-        req.body,
-        parseParams(req.query)
-      );
+      const treeCensuses = await editTreeCensus(req.body, req.params);
       res.status(200).send(treeCensuses);
     } catch (e: any) {
       console.error(e);
@@ -52,5 +50,7 @@ treeCensusRouter.patch<{}, any, TreeCensus>(
     }
   }
 );
+
+treeCensusRouter.use("/labels", treeCensusLabelRouter);
 
 export { treeCensusRouter };

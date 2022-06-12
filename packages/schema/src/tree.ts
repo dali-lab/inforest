@@ -201,7 +201,7 @@ export interface TreePhoto {
   /**
    * Name/foreign key of photo's associated purpose
    */
-  purposeName: string;
+  purposeName: string | null;
 
   /**
    * Photo's full associated purpose

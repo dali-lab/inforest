@@ -15,7 +15,7 @@ export interface TreePhotoState {
     byTreeCensus: Record<string, Set<string>>;
   };
   drafts: Set<string>;
-  rehydrated: boolean;
+  localDeletions: Set<string>;
 }
 
 const initialState: TreePhotoState = {
@@ -23,14 +23,33 @@ const initialState: TreePhotoState = {
   indices: {
     byTreeCensus: {},
   },
-  drafts: new Set(),
-  rehydrated: false,
+  drafts: new Set([]),
+  localDeletions: new Set([]),
 };
 
-export const uploadTreePhoto = createAsyncThunk(
-  "treePhoto/uploadTreePhoto",
-  async (params: TreePhoto & { buffer: string }, thunkApi) => {
+export const createTreePhoto = createAsyncThunk(
+  "treePhoto/createTreePhoto",
+  async (params: Omit<TreePhoto, "id"> & { buffer: string }, thunkApi) => {
     return await axios.post(BASE_URL, params, {}).then((response) => {
+      return response.data;
+    });
+  }
+);
+
+export const updateTreePhoto = createAsyncThunk(
+  "treePhoto/updateTreePhoto",
+  async (photoUpdates: TreePhoto) => {
+    const { id, ...updates } = photoUpdates;
+    return await axios.patch(`${BASE_URL}/${id}`, updates).then((response) => {
+      return response.data;
+    });
+  }
+);
+
+export const deleteTreePhoto = createAsyncThunk(
+  "treePhoto/deleteTreePhoto",
+  async (id: string) => {
+    return await axios.delete(`${BASE_URL}/${id}`).then((response) => {
       return response.data;
     });
   }
@@ -38,24 +57,30 @@ export const uploadTreePhoto = createAsyncThunk(
 
 export const upsertTreePhotos = (state: TreePhotoState, action: any) => {
   let newPhotos: TreePhoto[];
-  if (action?.draft || action?.rehydrate) {
+  if (action?.draft) {
     newPhotos = action.data;
   } else newPhotos = action;
   if (!isArray(newPhotos)) newPhotos = [newPhotos];
   newPhotos.forEach((newPhoto) => {
-    if (!newPhoto?.id) newPhoto.id = uuid.v4().toString();
+    if (!newPhoto?.id) newPhoto.id = uuid.v4();
     if (!action?.rehydrate) state.all[newPhoto.id] = newPhoto;
     // add to drafts
     if (action?.draft) state.drafts.add(newPhoto.id);
-    if (
-      !(newPhoto.treeCensusId in state.indices.byTreeCensus) ||
-      !state.indices.byTreeCensus[newPhoto.treeCensusId]?.add
-    ) {
-      state.indices.byTreeCensus[newPhoto.treeCensusId] = new Set();
-    }
+    if (!(newPhoto.treeCensusId in state.indices.byTreeCensus))
+      state.indices.byTreeCensus[newPhoto.treeCensusId] = new Set([]);
+
     state.indices.byTreeCensus[newPhoto.treeCensusId].add(newPhoto.id);
   });
-  if (action?.rehydrate) state.rehydrated = true;
+  return state;
+};
+
+export const deleteTreePhotos = (state: TreePhotoState, ids: string[]) => {
+  for (const id of ids) {
+    const currPhoto = state.all[id];
+    state.drafts.delete(id);
+    state.indices.byTreeCensus[currPhoto.treeCensusId].delete(id);
+    delete state.all[id];
+  }
   return state;
 };
 
@@ -63,49 +88,43 @@ export const treePhotoSlice = createSlice({
   name: "treePhoto",
   initialState,
   reducers: {
-    createTreePhoto: (state, action) => {
-      return upsertTreePhotos(state, action.payload);
-    },
-    locallyDraftNewPhoto: (state, action) => {
+    locallyCreateTreePhoto: (state, action) => {
       return upsertTreePhotos(state, { data: action.payload, draft: true });
     },
-    locallyDeletePhoto: (state, action) => {
-      const photoId = action.payload;
-      const censusId = state.all[photoId].treeCensusId;
-      delete state.all[photoId];
-      state.indices.byTreeCensus[censusId].delete(photoId);
-      state.drafts.delete(photoId);
-      return state;
+    locallyDeleteTreePhoto: (state, action: { payload: string }) => {
+      state.localDeletions.add(action.payload);
+      return deleteTreePhotos(state, [action.payload]);
     },
-    locallyUpdatePhoto: (state, action) => {
-      const { updated } = action.payload;
+    locallyUpdateTreePhoto: (state, action) => {
+      const updated = action.payload;
       state.all[updated.id] = updated;
       return state;
     },
-    rehydrateTreePhotos: (state) => {
-      state.indices = initialState.indices;
-      return upsertTreePhotos(state, {
-        data: Object.values(state.all),
-        rehydrate: true,
-      });
-    },
     clearTreePhotoDrafts: (state) => {
-      return { ...state, drafts: initialState.drafts };
+      return {
+        ...state,
+        drafts: initialState.drafts,
+        localDeletions: initialState.localDeletions,
+      };
     },
   },
   extraReducers: (builder) => {
-    builder.addCase(uploadTreePhoto.fulfilled, (state, action: any) => {
-      return upsertTreePhotos(state, action.payload.data);
+    builder.addCase(createTreePhoto.fulfilled, (state, action: any) => {
+      return upsertTreePhotos(state, action.payload);
+    });
+    builder.addCase(updateTreePhoto.fulfilled, (state, action) => {
+      return upsertTreePhotos(state, action.payload);
+    });
+    builder.addCase(deleteTreePhoto.fulfilled, (state, action) => {
+      return deleteTreePhotos(state, [action.meta.arg]);
     });
   },
 });
 
 export const {
-  createTreePhoto,
-  locallyDraftNewPhoto,
-  locallyDeletePhoto,
-  locallyUpdatePhoto,
-  rehydrateTreePhotos,
+  locallyCreateTreePhoto,
+  locallyDeleteTreePhoto,
+  locallyUpdateTreePhoto,
   clearTreePhotoDrafts,
 } = treePhotoSlice.actions;
 

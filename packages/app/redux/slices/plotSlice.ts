@@ -28,9 +28,9 @@ type PlotNumericalIndex = {
 export interface PlotState {
   all: Record<string, Plot>;
   selected: string | undefined;
+  latitude: PlotNumericalIndex;
+  longitude: PlotNumericalIndex;
   indices: {
-    latitude: PlotNumericalIndex;
-    longitude: PlotNumericalIndex;
     byNumber: Record<string, Plot>;
   };
 }
@@ -38,9 +38,9 @@ export interface PlotState {
 const initialState: PlotState = {
   all: {},
   selected: undefined,
+  latitude: [],
+  longitude: [],
   indices: {
-    latitude: [],
-    longitude: [],
     byNumber: {},
   },
 };
@@ -63,20 +63,20 @@ export const plotSlice = createSlice({
       action.payload.forEach((plot) => {
         state.all[plot.id] = plot;
         // add to latitude index
-        state.indices.latitude.push({
+        state.latitude.push({
           value: plot.latitude,
           plotId: plot.id,
         });
         // add to longitude index
-        state.indices.longitude.push({
+        state.longitude.push({
           value: plot.longitude,
           plotId: plot.id,
         });
         state.indices.byNumber[plot.number] = plot;
       });
       // sort indices
-      state.indices.latitude.sort(({ value: a }, { value: b }) => a - b);
-      state.indices.longitude.sort(({ value: a }, { value: b }) => a - b);
+      state.latitude.sort(({ value: a }, { value: b }) => a - b);
+      state.longitude.sort(({ value: a }, { value: b }) => a - b);
     });
   },
 });

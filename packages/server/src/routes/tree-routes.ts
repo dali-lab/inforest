@@ -1,6 +1,6 @@
 import { Tree } from "@ong-forestry/schema";
 import express from "express";
-import { createTree, getTrees, editTrees, deleteTrees } from "services";
+import { createTree, getTrees, editTree, deleteTrees } from "services";
 import { requireAuth } from "util/auth";
 import { treePhotoRouter } from "./tree-photo-routes";
 import { treeSpeciesRouter } from "./tree-species-routes";
@@ -36,15 +36,19 @@ const parseParams = (query: any) => ({
   offset: parseInt(query.offset as string),
 });
 
-treeRouter.patch<{}, any, Tree>("/", requireAuth, async (req, res) => {
-  try {
-    const trees = await editTrees(req.body, parseParams(req.query));
-    res.status(200).json(trees);
-  } catch (e: any) {
-    console.error(e);
-    res.status(500).send(e?.message ?? "Unknown error.");
+treeRouter.patch<{ id: string }, any, Tree>(
+  "/:id",
+  requireAuth,
+  async (req, res) => {
+    try {
+      const trees = await editTree(req.body, req.params);
+      res.status(200).json(trees);
+    } catch (e: any) {
+      console.error(e);
+      res.status(500).send(e?.message ?? "Unknown error.");
+    }
   }
-});
+);
 
 treeRouter.get<{}, any, Tree>("/", requireAuth, async (req, res) => {
   try {
@@ -56,19 +60,23 @@ treeRouter.get<{}, any, Tree>("/", requireAuth, async (req, res) => {
   }
 });
 
-treeRouter.delete<{}, any, Tree>("/", requireAuth, async (req, res) => {
-  try {
-    await deleteTrees(parseParams(req.query));
-    res.status(200).send("Trees deleted successfully.");
-  } catch (e: any) {
-    console.error(e);
-    res.status(500).send(e?.message ?? "Unknown error.");
+treeRouter.delete<{ id: string }, any, Tree>(
+  "/:id",
+  requireAuth,
+  async (req, res) => {
+    try {
+      await deleteTrees(req.params);
+      res.status(200).send("Trees deleted successfully.");
+    } catch (e: any) {
+      console.error(e);
+      res.status(500).send(e?.message ?? "Unknown error.");
+    }
   }
-});
+);
 
 treeRouter.use("/photos", treePhotoRouter);
 treeRouter.use("/species", treeSpeciesRouter);
 treeRouter.use("/labels", treeLabelRouter);
-treeRouter.use("/census", treeCensusRouter);
+treeRouter.use("/censuses", treeCensusRouter);
 
 export { treeRouter };

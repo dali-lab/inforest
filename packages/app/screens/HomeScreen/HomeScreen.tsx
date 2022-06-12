@@ -61,42 +61,30 @@ const TABLE_COLUMN_WIDTHS = {
 export const HomeScreen = () => {
   const navigation = useNavigation();
 
-  // const isConnected = useIsConnected();
-  const isConnected = false;
-  const { rehydrated: treeRehydrated } = useAppSelector((state) => state.trees);
-  const { rehydrated: treeCensusRehydrated } = useAppSelector(
-    (state) => state.treeCensuses
-  );
-  const { rehydrated: treePhotosRehydrated } = useAppSelector(
-    (state) => state.treePhotos
-  );
+  const isConnected = useIsConnected();
+  const {
+    _persist: { rehydrated },
+  } = useAppSelector((state) => state);
 
   const dispatch = useDispatch();
   useEffect(() => {
-    if (
-      isConnected
-      // && treeRehydrated &&
-      // treeCensusRehydrated &&
-      // treePhotosRehydrated
-    ) {
-      // dispatch(uploadCensusData()).then(() => {
-      // });
+    if (isConnected && rehydrated) {
+      dispatch(getForests());
+      dispatch(getForest({ id: FOREST_ID }));
+      dispatch(getForestPlots({ forestId: FOREST_ID }));
+      dispatch(
+        getForestTrees({
+          forestId: FOREST_ID,
+        })
+      );
+      dispatch(getForestTreeCensuses({ forestId: FOREST_ID }));
+      dispatch(getAllTreeSpecies());
+      dispatch(getAllTreeLabels());
+      dispatch(getAllTreePhotoPurposes());
+      dispatch(getForestForestCensuses({ forestId: FOREST_ID }));
+      dispatch(getPlotCensuses());
     }
-    dispatch(getForests());
-    dispatch(getForest({ id: FOREST_ID }));
-    dispatch(getForestPlots({ forestId: FOREST_ID }));
-    dispatch(
-      getForestTrees({
-        forestId: FOREST_ID,
-      })
-    );
-    dispatch(getForestTreeCensuses({ forestId: FOREST_ID }));
-    dispatch(getAllTreeSpecies());
-    dispatch(getAllTreeLabels());
-    dispatch(getAllTreePhotoPurposes());
-    dispatch(getForestForestCensuses({ forestId: FOREST_ID }));
-    dispatch(getPlotCensuses());
-  }, [dispatch, isConnected]);
+  }, [dispatch, isConnected, rehydrated]);
   const { currentForest, currentTeamForests: allForests } = useAppSelector(
     (state: RootState) => state.forest
   );

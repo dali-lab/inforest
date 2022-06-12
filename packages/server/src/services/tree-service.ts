@@ -38,7 +38,8 @@ export const createTree = async (tree: Tree) => {
   return await TreeModel.create(tree);
 };
 
-export interface GetTreesParams {
+export interface TreeParams {
+  id?: string;
   ids?: string[];
   tags?: string[];
   plotIds?: string[];
@@ -58,8 +59,9 @@ export interface GetTreesParams {
   offset?: number;
 }
 
-const constructQuery = (params: GetTreesParams) => {
+const constructQuery = (params: TreeParams) => {
   const {
+    id,
     ids,
     tags,
     plotIds,
@@ -77,7 +79,11 @@ const constructQuery = (params: GetTreesParams) => {
   } = params;
   const query: any = {
     where: {},
+    returning: true,
   };
+  if (id) {
+    query.where.id = { [Op.eq]: id };
+  }
   if (ids) {
     query.where.id = {
       [Op.in]: ids,
@@ -147,15 +153,14 @@ const constructQuery = (params: GetTreesParams) => {
   return query;
 };
 
-export const editTrees = async (
-  tree: Partial<Tree>,
-  params: GetTreesParams
-) => {
-  const query = constructQuery(params);
-  return (await TreeModel.update(tree, query))[1];
+export const editTree = async (tree: Partial<Tree>, params: TreeParams) => {
+  const result = (
+    await TreeModel.update(tree, constructQuery(params))
+  )[1][0].get();
+  return result;
 };
 
-export const getTrees = async (params: GetTreesParams) => {
+export const getTrees = async (params: TreeParams) => {
   const query = constructQuery(params);
   return await TreeModel.findAll({
     ...query,
@@ -163,7 +168,7 @@ export const getTrees = async (params: GetTreesParams) => {
   });
 };
 
-export const deleteTrees = async (params: GetTreesParams) => {
+export const deleteTrees = async (params: TreeParams) => {
   const query = constructQuery(params);
   return await TreeModel.destroy(query);
 };

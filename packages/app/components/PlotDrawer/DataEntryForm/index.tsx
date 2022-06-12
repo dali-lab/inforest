@@ -13,11 +13,13 @@ import FieldController from "../../fields/FieldController";
 import SelectField from "../../fields/SelectField";
 import PhotoField from "../../fields/PhotoField";
 import LabelPillRow from "./LabelPillRow";
-import {
-  locallyUpdateTreeCensus,
-  updateTreeCensus,
-} from "../../../redux/slices/treeCensusSlice";
 import { useIsConnected } from "react-native-offline";
+import {
+  createTreeCensusLabel,
+  deleteTreeCensusLabel,
+  locallyCreateTreeCensusLabel,
+  locallyDeleteTreeCensusLabel,
+} from "../../../redux/slices/treeCensusLabelSlice";
 
 export type FormStages = "META" | "DATA" | "REVIEW";
 
@@ -189,10 +191,22 @@ const DataForm: React.FC<DataFormProps> = ({
   updateCensusDraft,
   selectedCensus,
 }) => {
+  const isConnected = useIsConnected();
+  const dispatch = useAppDispatch();
   const { all: allLabels } = useAppSelector(
     (state: RootState) => state.treeLabels
   );
-  const [pills, setPills] = useState<TreeLabel[]>(selectedCensus?.labels || []);
+  const {
+    all: allCensusLabels,
+    indices: { byTreeCensus },
+  } = useAppSelector((state) => state.treeCensusLabels);
+  const selectedLabels = useMemo(
+    () =>
+      Array.from(byTreeCensus?.[selectedCensus.id] || []).map(
+        (id) => allCensusLabels[id]
+      ),
+    [selectedCensus, byTreeCensus, allCensusLabels]
+  );
   const labelsOptions = useMemo(
     () =>
       Object.values(allLabels).map(({ code, description }) => ({
@@ -203,22 +217,26 @@ const DataForm: React.FC<DataFormProps> = ({
   );
   const addLabel = useCallback(
     (code: string) => {
-      if (!code) code = labelsOptions[0].value;
-      if (!pills.map((label) => label?.code).includes(code))
-        setPills((prev) => [...prev, allLabels[code]]);
+      const newLabel = { treeCensusId: selectedCensus.id, treeLabelCode: code };
+      dispatch(
+        isConnected
+          ? createTreeCensusLabel(newLabel)
+          : locallyCreateTreeCensusLabel(newLabel)
+      );
     },
-    [allLabels, pills, setPills, labelsOptions]
+    [isConnected]
   );
   const removeLabel = useCallback(
-    (code: string) => {
-      setPills((prev) => prev.filter((label) => label?.code !== code));
+    (id: string) => {
+      dispatch(
+        isConnected
+          ? deleteTreeCensusLabel(id)
+          : locallyDeleteTreeCensusLabel(id)
+      );
     },
-    [setPills, updateCensusDraft]
+    [updateCensusDraft, isConnected]
   );
 
-  useEffect(() => {
-    updateCensusDraft({ labels: pills });
-  }, [pills]);
   return (
     <View style={styles.formContainer}>
       <View style={styles.formRow}>
@@ -246,12 +264,7 @@ const DataForm: React.FC<DataFormProps> = ({
               placeholder="Insert labels for the tree"
               disabled
               prefixComponent={
-                <LabelPillRow
-                  pills={
-                    selectedCensus?.labels?.map((label) => label?.code) || []
-                  }
-                  removePill={removeLabel}
-                />
+                <LabelPillRow pills={selectedLabels} removePill={removeLabel} />
               }
             />
           }

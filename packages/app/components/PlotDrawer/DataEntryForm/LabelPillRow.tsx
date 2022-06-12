@@ -3,21 +3,22 @@ import { View } from "react-native";
 import { Text } from "../../Themed";
 import { Ionicons } from "@expo/vector-icons";
 import Colors from "../../../constants/Colors";
+import { TreeCensusLabel } from "@ong-forestry/schema";
 
 interface LabelPillRowProps {
-  pills: string[];
+  pills: TreeCensusLabel[];
   removePill: (code: string) => void;
 }
 
 const LabelPillRow: React.FC<LabelPillRowProps> = ({ pills, removePill }) => {
   return (
     <View style={{ flexDirection: "row" }}>
-      {pills.map((labelCode) => (
+      {pills.map((label) => (
         <LabelPill
-          key={labelCode}
-          label={labelCode}
+          key={label.id}
+          label={label.treeLabelCode}
           onRemove={() => {
-            removePill(labelCode);
+            removePill(label.id);
           }}
         />
       ))}

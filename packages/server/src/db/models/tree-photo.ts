@@ -43,7 +43,7 @@ class TreePhoto extends Model<ITreePhoto> implements ITreePhoto {
   thumbUrl: string;
 
   @ForeignKey(() => TreePhotoPurpose)
-  @AllowNull(false)
+  @AllowNull(true)
   @Column(DataTypes.STRING)
   purposeName: string;
 

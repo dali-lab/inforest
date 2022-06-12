@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useState, useEffect } from "react";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Provider } from "react-redux";
@@ -23,7 +23,6 @@ export type RootStackParamList = {
 const Stack = createNativeStackNavigator<RootStackParamList>();
 import { store, persistor } from "./redux";
 import MapScreen from "./screens/MapScreen";
-import { useEffect } from "react";
 
 export default function App() {
   const isLoadingComplete = useCachedResources();

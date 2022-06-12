@@ -4,8 +4,8 @@ import multer from "multer";
 import {
   createTreePhoto,
   getTreePhotos,
-  editTreePhotos,
-  deleteTreePhotos,
+  editTreePhoto,
+  deleteTreePhoto,
 } from "services";
 import { requireAuth, resizeMiddleware } from "middleware";
 import { treePhotoPurposeRouter } from "./tree-photo-purpose-routes";
@@ -20,7 +20,7 @@ const treePhotoRouter = express.Router();
 
 treePhotoRouter.post<{}, any, TreePhoto>(
   "/",
-  [requireAuth, resizeMiddleware],
+  requireAuth,
   async (req: any, res: any) => {
     try {
       const photo = await createTreePhoto(req.body);
@@ -40,12 +40,12 @@ const parseParams = (query: any) => ({
   offset: parseInt(query.offset as string),
 });
 
-treePhotoRouter.patch<{}, any, TreePhoto>(
-  "/",
+treePhotoRouter.patch<{ id: string }, any, TreePhoto>(
+  "/:id",
   requireAuth,
   async (req, res) => {
     try {
-      const photos = await editTreePhotos(req.body, parseParams(req.query));
+      const photos = await editTreePhoto(req.body, req.params);
       res.status(200).json(photos);
     } catch (e: any) {
       console.error(e);
@@ -64,12 +64,12 @@ treePhotoRouter.get<{}, any, TreePhoto>("/", requireAuth, async (req, res) => {
   }
 });
 
-treePhotoRouter.delete<{}, any, TreePhoto>(
-  "/",
+treePhotoRouter.delete<{ id: string }, any, TreePhoto>(
+  "/:id",
   requireAuth,
   async (req, res) => {
     try {
-      await deleteTreePhotos(parseParams(req.query));
+      await deleteTreePhoto(req.params);
       res.status(200).send("Tree photos successfully deleted.");
     } catch (e: any) {
       console.error(e);

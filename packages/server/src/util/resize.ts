@@ -1,13 +1,13 @@
 import sharp from "sharp";
 
-export const resizeImage = async (buffer: Buffer) => {
+export const resizeImage = async (buffer: Uint8Array) => {
   const largeBuffer = await sharp(buffer)
     .resize(2000)
     .jpeg({ quality: 50 })
     .toBuffer();
 
   const thumbBuffer = await sharp(buffer)
-    .resize(100)
+    .resize(250)
     .jpeg({ quality: 30 })
     .toBuffer();
 
