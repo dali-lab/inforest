@@ -107,6 +107,7 @@ export const treePhotoSlice = createSlice({
         localDeletions: initialState.localDeletions,
       };
     },
+    resetTreePhotos: () => initialState,
   },
   extraReducers: (builder) => {
     builder.addCase(createTreePhoto.fulfilled, (state, action: any) => {
@@ -126,6 +127,7 @@ export const {
   locallyDeleteTreePhoto,
   locallyUpdateTreePhoto,
   clearTreePhotoDrafts,
+  resetTreePhotos,
 } = treePhotoSlice.actions;
 
 export default treePhotoSlice.reducer;

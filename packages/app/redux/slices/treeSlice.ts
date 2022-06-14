@@ -175,6 +175,7 @@ export const treeSlice = createSlice({
         localDeletions: initialState.localDeletions,
       };
     },
+    resetTrees: () => initialState,
   },
   extraReducers: (builder) => {
     builder.addCase(getForestTrees.fulfilled, (state, action) => {
@@ -200,6 +201,7 @@ export const {
   selectTree,
   deselectTree,
   clearTreeDrafts,
+  resetTrees,
 } = treeSlice.actions;
 
 export default treeSlice.reducer;

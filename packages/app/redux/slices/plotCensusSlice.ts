@@ -95,6 +95,7 @@ export const plotCensusSlice = createSlice({
       state.selected = undefined;
       return state;
     },
+    resetPlotCensuses: () => initialState,
   },
   extraReducers: (builder) => {
     builder.addCase(getPlotCensuses.fulfilled, (state, action) => {
@@ -112,6 +113,7 @@ export const plotCensusSlice = createSlice({
   },
 });
 
-export const { selectPlotCensus, deselectPlotCensus } = plotCensusSlice.actions;
+export const { selectPlotCensus, deselectPlotCensus, resetPlotCensuses } =
+  plotCensusSlice.actions;
 
 export default plotCensusSlice.reducer;

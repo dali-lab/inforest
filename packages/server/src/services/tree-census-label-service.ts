@@ -72,6 +72,5 @@ export const getTreeCensusLabels = async (params: TreeCensusLabelParams) => {
 
 export const deleteTreeCensusLabels = async (params: TreeCensusLabelParams) => {
   const result = await TreeCensusLabelModel.destroy(constructQuery(params));
-  console.log(result);
   return result;
 };

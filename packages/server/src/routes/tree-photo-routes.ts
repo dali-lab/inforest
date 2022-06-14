@@ -5,7 +5,7 @@ import {
   createTreePhoto,
   getTreePhotos,
   editTreePhoto,
-  deleteTreePhoto,
+  deleteTreePhotos,
 } from "services";
 import { requireAuth, resizeMiddleware } from "middleware";
 import { treePhotoPurposeRouter } from "./tree-photo-purpose-routes";
@@ -69,7 +69,7 @@ treePhotoRouter.delete<{ id: string }, any, TreePhoto>(
   requireAuth,
   async (req, res) => {
     try {
-      await deleteTreePhoto(req.params);
+      await deleteTreePhotos(req.params);
       res.status(200).send("Tree photos successfully deleted.");
     } catch (e: any) {
       console.error(e);

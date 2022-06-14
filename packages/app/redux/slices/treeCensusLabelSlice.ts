@@ -72,7 +72,6 @@ export const deleteTreeCensusLabels = (
   ids: string[]
 ) => {
   for (const id of ids) {
-    console.log(state.drafts);
     const currCensusLabel = state.all[id];
     state.drafts.delete(id);
     state.indices.byTreeCensus[currCensusLabel.treeCensusId].delete(id);
@@ -102,6 +101,7 @@ export const treeCensusLabelSlice = createSlice({
         localDeletions: initialState.localDeletions,
       };
     },
+    resetTreeCensusLabels: () => initialState,
   },
   extraReducers: (builder) => {
     builder.addCase(createTreeCensusLabel.fulfilled, (state, action) => {
@@ -117,6 +117,7 @@ export const {
   locallyCreateTreeCensusLabel,
   locallyDeleteTreeCensusLabel,
   clearTreeCensusLabelDrafts,
+  resetTreeCensusLabels,
 } = treeCensusLabelSlice.actions;
 
 export default treeCensusLabelSlice.reducer;

@@ -27,7 +27,6 @@ import VisualizationModal from "../../components/VisualizationModal";
 import SearchModal from "../../components/SearchModal";
 import ColorKey from "../../components/ColorKey";
 import useAppSelector, {
-  usePlots,
   usePlotsInRegion,
   useTreesByDensity,
   useTreesInRegion,
@@ -41,7 +40,7 @@ import {
   MapScreenZoomLevels,
   VisualizationConfigType,
 } from "../../constants";
-import { useNavigation, useRoute } from "@react-navigation/native";
+import { useNavigation } from "@react-navigation/native";
 import { max, min } from "lodash";
 import { MapOverlay } from "../../components/MapOverlay";
 import { ModeSwitcher } from "./ModeSwitcher";
@@ -114,8 +113,6 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
     });
 
   const mapRef = useRef<MapView>(null);
-  const isConnected = useIsConnected();
-  // const isConnected = false;
 
   const dispatch = useAppDispatch();
   const reduxState = useAppSelector((state: RootState) => state);
@@ -126,7 +123,7 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
   } = useAppSelector((state: RootState) => state.trees);
   const {
     all: allTreeCensuses,
-    indices: { byTrees, byPlotCensus, byTreeActive },
+    indices: { byPlotCensus, byTreeActive },
   } = useAppSelector((state: RootState) => state.treeCensuses);
   const {
     all: allPlots,
@@ -135,8 +132,9 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
     indices: plotIndices,
     selected: selectedPlotId,
   } = useAppSelector((state: RootState) => state.plots);
-  const { all: allForestCensuses, selected: selectedForestCensus } =
-    useAppSelector((state: RootState) => state.forestCensuses);
+  const { all: allForestCensuses } = useAppSelector(
+    (state: RootState) => state.forestCensuses
+  );
   const {
     all: allPlotCensuses,
     selected: selectedPlotCensusId,
@@ -146,6 +144,8 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
     },
   } = useAppSelector((state: RootState) => state.plotCensuses);
   const { colorMap } = useAppSelector((state: RootState) => state.treeSpecies);
+
+  const isConnected = useIsConnected();
 
   const forestBoundaries = useMemo(() => {
     if (latitude.length && longitude.length) {
@@ -160,7 +160,8 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
         },
       };
     } else return;
-  }, [plotIndices]);
+  }, [plotIndices, latitude, longitude, plotIndices]);
+
   const selectedPlot = useMemo(
     () => (selectedPlotId && allPlots?.[selectedPlotId]) || undefined,
     [selectedPlotId, allPlots]
@@ -323,6 +324,7 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
     colorMap,
     selectedTreeId,
     byTreeActive,
+    allTreeCensuses,
   ]);
 
   const plotIdColorMap = useCallback(
@@ -364,32 +366,26 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
     })();
   }, []);
 
+  const getCurrentLocation = useCallback(async () => {
+    Location.getCurrentPositionAsync()
+      .then(({ coords }) => {
+        setUserPos({
+          latitude: coords.latitude,
+          longitude: coords.longitude,
+        });
+      })
+      .catch((e) => {
+        console.error(e);
+      });
+  }, [setUserPos]);
+
   const plotLastUpdatedDate = useMemo(() => {
     let latestCensus: Date | undefined;
     if (selectedPlot) {
       latestCensus = computePlotLastUpdatedDate(selectedPlot.id);
-      // Object.values(plotCensusesByPlot[selectedPlot.id]).forEach(
-      //   (plotCensus) => {
-      //     const treeCensuesIds = byPlotCensus[plotCensus.id];
-      //     if (treeCensuesIds) {
-      //       for (const treeCensusId of treeCensuesIds) {
-      //         const { updatedAt } = allTreeCensuses[treeCensusId];
-      //         if (updatedAt && (!latestCensus || updatedAt > latestCensus)) {
-      //           latestCensus = updatedAt;
-      //         }
-      //       }
-      //     }
-      //   }
-      // );
     }
     return latestCensus;
-  }, [
-    selectedPlot,
-    allTreeCensuses,
-    plotCensusesByPlot,
-    byPlotCensus,
-    computePlotLastUpdatedDate,
-  ]);
+  }, [selectedPlot, computePlotLastUpdatedDate]);
 
   return (
     <>
@@ -408,16 +404,7 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
         showsScale={true}
         onMapReady={() => {
           if (locationPermissionStatus === PermissionStatus.GRANTED) {
-            Location.getCurrentPositionAsync()
-              .then(({ coords }) => {
-                setUserPos({
-                  latitude: coords.latitude,
-                  longitude: coords.longitude,
-                });
-              })
-              .catch((e) => {
-                console.error(e);
-              });
+            getCurrentLocation();
           }
         }}
         initialRegion={
@@ -657,7 +644,7 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
           plot={selectedPlot}
           plotCensus={selectedPlotCensus}
           startCensus={async () => {
-            if (false) {
+            if (!isConnected) {
               alert(
                 "You must be connected to the internet to assign yourself to a plot!"
               );

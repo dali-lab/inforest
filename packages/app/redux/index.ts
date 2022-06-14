@@ -1,4 +1,9 @@
-import { AnyAction, combineReducers, configureStore } from "@reduxjs/toolkit";
+import {
+  AnyAction,
+  combineReducers,
+  configureStore,
+  createSlice,
+} from "@reduxjs/toolkit";
 import {
   userReducer,
   forestReducer,
@@ -33,6 +38,26 @@ import hardSet from "redux-persist/lib/stateReconciler/hardSet";
 import ExpoFileSystemStorage from "redux-persist-expo-filesystem";
 import { enableMapSet } from "immer";
 import { isArray, isObject } from "lodash";
+import {
+  getForestForestCensuses,
+  resetForestCensuses,
+} from "./slices/forestCensusSlice";
+import { getForest, resetForests } from "./slices/forestSlice";
+import { getPlotCensuses, resetPlotCensuses } from "./slices/plotCensusSlice";
+import { getForestPlots, resetPlots } from "./slices/plotSlice";
+import {
+  getForestTreeCensuses,
+  resetTreeCensuses,
+} from "./slices/treeCensusSlice";
+import { getAllTreeLabels, resetTreeLabels } from "./slices/treeLabelSlice";
+import {
+  getAllTreePhotoPurposes,
+  resetTreePhotoPurposes,
+} from "./slices/treePhotoPurposeSlice";
+import { getForestTrees, resetTrees } from "./slices/treeSlice";
+import { getAllTreeSpecies, resetTreeSpecies } from "./slices/treeSpeciesSlice";
+import { resetTreeCensusLabels } from "./slices/treeCensusLabelSlice";
+import { resetTreePhotos } from "./slices/treePhotoSlice";
 
 enableMapSet();
 
@@ -53,8 +78,7 @@ export type RootState = {
   sync: any;
 };
 
-// Combine reducers from slices here, so that it can be passed to Redux Persist
-const rootReducer = combineReducers<RootState>({
+const reducers = {
   user: userReducer,
   forest: forestReducer,
   plots: plotReducer,
@@ -69,7 +93,10 @@ const rootReducer = combineReducers<RootState>({
   treeCensuses: treeCensusReducer,
   treeCensusLabels: treeCensusLabelReducer,
   sync: syncReducer,
-});
+};
+
+// Combine reducers from slices here, so that it can be passed to Redux Persist
+const rootReducer = combineReducers<RootState>(reducers);
 
 const DraftSetTransform = createTransform(
   (inboundState: RootState[keyof RootState], key) => {
@@ -84,12 +111,12 @@ const DraftSetTransform = createTransform(
     }
     return outboundState;
   },
-  { whitelist: ["trees", "treeCensuses", "treePhotos"] }
+  { whitelist: ["trees", "treeCensuses", "treePhotos", "treeCensusLabels"] }
 );
 
-// This transform converts
-// This function will need to be edited if the structure of our indices changes,
-// since it assumes that all
+// This transform translates indices' sets to arrays when storing, and vice versa when rehydrating
+// This function will need to be edited if the structure of our indices changes
+// since it assumes all indices are of type Record<string, Set<string>>
 const IndicesTransform = createTransform(
   (inboundState: RootState[keyof RootState], key) => {
     const indices: RootState[keyof RootState]["indices"] = {};

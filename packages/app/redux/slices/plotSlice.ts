@@ -57,6 +57,7 @@ export const plotSlice = createSlice({
       state.selected = undefined;
       return state;
     },
+    resetPlots: () => initialState,
   },
   extraReducers: (builder) => {
     builder.addCase(getForestPlots.fulfilled, (state, action) => {
@@ -81,6 +82,6 @@ export const plotSlice = createSlice({
   },
 });
 
-export const { selectPlot, deselectPlot } = plotSlice.actions;
+export const { selectPlot, deselectPlot, resetPlots } = plotSlice.actions;
 
 export default plotSlice.reducer;

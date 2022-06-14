@@ -1,4 +1,4 @@
-import { useCallback, useState, useEffect } from "react";
+import { useEffect } from "react";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Provider } from "react-redux";

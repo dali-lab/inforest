@@ -72,6 +72,7 @@ export const forestCensusSlice = createSlice({
       state.selected = undefined;
       return state;
     },
+    resetForestCensuses: () => initialState,
   },
   extraReducers: (builder) => {
     builder.addCase(getForestCensus.fulfilled, (state, action) => {
@@ -92,7 +93,7 @@ export const forestCensusSlice = createSlice({
   },
 });
 
-export const { selectForestCensus, deselectForestCensus } =
+export const { selectForestCensus, deselectForestCensus, resetForestCensuses } =
   forestCensusSlice.actions;
 
 export default forestCensusSlice.reducer;

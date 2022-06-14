@@ -171,6 +171,7 @@ export const treeCensusSlice = createSlice({
         localDeletions: initialState.localDeletions,
       };
     },
+    resetTreeCensuses: () => initialState,
   },
   extraReducers: (builder) => {
     builder.addCase(getForestTreeCensuses.fulfilled, (state, action) => {
@@ -201,6 +202,7 @@ export const {
   selectTreeCensus,
   deselectTreeCensus,
   clearTreeCensusDrafts,
+  resetTreeCensuses,
 } = treeCensusSlice.actions;
 
 export default treeCensusSlice.reducer;

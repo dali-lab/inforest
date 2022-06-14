@@ -55,7 +55,7 @@ const constructQuery = (params: TreePhotoParams) => {
     };
   }
   if (ids) {
-    query.where.ids = {
+    query.where.id = {
       [Op.in]: ids,
     };
   }

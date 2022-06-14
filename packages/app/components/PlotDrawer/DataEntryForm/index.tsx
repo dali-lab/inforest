@@ -1,10 +1,9 @@
-import { Tree, TreeCensus, TreeLabel } from "@ong-forestry/schema";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { Tree, TreeCensus } from "@ong-forestry/schema";
+import { useCallback, useMemo, useState } from "react";
 import { View, StyleSheet, ScrollView } from "react-native";
 import useAppDispatch from "../../../hooks/useAppDispatch";
 import useAppSelector from "../../../hooks/useAppSelector";
 import { RootState } from "../../../redux";
-import { locallyUpdateTree, updateTree } from "../../../redux/slices/treeSlice";
 import AppButton from "../../AppButton";
 import { Text, TextVariants } from "../../Themed";
 import FormProgress from "../FormProgress";
@@ -30,8 +29,8 @@ interface DataEntryFormProps {
   selectedTreeCensus: TreeCensus;
   cancel: () => void;
   finish: (newTreeCensus: TreeCensus) => void;
-  updateTreeDraft: (updated: Partial<Tree>) => void;
-  updateCensusDraft: (updated: Partial<TreeCensus>) => void;
+  editTree: (updated: Partial<Tree>) => void;
+  editTreeCensus: (updated: Partial<TreeCensus>) => void;
 }
 
 const DataEntryForm: React.FC<DataEntryFormProps & View["props"]> = ({
@@ -39,8 +38,8 @@ const DataEntryForm: React.FC<DataEntryFormProps & View["props"]> = ({
   style,
   selectedTree,
   selectedTreeCensus,
-  updateTreeDraft,
-  updateCensusDraft,
+  editTree,
+  editTreeCensus,
 }) => {
   const [stage, setStage] = useState<number>(0);
 
@@ -56,15 +55,12 @@ const DataEntryForm: React.FC<DataEntryFormProps & View["props"]> = ({
           </View>
           <View>
             {StageList[stage] == "META" && (
-              <MetaDataForm
-                selectedTree={selectedTree}
-                updateTreeDraft={updateTreeDraft}
-              />
+              <MetaDataForm selectedTree={selectedTree} editTree={editTree} />
             )}
             {StageList[stage] == "DATA" && (
               <DataForm
                 selectedCensus={selectedTreeCensus}
-                updateCensusDraft={updateCensusDraft}
+                editTreeCensus={editTreeCensus}
               />
             )}
             {StageList[stage] == "REVIEW" && (
@@ -112,13 +108,10 @@ const DataEntryForm: React.FC<DataEntryFormProps & View["props"]> = ({
 
 interface MetaFormProps {
   selectedTree: Tree;
-  updateTreeDraft: (changes: Partial<Tree>) => void;
+  editTree: (changes: Partial<Tree>) => void;
 }
 
-const MetaDataForm: React.FC<MetaFormProps> = ({
-  selectedTree,
-  updateTreeDraft,
-}) => {
+const MetaDataForm: React.FC<MetaFormProps> = ({ selectedTree, editTree }) => {
   const { all: allSpecies } = useAppSelector(
     (state: RootState) => state.treeSpecies
   );
@@ -137,14 +130,14 @@ const MetaDataForm: React.FC<MetaFormProps> = ({
           value={selectedTree?.tag || "0"}
           style={{ marginRight: 12 }}
           onConfirm={async (newValue) => {
-            updateTreeDraft({ tag: newValue });
+            editTree({ tag: newValue });
           }}
           formComponent={<TextField label="Tree Tag" textType="SHORT_TEXT" />}
         />
         <FieldController
           value={selectedTree?.speciesCode || ""}
           onConfirm={(newValue) => {
-            updateTreeDraft({ speciesCode: newValue });
+            editTree({ speciesCode: newValue });
           }}
           style={{ flex: 1, marginRight: 12 }}
           formComponent={
@@ -162,7 +155,7 @@ const MetaDataForm: React.FC<MetaFormProps> = ({
           value={selectedTree?.plotX?.toString() || "0"}
           style={{ marginRight: 12 }}
           onConfirm={(newValue) => {
-            updateTreeDraft({ plotX: Number(newValue) });
+            editTree({ plotX: Number(newValue) });
           }}
           formComponent={
             <TextField label="X Within Plot" textType="DECIMAL" suffix="m" />
@@ -171,7 +164,7 @@ const MetaDataForm: React.FC<MetaFormProps> = ({
         <FieldController
           value={selectedTree?.plotY?.toString() || "0"}
           onConfirm={(newValue) => {
-            updateTreeDraft({ plotY: Number(newValue) });
+            editTree({ plotY: Number(newValue) });
           }}
           formComponent={
             <TextField label="Y Within Plot" textType="DECIMAL" suffix="m" />
@@ -184,11 +177,11 @@ const MetaDataForm: React.FC<MetaFormProps> = ({
 
 interface DataFormProps {
   selectedCensus: TreeCensus;
-  updateCensusDraft: (changes: Partial<TreeCensus>) => void;
+  editTreeCensus: (changes: Partial<TreeCensus>) => void;
 }
 
 const DataForm: React.FC<DataFormProps> = ({
-  updateCensusDraft,
+  editTreeCensus,
   selectedCensus,
 }) => {
   const isConnected = useIsConnected();
@@ -224,7 +217,7 @@ const DataForm: React.FC<DataFormProps> = ({
           : locallyCreateTreeCensusLabel(newLabel)
       );
     },
-    [isConnected]
+    [dispatch, isConnected, selectedCensus.id]
   );
   const removeLabel = useCallback(
     (id: string) => {
@@ -234,7 +227,7 @@ const DataForm: React.FC<DataFormProps> = ({
           : locallyDeleteTreeCensusLabel(id)
       );
     },
-    [updateCensusDraft, isConnected]
+    [dispatch, isConnected]
   );
 
   return (
@@ -244,7 +237,7 @@ const DataForm: React.FC<DataFormProps> = ({
           value={selectedCensus?.dbh?.toString() || "0"}
           style={{ width: 120 }}
           onConfirm={(newValue) => {
-            updateCensusDraft({ dbh: Number(newValue) });
+            editTreeCensus({ dbh: Number(newValue) });
           }}
           formComponent={
             <TextField label="DBH" textType="INTEGER" suffix="cm" />
@@ -280,7 +273,7 @@ const DataForm: React.FC<DataFormProps> = ({
         <FieldController
           value={selectedCensus.notes || ""}
           onConfirm={(newValue) => {
-            updateCensusDraft({ notes: newValue });
+            editTreeCensus({ notes: newValue });
           }}
           style={{ flex: 1 }}
           formComponent={

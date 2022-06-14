@@ -1,8 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import { useEffect, useMemo, useState } from "react";
-import { Animated, Pressable, View } from "react-native";
-import { Queue, Stack } from "react-native-spacing-system";
+import { Animated, Pressable } from "react-native";
+import { Queue } from "react-native-spacing-system";
 import { BLUR_VIEW_INTENSITY, MapScreenModes } from "../../constants";
 import Colors from "../../constants/Colors";
 

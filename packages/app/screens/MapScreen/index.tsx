@@ -1,24 +1,17 @@
 import { useCallback, useState } from "react";
 import { Dimensions, StyleSheet, View } from "react-native";
-import { Plot } from "@ong-forestry/schema";
 import { MapScreenModes, MapScreenZoomLevels } from "../../constants";
 
-import { PermissionStatus } from "expo-modules-core";
 import useAppDispatch from "../../hooks/useAppDispatch";
-import { selectPlot, deselectPlot } from "../../redux/slices/plotSlice";
+import { selectPlot } from "../../redux/slices/plotSlice";
 import { deselectTree } from "../../redux/slices/treeSlice";
 import PlotView from "./PlotView";
 import ForestView from "./ExploreView";
 import { RouteProp, useRoute } from "@react-navigation/native";
 import { RootStackParamList } from "../../App";
-import ExploreView from "./ExploreView";
-import { getAllTreePhotoPurposes } from "../../redux/slices/treePhotoPurposeSlice";
-import { getForestForestCensuses } from "../../redux/slices/forestCensusSlice";
 import useAppSelector from "../../hooks/useAppSelector";
 import { deselectTreeCensus } from "../../redux/slices/treeCensusSlice";
-import { uploadCensusData } from "../../redux/slices/syncSlice";
 import Colors from "../../constants/Colors";
-import { Text } from "../../components/Themed";
 import { selectPlotCensus } from "../../redux/slices/plotCensusSlice";
 
 export default function MapScreen() {
@@ -56,7 +49,7 @@ export default function MapScreen() {
         dispatch(selectPlotCensus(byPlotActive[plot.id]));
       }
     },
-    [selectPlot, setZoomLevel, dispatch]
+    [setZoomLevel, dispatch, byPlotActive]
   );
 
   const endPlotting = useCallback(() => {

@@ -1,4 +1,3 @@
-import { ForestCensus } from "@ong-forestry/schema/src/forest-census";
 import React, { useEffect, useMemo } from "react";
 import {
   Image,
@@ -9,54 +8,38 @@ import {
   View,
 } from "react-native";
 import { Text, TextStyles, TextVariants } from "../../components/Themed";
-import useAppDispatch from "../../hooks/useAppDispatch";
 import useAppSelector from "../../hooks/useAppSelector";
 import { useIsConnected } from "react-native-offline";
 import { RootState } from "../../redux";
-import {
-  changeForest,
-  getForest,
-  getForests,
-} from "../../redux/slices/forestSlice";
-import { FOREST_ID } from "../../constants/dev";
-import { getForestTrees } from "../../redux/slices/treeSlice";
-import { getForestPlots } from "../../redux/slices/plotSlice";
-import { getAllTreeSpecies } from "../../redux/slices/treeSpeciesSlice";
-import MapView from "react-native-maps";
-import { BlurView } from "expo-blur";
+import { selectForest, getForests } from "../../redux/slices/forestSlice";
 import { Queue, Stack } from "react-native-spacing-system";
 import { useNavigation } from "@react-navigation/native";
 import ForestView from "../MapScreen/ExploreView";
-import { Picker } from "@react-native-picker/picker";
 import { useDispatch } from "react-redux";
-import {
-  getForestTreeCensuses,
-  selectTreeCensus,
-} from "../../redux/slices/treeCensusSlice";
 import Colors from "../../constants/Colors";
-import { getAllTreeLabels } from "../../redux/slices/treeLabelSlice";
-import { getAllTreePhotoPurposes } from "../../redux/slices/treePhotoPurposeSlice";
-import { getForestForestCensuses } from "../../redux/slices/forestCensusSlice";
 import {
   convertToNaturalLanguage,
   MapScreenModes,
   MapScreenZoomLevels,
 } from "../../constants";
-import {
-  getForestCensusPlotCensuses,
-  getPlotCensuses,
-} from "../../redux/slices/plotCensusSlice";
 import AppButton from "../../components/AppButton";
 import { Ionicons } from "@expo/vector-icons";
 import { PlotCensusStatuses } from "@ong-forestry/schema";
 import RNPickerSelect from "react-native-picker-select";
-import { uploadCensusData } from "../../redux/slices/syncSlice";
+import {
+  loadForestData,
+  resetData,
+  uploadCensusData,
+} from "../../redux/slices/syncSlice";
+import { TEAM_ID } from "../../constants/dev";
 
 const TABLE_COLUMN_WIDTHS = {
   PLOT_NUMBER: 96,
   STATUS: 128,
   ACTION: 96,
 };
+
+const selectedTeam = TEAM_ID;
 
 export const HomeScreen = () => {
   const navigation = useNavigation();
@@ -69,25 +52,23 @@ export const HomeScreen = () => {
   const dispatch = useDispatch();
   useEffect(() => {
     if (isConnected && rehydrated) {
-      dispatch(getForests());
-      dispatch(getForest({ id: FOREST_ID }));
-      dispatch(getForestPlots({ forestId: FOREST_ID }));
-      dispatch(
-        getForestTrees({
-          forestId: FOREST_ID,
-        })
-      );
-      dispatch(getForestTreeCensuses({ forestId: FOREST_ID }));
-      dispatch(getAllTreeSpecies());
-      dispatch(getAllTreeLabels());
-      dispatch(getAllTreePhotoPurposes());
-      dispatch(getForestForestCensuses({ forestId: FOREST_ID }));
-      dispatch(getPlotCensuses());
+      try {
+        dispatch(resetData());
+        dispatch(getForests());
+      } catch (err) {
+        alert(
+          "Unable to load data. If your connection is reliable, this is likely due to a server error."
+        );
+      }
+    } else if (!isConnected) {
+      dispatch(uploadCensusData());
     }
-  }, [dispatch, isConnected, rehydrated]);
-  const { currentForest, currentTeamForests: allForests } = useAppSelector(
-    (state: RootState) => state.forest
-  );
+  }, [isConnected, rehydrated]);
+  const {
+    all: allForests,
+    selected: selectedForest,
+    indices: { byTeam },
+  } = useAppSelector((state: RootState) => state.forest);
   const { selected, all: allForestCensuses } = useAppSelector(
     (state: RootState) => state.forestCensuses
   );
@@ -95,10 +76,32 @@ export const HomeScreen = () => {
   const { all: allPlotCensus } = useAppSelector(
     (state: RootState) => state.plotCensuses
   );
-
   const { height: windowHeight, width: windowWidth } = useWindowDimensions();
 
-  if (!currentForest) {
+  const availableForests = useMemo(
+    () => Array.from(byTeam?.[selectedTeam] || []).map((id) => allForests[id]),
+    [byTeam]
+  );
+
+  useEffect(() => {
+    if (!selectedForest && availableForests.length > 0)
+      dispatch(selectForest(availableForests[0].id));
+  }, [selectedForest, availableForests, dispatch]);
+
+  useEffect(() => {
+    if (isConnected && rehydrated && selectedForest) {
+      console.log("e");
+      try {
+        dispatch(loadForestData(selectedForest));
+      } catch (err) {
+        alert(
+          "Unable to load data. If your connection is reliable, this is likely due to a server error."
+        );
+      }
+    }
+  }, [isConnected, rehydrated, selectedForest]);
+
+  if (!selectedForest) {
     return (
       <View>
         <Text>Loading...</Text>
@@ -137,9 +140,9 @@ export const HomeScreen = () => {
       <View style={{ flexDirection: "row" }}>
         <RNPickerSelect
           itemKey="id"
-          value={currentForest?.id}
+          value={selectedForest}
           onValueChange={(value) => console.log(value)}
-          items={allForests.map(({ name, id }) => ({
+          items={availableForests.map(({ name, id }) => ({
             label: name,
             value: id,
           }))}
@@ -194,24 +197,6 @@ export const HomeScreen = () => {
       <View
         style={{ position: "relative", borderRadius: 12, overflow: "hidden" }}
       >
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            position: "absolute",
-            top: 24,
-            right: 24,
-            zIndex: 1,
-          }}
-        >
-          <Ionicons
-            name="ios-open-outline"
-            size={TextStyles[TextVariants.Label].fontSize}
-            style={{ marginTop: 1 }}
-          ></Ionicons>
-          <Queue size={TextStyles[TextVariants.Label].fontSize / 2}></Queue>
-          <Text variant={TextVariants.Label}>Tap to open full map</Text>
-        </View>
         <Pressable
           style={{
             width: "100%",
@@ -225,6 +210,24 @@ export const HomeScreen = () => {
             });
           }}
         >
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              position: "absolute",
+              top: 24,
+              right: 24,
+              zIndex: 1,
+            }}
+          >
+            <Ionicons
+              name="ios-open-outline"
+              size={TextStyles[TextVariants.Label].fontSize}
+              style={{ marginTop: 1 }}
+            ></Ionicons>
+            <Queue size={TextStyles[TextVariants.Label].fontSize / 2}></Queue>
+            <Text variant={TextVariants.Label}>Tap to open full map</Text>
+          </View>
           <ForestView
             mode={MapScreenModes.Plot}
             switchMode={() => {}}

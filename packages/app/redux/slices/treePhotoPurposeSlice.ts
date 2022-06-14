@@ -32,7 +32,9 @@ export const getAllTreePhotoPurposes = createAsyncThunk(
 export const treePhotoPurposeSlice = createSlice({
   name: "treePhotoPurpose",
   initialState,
-  reducers: {},
+  reducers: {
+    resetTreePhotoPurposes: () => initialState,
+  },
   extraReducers: (builder) => {
     builder.addCase(getAllTreePhotoPurposes.fulfilled, (state, action) => {
       action.payload.forEach((treePhotoPurpose) => {
@@ -42,5 +44,7 @@ export const treePhotoPurposeSlice = createSlice({
     });
   },
 });
+
+export const { resetTreePhotoPurposes } = treePhotoPurposeSlice.actions;
 
 export default treePhotoPurposeSlice.reducer;

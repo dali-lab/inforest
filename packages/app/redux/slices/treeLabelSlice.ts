@@ -30,7 +30,9 @@ export const getAllTreeLabels = createAsyncThunk(
 export const treeLabelSlice = createSlice({
   name: "treeLabel",
   initialState,
-  reducers: {},
+  reducers: {
+    resetTreeLabels: () => initialState,
+  },
   extraReducers: (builder) => {
     builder.addCase(getAllTreeLabels.fulfilled, (state, action) => {
       action.payload.forEach((treeLabel) => {
@@ -40,5 +42,7 @@ export const treeLabelSlice = createSlice({
     });
   },
 });
+
+export const { resetTreeLabels } = treeLabelSlice.actions;
 
 export default treeLabelSlice.reducer;

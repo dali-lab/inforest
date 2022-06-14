@@ -8,9 +8,28 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
 import { RootState } from "..";
 import SERVER_URL from "../../constants/Url";
-import { clearTreeDrafts } from "./treeSlice";
-import { clearTreeCensusDrafts } from "./treeCensusSlice";
-import { clearTreePhotoDrafts } from "./treePhotoSlice";
+import { clearTreeDrafts, getForestTrees, resetTrees } from "./treeSlice";
+import {
+  clearTreeCensusDrafts,
+  getForestTreeCensuses,
+  resetTreeCensuses,
+} from "./treeCensusSlice";
+import { clearTreePhotoDrafts, resetTreePhotos } from "./treePhotoSlice";
+import { FOREST_ID } from "../../constants/dev";
+import {
+  getForestForestCensuses,
+  resetForestCensuses,
+} from "./forestCensusSlice";
+import { getForests, getForest, resetForests } from "./forestSlice";
+import { getPlotCensuses, resetPlotCensuses } from "./plotCensusSlice";
+import { getForestPlots, resetPlots } from "./plotSlice";
+import { getAllTreeLabels, resetTreeLabels } from "./treeLabelSlice";
+import {
+  getAllTreePhotoPurposes,
+  resetTreePhotoPurposes,
+} from "./treePhotoPurposeSlice";
+import { getAllTreeSpecies, resetTreeSpecies } from "./treeSpeciesSlice";
+import { resetTreeCensusLabels } from "./treeCensusLabelSlice";
 
 const BASE_URL = SERVER_URL + "sync";
 
@@ -72,10 +91,39 @@ export const uploadCensusData = createAsyncThunk(
   }
 );
 
+export const loadForestData = createAsyncThunk(
+  "sync/loadForestData",
+  async (forestId: string, { dispatch }) => {
+    dispatch(getForest({ id: forestId }));
+    dispatch(getForestPlots({ forestId }));
+    dispatch(getForestTrees({ forestId }));
+    dispatch(getForestTreeCensuses({ forestId }));
+    dispatch(getAllTreeSpecies());
+    dispatch(getAllTreeLabels());
+    dispatch(getAllTreePhotoPurposes());
+    dispatch(getForestForestCensuses({ forestId }));
+    dispatch(getPlotCensuses());
+  }
+);
+
 export const syncSlice = createSlice({
   name: "sync",
   initialState,
-  reducers: {},
+  reducers: {
+    resetData: (state) => {
+      resetForests();
+      resetForestCensuses();
+      resetPlots();
+      resetPlotCensuses();
+      resetTrees();
+      resetTreeCensuses();
+      resetTreeCensusLabels();
+      resetTreeLabels();
+      resetTreePhotoPurposes();
+      resetTreePhotos();
+      resetTreeSpecies();
+    },
+  },
   extraReducers: (builder) => {
     builder.addCase(uploadCensusData.fulfilled, (state, action) => {
       clearTreeDrafts();
@@ -84,5 +132,7 @@ export const syncSlice = createSlice({
     });
   },
 });
+
+export const { resetData } = syncSlice.actions;
 
 export default syncSlice.reducer;

@@ -14,7 +14,6 @@ module.exports = {
         },
         { transaction }
       );
-      console.log("CHANGED!!");
       await transaction.commit();
     } catch (err) {
       console.error(err);
