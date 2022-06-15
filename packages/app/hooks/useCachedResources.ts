@@ -2,12 +2,6 @@ import { FontAwesome } from "@expo/vector-icons";
 import * as Font from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
-import { FOREST_ID } from "../constants/dev";
-import { getForest, getForests } from "../redux/slices/forestSlice";
-import { getForestPlots } from "../redux/slices/plotSlice";
-import { getForestTrees } from "../redux/slices/treeSlice";
-import { getAllTreeSpecies } from "../redux/slices/treeSpeciesSlice";
-import useAppDispatch from "./useAppDispatch";
 
 export default function useCachedResources() {
   const [isLoadingComplete, setLoadingComplete] = useState(false);

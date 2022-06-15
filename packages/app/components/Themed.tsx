@@ -81,16 +81,18 @@ export function Text({
   ...otherProps
 }: TextProps) {
   const additionalStyling: StyleProp<TextStyle> = {
-    ...(TextStyles[variant] as object),
+    ...(TextStyles[variant] as TextStyle),
     textAlignVertical: "center",
   };
 
   switch (spacing) {
     case "TIGHT":
-      additionalStyling.lineHeight = additionalStyling.fontSize! * 1.33;
+      additionalStyling.lineHeight =
+        (additionalStyling.fontSize as number) * 1.33;
       break;
     case "LOOSE":
-      additionalStyling.lineHeight = additionalStyling.fontSize! * 1.5;
+      additionalStyling.lineHeight =
+        (additionalStyling.fontSize as number) * 1.5;
       break;
   }
 

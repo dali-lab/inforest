@@ -1,4 +1,4 @@
-import { PlotCensus, PlotCensusStatuses, Tree } from "@ong-forestry/schema";
+import { PlotCensusStatuses, Tree } from "@ong-forestry/schema";
 
 export enum MapScreenModes {
   Explore = "EXPLORE",

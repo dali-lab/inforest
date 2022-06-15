@@ -3,7 +3,7 @@ import { Animated, Pressable, StyleSheet, View } from "react-native";
 import * as utm from "utm";
 import DashedLine from "react-native-dashed-line";
 import { getRandomBytes } from "expo-random";
-import { Plot, PlotCensus, TreeCensus } from "@ong-forestry/schema";
+import { Plot, PlotCensus } from "@ong-forestry/schema";
 import Colors from "../constants/Colors";
 import { Text, TextVariants } from "./Themed";
 import {
@@ -26,9 +26,7 @@ import {
 import useAppDispatch from "../hooks/useAppDispatch";
 import AppButton from "./AppButton";
 import {
-  createTreeCensus,
   deselectTreeCensus,
-  locallyCreateTreeCensus,
   selectTreeCensus,
 } from "../redux/slices/treeCensusSlice";
 import { useIsConnected } from "react-native-offline";
@@ -53,20 +51,9 @@ interface PlottingSheetProps {
 const STAKE_LABEL_HEIGHT = 18 + 8;
 const STAKE_LABEL_WIDTH = 36 + 16;
 
-const blankTreeCensus: Omit<
-  TreeCensus,
-  "id" | "treeId" | "plotCensusId" | "authorId"
-> = {
-  dbh: 0,
-  labels: [],
-  photos: [],
-  flagged: false,
-};
-
 export const PlottingSheet: React.FC<PlottingSheetProps> = ({
   mode,
   plot,
-  plotCensus,
   stakeNames,
   mapWidth,
   direction = 0,
@@ -125,7 +112,6 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
   } = useAppSelector((state) => state.trees);
   const {
     indices: { byTreeActive },
-    selected: selectedTreeCensusId,
   } = useAppSelector((state) => state.treeCensuses);
   const selectedTree = useMemo(
     () => (selectedTreeId ? all[selectedTreeId] : undefined),
@@ -165,20 +151,6 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
     });
   }, [animatedPlotRotationAngle]);
 
-  // const createCensus = useCallback(async () => {
-  //   if (!selectedTree || !plotCensus) return;
-  //   const newCensus = {
-  //     ...blankTreeCensus,
-  //     treeId: selectedTree.id,
-  //     plotCensusId: plotCensus.id,
-  //   };
-  //   isConnected
-  //     ? await dispatch(createTreeCensus(newCensus))
-  //     : dispatch(locallyCreateTreeCensus(newCensus));
-  //   setMarkerPos(undefined);
-  //   expandDrawer();
-  // }, [dispatch, expandDrawer, isConnected, plotCensus, selectedTree]);
-
   const createPlotAndCensus = useCallback(async () => {
     if (!markerPos) return;
     const { easting, northing, zoneNum, zoneLetter } = utm.fromLatLon(
@@ -208,7 +180,6 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
       : dispatch(locallyDraftNewTree(newTree));
     setMarkerPos(undefined);
   }, [
-    // createCensus,
     dispatch,
     isConnected,
     markerLocToMeters,

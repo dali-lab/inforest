@@ -63,7 +63,7 @@ export const HomeScreen = () => {
     } else if (!isConnected) {
       dispatch(uploadCensusData());
     }
-  }, [isConnected, rehydrated]);
+  }, [isConnected, rehydrated, dispatch]);
   const {
     all: allForests,
     selected: selectedForest,
@@ -80,7 +80,7 @@ export const HomeScreen = () => {
 
   const availableForests = useMemo(
     () => Array.from(byTeam?.[selectedTeam] || []).map((id) => allForests[id]),
-    [byTeam]
+    [byTeam, allForests]
   );
 
   useEffect(() => {
@@ -90,7 +90,6 @@ export const HomeScreen = () => {
 
   useEffect(() => {
     if (isConnected && rehydrated && selectedForest) {
-      console.log("e");
       try {
         dispatch(loadForestData(selectedForest));
       } catch (err) {
@@ -99,7 +98,7 @@ export const HomeScreen = () => {
         );
       }
     }
-  }, [isConnected, rehydrated, selectedForest]);
+  }, [isConnected, rehydrated, selectedForest, dispatch]);
 
   if (!selectedForest) {
     return (

@@ -1,18 +1,17 @@
-import React, { useState, useCallback, useEffect, useMemo } from "react";
+import React, { useCallback, useMemo } from "react";
 import { FlatList, Pressable, View, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import {
   useCameraPermissions,
   ImagePickerOptions,
   launchCameraAsync,
-  launchImageLibraryAsync,
 } from "expo-image-picker";
 import useAppSelector from "../../../hooks/useAppSelector";
 import { RootState } from "../../../redux";
 import { Text, TextVariants } from "../../Themed";
 import FieldWrapper from "../FieldWrapper";
 import PhotoItem from "./PhotoItem";
-import { TreeCensus, TreePhoto, TreePhotoPurpose } from "@ong-forestry/schema";
+import { TreeCensus, TreePhoto } from "@ong-forestry/schema";
 import useAppDispatch from "../../../hooks/useAppDispatch";
 import {
   locallyDeleteTreePhoto,
@@ -70,12 +69,12 @@ const PhotoField: React.FC<PhotoFieldProps> = ({ census }) => {
           : locallyCreateTreePhoto(parsedPhoto)
       );
     }
-  }, [census.id, dispatch, requestPermission, status]);
+  }, [census.id, dispatch, requestPermission, status, isConnected]);
   const removePhoto = useCallback(
     async (id: string) => {
       dispatch(isConnected ? deleteTreePhoto(id) : locallyDeleteTreePhoto(id));
     },
-    [dispatch]
+    [dispatch, isConnected]
   );
   const setPhotoPurpose = useCallback(
     async (photo: TreePhoto, purposeName: string) => {
@@ -85,7 +84,7 @@ const PhotoField: React.FC<PhotoFieldProps> = ({ census }) => {
           : locallyUpdateTreePhoto({ ...photo, purposeName })
       );
     },
-    [dispatch]
+    [dispatch, isConnected]
   );
   const purposesOptions = useMemo(
     () =>

@@ -1,11 +1,9 @@
 import { TreePhoto } from "@ong-forestry/schema";
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { isArray } from "lodash";
 import uuid from "uuid";
 import axios from "axios";
-import { decode } from "base64-arraybuffer";
 import SERVER_URL from "../../constants/Url";
-import { produce } from "immer";
+import { UpsertAction } from "..";
 
 const BASE_URL = SERVER_URL + "trees/photos";
 
@@ -29,7 +27,7 @@ const initialState: TreePhotoState = {
 
 export const createTreePhoto = createAsyncThunk(
   "treePhoto/createTreePhoto",
-  async (params: Omit<TreePhoto, "id"> & { buffer: string }, thunkApi) => {
+  async (params: Omit<TreePhoto, "id"> & { buffer: string }) => {
     return await axios.post(BASE_URL, params, {}).then((response) => {
       return response.data;
     });
@@ -55,15 +53,13 @@ export const deleteTreePhoto = createAsyncThunk(
   }
 );
 
-export const upsertTreePhotos = (state: TreePhotoState, action: any) => {
-  let newPhotos: TreePhoto[];
-  if (action?.draft) {
-    newPhotos = action.data;
-  } else newPhotos = action;
-  if (!isArray(newPhotos)) newPhotos = [newPhotos];
+export const upsertTreePhotos = (
+  state: TreePhotoState,
+  action: UpsertAction<TreePhoto>
+) => {
+  const newPhotos: TreePhoto[] = action.data;
   newPhotos.forEach((newPhoto) => {
     if (!newPhoto?.id) newPhoto.id = uuid.v4();
-    if (!action?.rehydrate) state.all[newPhoto.id] = newPhoto;
     // add to drafts
     if (action?.draft) state.drafts.add(newPhoto.id);
     if (!(newPhoto.treeCensusId in state.indices.byTreeCensus))
@@ -89,7 +85,7 @@ export const treePhotoSlice = createSlice({
   initialState,
   reducers: {
     locallyCreateTreePhoto: (state, action) => {
-      return upsertTreePhotos(state, { data: action.payload, draft: true });
+      return upsertTreePhotos(state, { data: [action.payload], draft: true });
     },
     locallyDeleteTreePhoto: (state, action: { payload: string }) => {
       state.localDeletions.add(action.payload);
@@ -110,11 +106,11 @@ export const treePhotoSlice = createSlice({
     resetTreePhotos: () => initialState,
   },
   extraReducers: (builder) => {
-    builder.addCase(createTreePhoto.fulfilled, (state, action: any) => {
-      return upsertTreePhotos(state, action.payload);
+    builder.addCase(createTreePhoto.fulfilled, (state, action) => {
+      return upsertTreePhotos(state, { data: action.payload });
     });
     builder.addCase(updateTreePhoto.fulfilled, (state, action) => {
-      return upsertTreePhotos(state, action.payload);
+      return upsertTreePhotos(state, { data: action.payload });
     });
     builder.addCase(deleteTreePhoto.fulfilled, (state, action) => {
       return deleteTreePhotos(state, [action.meta.arg]);

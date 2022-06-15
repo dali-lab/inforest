@@ -11,7 +11,7 @@ import SelectField from "../SelectField";
 import Colors from "../../../constants/Colors";
 import { Text, TextVariants } from "../../Themed";
 import { Ionicons } from "@expo/vector-icons";
-import { TreePhoto, TreePhotoPurpose } from "@ong-forestry/schema";
+import { TreePhoto } from "@ong-forestry/schema";
 
 interface PhotoItemProps {
   item: ListRenderItemInfo<TreePhoto>;
@@ -49,8 +49,7 @@ const PhotoItem: React.FC<PhotoItemProps> = ({
         <FieldController
           value={item?.purposeName || ""}
           onConfirm={(newValue) => {
-            //@ts-ignore
-            setPurpose(newValue as TreePhotoPurpose);
+            setPurpose(newValue);
           }}
           formComponent={
             <Text variant={TextVariants.Label} style={{ marginVertical: 4 }}>

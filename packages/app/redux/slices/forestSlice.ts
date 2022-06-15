@@ -2,7 +2,7 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { Forest } from "@ong-forestry/schema";
 import SERVER_URL from "../../constants/Url";
 import axios from "axios";
-import { isArray } from "lodash";
+import { UpsertAction } from "..";
 
 const BASE_URL = SERVER_URL + "forests";
 
@@ -27,7 +27,7 @@ export const getForest = createAsyncThunk(
     return await axios
       .get<Forest[]>(`${BASE_URL}?id=${params.id}`)
       .then((response) => {
-        return response.data[0];
+        return response.data;
       })
       .catch((e) => {
         throw e;
@@ -50,12 +50,8 @@ const initialState: ForestState = {
   selected: undefined,
 };
 
-const upsertForests = (state: ForestState, action: any) => {
-  let newForests;
-  if (action?.data) {
-    newForests = action.data;
-  } else newForests = action;
-  if (!isArray(newForests)) newForests = [newForests];
+const upsertForests = (state: ForestState, action: UpsertAction<Forest>) => {
+  const newForests = action.data;
   newForests.forEach((newForest) => {
     state.all[newForest.id] = newForest;
     if (!(newForest.teamId in state.indices.byTeam))
@@ -77,10 +73,10 @@ export const forestSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder.addCase(getForests.fulfilled, (state, action) => {
-      return upsertForests(state, action.payload);
+      return upsertForests(state, { data: action.payload });
     });
     builder.addCase(getForest.fulfilled, (state, action) => {
-      return upsertForests(state, action.payload);
+      return upsertForests(state, { data: action.payload });
     });
   },
 });

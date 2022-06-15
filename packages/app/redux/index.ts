@@ -1,9 +1,4 @@
-import {
-  AnyAction,
-  combineReducers,
-  configureStore,
-  createSlice,
-} from "@reduxjs/toolkit";
+import { AnyAction, combineReducers, configureStore } from "@reduxjs/toolkit";
 import {
   userReducer,
   forestReducer,
@@ -37,27 +32,7 @@ import { createTransform, persistReducer, persistStore } from "redux-persist";
 import hardSet from "redux-persist/lib/stateReconciler/hardSet";
 import ExpoFileSystemStorage from "redux-persist-expo-filesystem";
 import { enableMapSet } from "immer";
-import { isArray, isObject } from "lodash";
-import {
-  getForestForestCensuses,
-  resetForestCensuses,
-} from "./slices/forestCensusSlice";
-import { getForest, resetForests } from "./slices/forestSlice";
-import { getPlotCensuses, resetPlotCensuses } from "./slices/plotCensusSlice";
-import { getForestPlots, resetPlots } from "./slices/plotSlice";
-import {
-  getForestTreeCensuses,
-  resetTreeCensuses,
-} from "./slices/treeCensusSlice";
-import { getAllTreeLabels, resetTreeLabels } from "./slices/treeLabelSlice";
-import {
-  getAllTreePhotoPurposes,
-  resetTreePhotoPurposes,
-} from "./slices/treePhotoPurposeSlice";
-import { getForestTrees, resetTrees } from "./slices/treeSlice";
-import { getAllTreeSpecies, resetTreeSpecies } from "./slices/treeSpeciesSlice";
-import { resetTreeCensusLabels } from "./slices/treeCensusLabelSlice";
-import { resetTreePhotos } from "./slices/treePhotoSlice";
+import { isArray } from "lodash";
 
 enableMapSet();
 
@@ -99,13 +74,13 @@ const reducers = {
 const rootReducer = combineReducers<RootState>(reducers);
 
 const DraftSetTransform = createTransform(
-  (inboundState: RootState[keyof RootState], key) => {
+  (inboundState: RootState[keyof RootState]) => {
     if (inboundState?.drafts) {
       return { ...inboundState, drafts: Array.from(inboundState.drafts) };
     }
     return inboundState;
   },
-  (outboundState: RootState[keyof RootState], key) => {
+  (outboundState: RootState[keyof RootState]) => {
     if (outboundState?.drafts) {
       return { ...outboundState, drafts: new Set(outboundState.drafts) };
     }
@@ -118,7 +93,7 @@ const DraftSetTransform = createTransform(
 // This function will need to be edited if the structure of our indices changes
 // since it assumes all indices are of type Record<string, Set<string>>
 const IndicesTransform = createTransform(
-  (inboundState: RootState[keyof RootState], key) => {
+  (inboundState: RootState[keyof RootState]) => {
     const indices: RootState[keyof RootState]["indices"] = {};
     if (inboundState?.indices) {
       for (const index of Object.keys(inboundState.indices)) {
@@ -135,7 +110,7 @@ const IndicesTransform = createTransform(
     }
     return inboundState;
   },
-  (outboundState: RootState[keyof RootState], key) => {
+  (outboundState: RootState[keyof RootState]) => {
     const indices: RootState[keyof RootState]["indices"] = {};
     if (outboundState?.indices) {
       for (const index of Object.keys(outboundState.indices)) {
@@ -185,3 +160,9 @@ export const store = configureStore({
 export const persistor = persistStore(store, {});
 
 export type AppDispatch = typeof store.dispatch;
+
+export type UpsertAction<Model> = {
+  data: Model[];
+  draft?: boolean;
+  selectFinal?: boolean;
+};

@@ -2,10 +2,8 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { Tree } from "@ong-forestry/schema";
 import axios from "axios";
 import uuid from "react-native-uuid";
-import { isArray } from "lodash";
 import SERVER_URL from "../../constants/Url";
-import { WritableDraft } from "immer/dist/internal";
-import { produce } from "immer";
+import { UpsertAction } from "..";
 
 const BASE_URL = SERVER_URL + "trees";
 
@@ -35,7 +33,7 @@ export const getForestTrees = createAsyncThunk(
 
 export const createTree = createAsyncThunk(
   "tree/createTree",
-  async (newTree: Partial<Tree>, thunkApi) => {
+  async (newTree: Partial<Tree>) => {
     // thunkApi.dispatch(locallyDraftNewTree(newTree));
     // todo handle failure
     return await axios
@@ -46,7 +44,7 @@ export const createTree = createAsyncThunk(
 
 export const updateTree = createAsyncThunk(
   "tree/updateTree",
-  async (treeUpdates: Tree, thunkApi) => {
+  async (treeUpdates: Tree) => {
     const { id, ...updates } = treeUpdates;
     return await axios
       .patch(`${BASE_URL}/${id}`, updates)
@@ -63,17 +61,17 @@ export const deleteTree = createAsyncThunk(
   }
 );
 
-type TreeNumericalIndexItem = {
-  value: number;
-  id: string;
-};
+// type TreeNumericalIndexItem = {
+//   value: number;
+//   id: string;
+// };
 
-type TreeNumericalIndex = Set<TreeNumericalIndexItem>;
+// type TreeNumericalIndex = Set<TreeNumericalIndexItem>;
 
-const treeNumericalIndexComparator = (
-  a: TreeNumericalIndexItem,
-  b: TreeNumericalIndexItem
-) => a.value - b.value;
+// const treeNumericalIndexComparator = (
+//   a: TreeNumericalIndexItem,
+//   b: TreeNumericalIndexItem
+// ) => a.value - b.value;
 
 export interface TreeState {
   all: Record<string, Tree>;
@@ -102,13 +100,9 @@ const initialState: TreeState = {
 };
 
 // takes the state and the action payload(!!) and returns the updated state with the payload's trees added. used for downloading, drafting, and rehydrating
-export const upsertTrees = (state: TreeState, action: any) => {
-  let newTrees: Tree[];
-  if (action?.data) {
-    newTrees = action.data;
-  } else newTrees = action;
-  if (!isArray(newTrees)) newTrees = [newTrees];
-  newTrees.forEach((newTree, i) => {
+export const upsertTrees = (state: TreeState, action: UpsertAction<Tree>) => {
+  const newTrees: Tree[] = action.data;
+  newTrees.forEach((newTree) => {
     if (!newTree?.id) newTree.id = uuid.v4().toString();
     state.all[newTree.id] = newTree;
     // add to drafts
@@ -146,7 +140,7 @@ export const treeSlice = createSlice({
   reducers: {
     locallyDraftNewTree: (state, action) => {
       return upsertTrees(state, {
-        data: action.payload,
+        data: [action.payload],
         draft: true,
         selectFinal: true,
       });
@@ -179,14 +173,14 @@ export const treeSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder.addCase(getForestTrees.fulfilled, (state, action) => {
-      return upsertTrees(state, action.payload);
+      return upsertTrees(state, { data: action.payload });
     });
     builder.addCase(createTree.fulfilled, (state, action) => {
       state.selected = action.payload.id;
-      return upsertTrees(state, action.payload);
+      return upsertTrees(state, { data: action.payload });
     });
     builder.addCase(updateTree.fulfilled, (state, action) => {
-      return upsertTrees(state, action.payload);
+      return upsertTrees(state, { data: action.payload });
     });
     builder.addCase(deleteTree.fulfilled, (state, action) => {
       return deleteTrees(state, [action.meta.arg]);

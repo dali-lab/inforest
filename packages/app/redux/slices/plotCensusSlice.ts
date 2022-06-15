@@ -2,8 +2,8 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { PlotCensus } from "@ong-forestry/schema";
 import SERVER_URL from "../../constants/Url";
 import axios from "axios";
-import { isArray } from "lodash";
 import uuid from "uuid";
+import { UpsertAction } from "..";
 
 const BASE_URL = SERVER_URL + "plots/census";
 
@@ -60,18 +60,16 @@ const initialState: PlotCensusState = {
   },
 };
 
-const upsertPlotCensuses = (state: PlotCensusState, action: any) => {
-  let newCensuses;
-  if (action?.data) {
-    newCensuses = action.data;
-  } else newCensuses = action;
-  if (!isArray(newCensuses)) newCensuses = [newCensuses];
+const upsertPlotCensuses = (
+  state: PlotCensusState,
+  action: UpsertAction<PlotCensus>
+) => {
+  const newCensuses = action.data;
   newCensuses.forEach((newCensus) => {
     if (!newCensus?.id) newCensus.id = uuid.v4();
-    if (!action?.rehydrate) state.all[newCensus.id] = newCensus;
+    state.all[newCensus.id] = newCensus;
     if (!(newCensus.forestCensusId in state.indices.byForestCensuses))
       state.indices.byForestCensuses[newCensus.forestCensusId] = new Set([]);
-
     state.indices.byForestCensuses[newCensus.forestCensusId].add(newCensus.id);
     if (!(newCensus.plotId in state.indices.byPlots))
       state.indices.byPlots[newCensus.plotId] = new Set([]);
@@ -99,10 +97,10 @@ export const plotCensusSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder.addCase(getPlotCensuses.fulfilled, (state, action) => {
-      return upsertPlotCensuses(state, action.payload);
+      return upsertPlotCensuses(state, { data: action.payload });
     });
     builder.addCase(getForestCensusPlotCensuses.fulfilled, (state, action) => {
-      return upsertPlotCensuses(state, action.payload);
+      return upsertPlotCensuses(state, { data: action.payload });
     });
     builder.addCase(createPlotCensus.fulfilled, (state, action) => {
       return upsertPlotCensuses(state, {

@@ -123,13 +123,12 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
   } = useAppSelector((state: RootState) => state.trees);
   const {
     all: allTreeCensuses,
-    indices: { byPlotCensus, byTreeActive },
+    indices: { byTreeActive },
   } = useAppSelector((state: RootState) => state.treeCensuses);
   const {
     all: allPlots,
     latitude,
     longitude,
-    indices: plotIndices,
     selected: selectedPlotId,
   } = useAppSelector((state: RootState) => state.plots);
   const { all: allForestCensuses } = useAppSelector(
@@ -138,10 +137,7 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
   const {
     all: allPlotCensuses,
     selected: selectedPlotCensusId,
-    indices: {
-      byPlotActive: plotCensusesByActivePlot,
-      byPlots: plotCensusesByPlot,
-    },
+    indices: { byPlotActive: plotCensusesByActivePlot },
   } = useAppSelector((state: RootState) => state.plotCensuses);
   const { colorMap } = useAppSelector((state: RootState) => state.treeSpecies);
 
@@ -160,7 +156,7 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
         },
       };
     } else return;
-  }, [plotIndices, latitude, longitude, plotIndices]);
+  }, [latitude, longitude]);
 
   const selectedPlot = useMemo(
     () => (selectedPlotId && allPlots?.[selectedPlotId]) || undefined,

@@ -1,9 +1,9 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { TreeCensusLabel } from "@ong-forestry/schema";
 import axios from "axios";
-import { isArray } from "lodash";
 import uuid from "uuid";
 import SERVER_URL from "../../constants/Url";
+import { UpsertAction } from "..";
 
 const BASE_URL = SERVER_URL + "trees/censuses/labels";
 
@@ -47,14 +47,10 @@ const initialState: TreeCensusLabelState = {
 
 export const upsertTreeCensusLabels = (
   state: TreeCensusLabelState,
-  action: any
+  action: UpsertAction<TreeCensusLabel>
 ) => {
-  let newCensusLabels = [];
-  if (action?.data) {
-    newCensusLabels = action.data;
-  } else newCensusLabels = action;
-  if (!isArray(newCensusLabels)) newCensusLabels = [newCensusLabels];
-  newCensusLabels.forEach((newCensusLabel, i) => {
+  const newCensusLabels = action.data;
+  newCensusLabels.forEach((newCensusLabel) => {
     if (!newCensusLabel?.id) newCensusLabel.id = uuid.v4();
     state.all[newCensusLabel.id] = newCensusLabel;
     if (action?.draft) state.drafts.add(newCensusLabel.id);
@@ -86,7 +82,7 @@ export const treeCensusLabelSlice = createSlice({
   reducers: {
     locallyCreateTreeCensusLabel: (state, action) => {
       return upsertTreeCensusLabels(state, {
-        data: action.payload,
+        data: [action.payload],
         draft: true,
       });
     },
@@ -94,7 +90,7 @@ export const treeCensusLabelSlice = createSlice({
       state.localDeletions.add(action.payload);
       return deleteTreeCensusLabels(state, [action.payload]);
     },
-    clearTreeCensusLabelDrafts: (state, action) => {
+    clearTreeCensusLabelDrafts: (state) => {
       return {
         ...state,
         drafts: initialState.drafts,
@@ -105,7 +101,7 @@ export const treeCensusLabelSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder.addCase(createTreeCensusLabel.fulfilled, (state, action) => {
-      return upsertTreeCensusLabels(state, action.payload);
+      return upsertTreeCensusLabels(state, { data: action.payload });
     });
     builder.addCase(deleteTreeCensusLabel.fulfilled, (state, action) => {
       return deleteTreeCensusLabels(state, [action.meta.arg]);

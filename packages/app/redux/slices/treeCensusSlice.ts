@@ -3,8 +3,7 @@ import { TreeCensus } from "@ong-forestry/schema";
 import SERVER_URL from "../../constants/Url";
 import axios from "axios";
 import uuid from "react-native-uuid";
-import { isArray } from "lodash";
-import { produce } from "immer";
+import { UpsertAction } from "..";
 
 const BASE_URL = SERVER_URL + "trees/censuses";
 
@@ -66,22 +65,14 @@ export const deleteTreeCensus = createAsyncThunk(
   }
 );
 
-// export const uploadTreeCensusDrafts = createAsyncThunk(
-//   "treeCensus/uploadTreeCensusDrafts",
-//   async (censuses: TreeCensus[], thunkApi) => {
-//     // return await axios.post()
-//   }
-// );
-
 // takes the state and the action payload(!!) and returns the updated state with the payload's censuses added. used for downloading, drafting, and rehydrating
-export const upsertTreeCensuses = (state: TreeCensusState, action: any) => {
-  let newCensuses;
-  if (action?.data) {
-    newCensuses = action.data;
-  } else newCensuses = action;
-  if (!isArray(newCensuses)) newCensuses = [newCensuses];
-  newCensuses.forEach((newCensus, i) => {
-    if (!newCensus?.id) newCensus.id = uuid.v4();
+export const upsertTreeCensuses = (
+  state: TreeCensusState,
+  action: UpsertAction<TreeCensus>
+) => {
+  const newCensuses: TreeCensus[] = action.data;
+  newCensuses.forEach((newCensus) => {
+    if (!newCensus?.id) newCensus.id = uuid.v4().toString();
     state.all[newCensus.id] = newCensus;
     // add to drafts
     if (action?.draft) state.drafts.add(newCensus.id);
@@ -142,7 +133,7 @@ export const treeCensusSlice = createSlice({
   reducers: {
     locallyCreateTreeCensus: (state, action) => {
       return upsertTreeCensuses(state, {
-        data: action.payload,
+        data: [action.payload],
         draft: true,
         selectFinal: true,
       });
@@ -175,10 +166,10 @@ export const treeCensusSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder.addCase(getForestTreeCensuses.fulfilled, (state, action) => {
-      return upsertTreeCensuses(state, action.payload);
+      return upsertTreeCensuses(state, { data: action.payload });
     });
     builder.addCase(getPlotCensusTreeCensuses.fulfilled, (state, action) => {
-      return upsertTreeCensuses(state, action.payload);
+      return upsertTreeCensuses(state, { data: action.payload });
     });
     builder.addCase(createTreeCensus.fulfilled, (state, action) => {
       return upsertTreeCensuses(state, {
@@ -187,7 +178,7 @@ export const treeCensusSlice = createSlice({
       });
     });
     builder.addCase(updateTreeCensus.fulfilled, (state, action) => {
-      return upsertTreeCensuses(state, action.payload);
+      return upsertTreeCensuses(state, { data: action.payload });
     });
     builder.addCase(deleteTreeCensus.fulfilled, (state, action) => {
       return deleteTreeCensuses(state, [action.meta.arg]);

@@ -15,12 +15,11 @@ import {
   resetTreeCensuses,
 } from "./treeCensusSlice";
 import { clearTreePhotoDrafts, resetTreePhotos } from "./treePhotoSlice";
-import { FOREST_ID } from "../../constants/dev";
 import {
   getForestForestCensuses,
   resetForestCensuses,
 } from "./forestCensusSlice";
-import { getForests, getForest, resetForests } from "./forestSlice";
+import { getForest, resetForests } from "./forestSlice";
 import { getPlotCensuses, resetPlotCensuses } from "./plotCensusSlice";
 import { getForestPlots, resetPlots } from "./plotSlice";
 import { getAllTreeLabels, resetTreeLabels } from "./treeLabelSlice";
@@ -110,7 +109,7 @@ export const syncSlice = createSlice({
   name: "sync",
   initialState,
   reducers: {
-    resetData: (state) => {
+    resetData: () => {
       resetForests();
       resetForestCensuses();
       resetPlots();
@@ -125,7 +124,7 @@ export const syncSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    builder.addCase(uploadCensusData.fulfilled, (state, action) => {
+    builder.addCase(uploadCensusData.fulfilled, () => {
       clearTreeDrafts();
       clearTreeCensusDrafts();
       clearTreePhotoDrafts();
