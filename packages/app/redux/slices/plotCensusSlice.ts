@@ -104,7 +104,7 @@ export const plotCensusSlice = createSlice({
     });
     builder.addCase(createPlotCensus.fulfilled, (state, action) => {
       return upsertPlotCensuses(state, {
-        data: action.payload,
+        data: [action.payload],
         selectFinal: true,
       });
     });

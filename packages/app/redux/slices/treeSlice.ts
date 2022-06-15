@@ -3,7 +3,7 @@ import { Tree } from "@ong-forestry/schema";
 import axios from "axios";
 import uuid from "react-native-uuid";
 import SERVER_URL from "../../constants/Url";
-import { UpsertAction } from "..";
+import { RootState, UpsertAction } from "..";
 
 const BASE_URL = SERVER_URL + "trees";
 
@@ -38,17 +38,32 @@ export const createTree = createAsyncThunk(
     // todo handle failure
     return await axios
       .post(`${BASE_URL}`, newTree)
-      .then((response) => response.data);
+      .then((response) => response.data)
+      .catch((err) => {
+        alert("Error when creating tree: " + err?.message);
+        throw err;
+      });
   }
 );
 
 export const updateTree = createAsyncThunk(
   "tree/updateTree",
-  async (treeUpdates: Tree) => {
-    const { id, ...updates } = treeUpdates;
+  async (updatedTree: Tree, { getState, dispatch }) => {
+    const oldTree = (getState() as RootState)?.trees.all[updatedTree.id];
+    dispatch(locallyUpdateTree(updatedTree));
+    const { id, ...updates } = updatedTree;
     return await axios
       .patch(`${BASE_URL}/${id}`, updates)
-      .then((response) => response.data);
+      .then((response) => {
+        dispatch(clearTreeDrafts());
+        return response.data;
+      })
+      .catch((err) => {
+        dispatch(locallyUpdateTree(oldTree));
+        dispatch(clearTreeDrafts());
+        alert("Error while updating tree: " + err?.message);
+        throw err;
+      });
   }
 );
 
@@ -116,7 +131,7 @@ export const upsertTrees = (state: TreeState, action: UpsertAction<Tree>) => {
         state.indices.bySpecies[newTree.speciesCode] = new Set([]);
       state.indices.bySpecies[newTree.speciesCode].add(newTree.id);
     }
-    if (action?.draft) state.selected = newTree.id;
+    if (action?.selectFinal) state.selected = newTree.id;
   });
 
   return state;
@@ -150,7 +165,7 @@ export const treeSlice = createSlice({
       return deleteTrees(state, [action.payload]);
     },
     locallyUpdateTree: (state, action) => {
-      const { updated } = action.payload;
+      const updated = action.payload;
       state.all[updated.id] = updated;
       return state;
     },
@@ -175,13 +190,21 @@ export const treeSlice = createSlice({
     builder.addCase(getForestTrees.fulfilled, (state, action) => {
       return upsertTrees(state, { data: action.payload });
     });
-    builder.addCase(createTree.fulfilled, (state, action) => {
-      state.selected = action.payload.id;
-      return upsertTrees(state, { data: action.payload });
-    });
-    builder.addCase(updateTree.fulfilled, (state, action) => {
-      return upsertTrees(state, { data: action.payload });
-    });
+    builder.addCase(
+      createTree.fulfilled,
+      (state, action: { payload: Tree }) => {
+        return upsertTrees(state, {
+          data: [action.payload],
+          selectFinal: true,
+        });
+      }
+    );
+    builder.addCase(
+      updateTree.fulfilled,
+      (state, action: { payload: Tree }) => {
+        return upsertTrees(state, { data: [action.payload] });
+      }
+    );
     builder.addCase(deleteTree.fulfilled, (state, action) => {
       return deleteTrees(state, [action.meta.arg]);
     });

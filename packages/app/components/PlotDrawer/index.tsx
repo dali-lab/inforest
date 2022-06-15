@@ -186,11 +186,7 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
           const updated: Tree = { ...selectedTree, ...updatedFields };
           isConnected
             ? dispatch(updateTree(updated))
-            : dispatch(
-                locallyUpdateTree({
-                  updated,
-                })
-              );
+            : dispatch(locallyUpdateTree(updated));
         } catch (err: any) {
           alert(err?.message || "An unknown error occurred.");
         }
@@ -209,11 +205,7 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
           };
           isConnected
             ? dispatch(updateTreeCensus(updated))
-            : dispatch(
-                locallyUpdateTreeCensus({
-                  updated: { ...selectedTreeCensus, ...updatedFields },
-                })
-              );
+            : dispatch(locallyUpdateTreeCensus(updated));
         } catch (err: any) {
           alert(err?.message || "An unknown error occurred.");
         }

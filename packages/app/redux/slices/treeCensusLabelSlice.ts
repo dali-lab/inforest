@@ -7,14 +7,16 @@ import { UpsertAction } from "..";
 
 const BASE_URL = SERVER_URL + "trees/censuses/labels";
 
-type GetTreeCensusLabelsParams = {};
-
 export const createTreeCensusLabel = createAsyncThunk(
   "treeCensusLabel/createTreeCensusLabel",
   async (newCensusLabel: Omit<TreeCensusLabel, "id">) => {
     return await axios
       .post(BASE_URL, newCensusLabel)
-      .then((response) => response.data);
+      .then((response) => response.data)
+      .catch((err) => {
+        alert("Error while adding label: " + err?.message);
+        throw err;
+      });
   }
 );
 
@@ -80,6 +82,10 @@ export const treeCensusLabelSlice = createSlice({
   name: "treeCensusLabel",
   initialState,
   reducers: {
+    addTreeCensusLabels: (state, action: { payload: TreeCensusLabel[] }) => {
+      console.log("adding labels", action.payload);
+      return upsertTreeCensusLabels(state, { data: action.payload });
+    },
     locallyCreateTreeCensusLabel: (state, action) => {
       return upsertTreeCensusLabels(state, {
         data: [action.payload],
@@ -100,9 +106,12 @@ export const treeCensusLabelSlice = createSlice({
     resetTreeCensusLabels: () => initialState,
   },
   extraReducers: (builder) => {
-    builder.addCase(createTreeCensusLabel.fulfilled, (state, action) => {
-      return upsertTreeCensusLabels(state, { data: action.payload });
-    });
+    builder.addCase(
+      createTreeCensusLabel.fulfilled,
+      (state, action: { payload: TreeCensusLabel }) => {
+        return upsertTreeCensusLabels(state, { data: [action.payload] });
+      }
+    );
     builder.addCase(deleteTreeCensusLabel.fulfilled, (state, action) => {
       return deleteTreeCensusLabels(state, [action.meta.arg]);
     });
@@ -110,6 +119,7 @@ export const treeCensusLabelSlice = createSlice({
 });
 
 export const {
+  addTreeCensusLabels,
   locallyCreateTreeCensusLabel,
   locallyDeleteTreeCensusLabel,
   clearTreeCensusLabelDrafts,

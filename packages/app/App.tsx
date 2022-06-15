@@ -26,9 +26,9 @@ import MapScreen from "./screens/MapScreen";
 
 export default function App() {
   const isLoadingComplete = useCachedResources();
-  useEffect(() => {
-    persistor.purge();
-  }, []);
+  // useEffect(() => {
+  //   persistor.purge();
+  // }, []);
   return (
     <Provider store={store}>
       <NetworkProvider>
