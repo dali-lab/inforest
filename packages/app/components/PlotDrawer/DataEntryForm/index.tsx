@@ -1,6 +1,6 @@
-import { Tree, TreeCensus } from "@ong-forestry/schema";
+import { Tree, TreeCensus, TreePhoto } from "@ong-forestry/schema";
 import { useCallback, useMemo, useState } from "react";
-import { View, StyleSheet, ScrollView } from "react-native";
+import { View, StyleSheet, ScrollView, Dimensions } from "react-native";
 import useAppDispatch from "../../../hooks/useAppDispatch";
 import useAppSelector from "../../../hooks/useAppSelector";
 import { RootState } from "../../../redux";
@@ -19,6 +19,7 @@ import {
   locallyCreateTreeCensusLabel,
   locallyDeleteTreeCensusLabel,
 } from "../../../redux/slices/treeCensusLabelSlice";
+import Colors from "../../../constants/Colors";
 
 export type FormStages = "META" | "DATA" | "REVIEW";
 
@@ -96,7 +97,7 @@ const DataEntryForm: React.FC<DataEntryFormProps & View["props"]> = ({
                 onPress={() => finish(selectedTreeCensus)}
                 style={[styles.navButton, { marginLeft: "auto" }]}
               >
-                Save
+                Finish
               </AppButton>
             )}
           </View>
@@ -234,7 +235,7 @@ const DataForm: React.FC<DataFormProps> = ({
     <View style={styles.formContainer}>
       <View style={styles.formRow}>
         <FieldController
-          value={selectedCensus?.dbh?.toString() || "0"}
+          value={selectedCensus?.dbh?.toString() || ""}
           style={{ width: 120 }}
           onConfirm={(newValue) => {
             editTreeCensus({ dbh: Number(newValue) });
@@ -247,7 +248,7 @@ const DataForm: React.FC<DataFormProps> = ({
           value={""}
           style={{ marginLeft: 12, flex: 1 }}
           onConfirm={(newValue) => {
-            addLabel(newValue.toString());
+            addLabel(newValue?.toString());
           }}
           modalSize="large"
           formComponent={
@@ -317,27 +318,63 @@ const ReviewForm: React.FC<ReviewFormProps> = ({
   selectedCensus,
   selectedTree,
 }) => {
+  const {
+    all: allCensusLabels,
+    indices: { byTreeCensus: labelsByTreeCensus },
+  } = useAppSelector((state) => state.treeCensusLabels);
+  const selectedLabelCodes = useMemo(
+    () =>
+      Array.from(labelsByTreeCensus?.[selectedCensus.id] || []).map(
+        (id) => allCensusLabels[id].treeLabelCode
+      ),
+    [selectedCensus, labelsByTreeCensus, allCensusLabels]
+  );
+  const {
+    all: allPhotos,
+    indices: { byTreeCensus },
+  } = useAppSelector((state: RootState) => state.treePhotos);
+  const photoNum = useMemo(() => {
+    return byTreeCensus?.[selectedCensus.id]
+      ? byTreeCensus[selectedCensus.id].size
+      : 0;
+  }, [byTreeCensus, allPhotos, selectedCensus]);
   return (
     <View style={styles.formContainer}>
       <ScrollView
         style={styles.reviewScroll}
         showsVerticalScrollIndicator={true}
         persistentScrollbar={true}
+        contentContainerStyle={{ paddingVertical: 12 }}
       >
         {ReviewableTreeFieldMapEntries.map(([field, title]) => (
           <ReviewEntry
             key={title}
             field={title}
-            value={selectedTree?.[field]?.toString() || "Not set"}
+            value={selectedTree?.[field]?.toString()}
           />
         ))}
-        {ReviewableCensusFieldMapEntries.map(([field, title]) => (
-          <ReviewEntry
-            key={title}
-            field={title}
-            value={selectedCensus?.[field]?.toString() || "Not set"}
-          />
-        ))}
+        <ReviewEntry
+          key="dbh"
+          field="DBH"
+          value={selectedCensus?.dbh?.toString()}
+        />
+        <ReviewEntry
+          key="labels"
+          field="Data Codes"
+          value={selectedLabelCodes?.join(", ") || "None added"}
+          optional
+        />
+        <ReviewEntry
+          key="notes"
+          field="Notes"
+          value={selectedCensus?.notes || "None"}
+          optional
+        />
+        <ReviewEntry
+          key="photos"
+          field="Number of Attached Photos"
+          value={photoNum.toString()}
+        />
       </ScrollView>
     </View>
   );
@@ -345,10 +382,15 @@ const ReviewForm: React.FC<ReviewFormProps> = ({
 
 interface ReviewEntryProps {
   field: string;
-  value: string;
+  value: string | undefined;
+  optional?: boolean;
 }
 
-const ReviewEntry: React.FC<ReviewEntryProps> = ({ field, value }) => {
+const ReviewEntry: React.FC<ReviewEntryProps> = ({
+  field,
+  value,
+  optional,
+}) => {
   return (
     <View style={{ flexDirection: "column", marginBottom: 24 }}>
       <Text
@@ -357,8 +399,14 @@ const ReviewEntry: React.FC<ReviewEntryProps> = ({ field, value }) => {
       >
         {field}
       </Text>
-      <Text variant={TextVariants.Body} style={{ fontSize: 24 }}>
-        {value}
+      <Text
+        variant={TextVariants.Body}
+        style={[
+          { fontSize: 24 },
+          !value && !optional && { color: Colors.error },
+        ]}
+      >
+        {value || "Not set"}
       </Text>
     </View>
   );
@@ -387,8 +435,8 @@ const styles = StyleSheet.create({
   reviewScroll: {
     backgroundColor: "white",
     borderRadius: 10,
-    paddingVertical: 20,
     paddingHorizontal: 16,
+    maxHeight: Dimensions.get("window").height * 0.5,
   },
 });
 

@@ -33,6 +33,7 @@ import hardSet from "redux-persist/lib/stateReconciler/hardSet";
 import ExpoFileSystemStorage from "redux-persist-expo-filesystem";
 import { enableMapSet } from "immer";
 import { isArray } from "lodash";
+import { SyncState } from "./slices/syncSlice";
 
 enableMapSet();
 
@@ -50,7 +51,7 @@ export type RootState = {
   plotCensuses: PlotCensusState;
   treeCensuses: TreeCensusState;
   treeCensusLabels: TreeCensusLabelState;
-  sync: any;
+  sync: SyncState;
 };
 
 const reducers = {
@@ -73,15 +74,15 @@ const reducers = {
 // Combine reducers from slices here, so that it can be passed to Redux Persist
 const rootReducer = combineReducers<RootState>(reducers);
 
-const DraftSetTransform = createTransform(
-  (inboundState: RootState[keyof RootState]) => {
-    if (inboundState?.drafts) {
+const SurfaceSetTransform = createTransform(
+  (inboundState: any) => {
+    if ("drafts" in inboundState) {
       return { ...inboundState, drafts: Array.from(inboundState.drafts) };
     }
     return inboundState;
   },
   (outboundState: RootState[keyof RootState]) => {
-    if (outboundState?.drafts) {
+    if ("drafts" in outboundState) {
       return { ...outboundState, drafts: new Set(outboundState.drafts) };
     }
     return outboundState;
@@ -93,9 +94,9 @@ const DraftSetTransform = createTransform(
 // This function will need to be edited if the structure of our indices changes
 // since it assumes all indices are of type Record<string, Set<string>>
 const IndicesTransform = createTransform(
-  (inboundState: RootState[keyof RootState]) => {
-    const indices: RootState[keyof RootState]["indices"] = {};
-    if (inboundState?.indices) {
+  (inboundState: any) => {
+    const indices: any = {};
+    if ("indices" in inboundState) {
       for (const index of Object.keys(inboundState.indices)) {
         indices[index] = {};
         for (const [key, value] of Object.entries(
@@ -110,9 +111,9 @@ const IndicesTransform = createTransform(
     }
     return inboundState;
   },
-  (outboundState: RootState[keyof RootState]) => {
-    const indices: RootState[keyof RootState]["indices"] = {};
-    if (outboundState?.indices) {
+  (outboundState: any) => {
+    const indices: any = {};
+    if ("indices" in outboundState) {
       for (const index of Object.keys(outboundState.indices)) {
         indices[index] = {};
         for (const [key, value] of Object.entries(
@@ -133,7 +134,8 @@ const IndicesTransform = createTransform(
 // This transformer deselects any selected trees, plots, etc so they aren't selected upon re-opening app
 const SelectedTransformer = createTransform(
   (inboundState: RootState[keyof RootState]) => {
-    if (inboundState?.selected) return { ...inboundState, selected: undefined };
+    if ("selected" in inboundState)
+      return { ...inboundState, selected: undefined };
     return inboundState;
   }
 );
@@ -142,7 +144,8 @@ const persistConfig = {
   key: "root",
   storage: ExpoFileSystemStorage,
   stateReconciler: hardSet,
-  transforms: [DraftSetTransform, IndicesTransform, SelectedTransformer],
+  transforms: [SurfaceSetTransform, IndicesTransform, SelectedTransformer],
+  blacklist: ["sync"],
 };
 
 const persistedReducer = persistReducer<RootState, AnyAction>(

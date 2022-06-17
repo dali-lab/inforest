@@ -32,11 +32,19 @@ import { resetTreeCensusLabels } from "./treeCensusLabelSlice";
 
 const BASE_URL = SERVER_URL + "sync";
 
-const initialState = {};
+export type SyncState = {
+  loadingTasks: Set<string>;
+};
+
+const initialState: SyncState = {
+  loadingTasks: new Set([]),
+};
 
 export const uploadCensusData = createAsyncThunk(
   "sync/uploadCensusData",
-  async (_params, thunkApi) => {
+  async (_params, { getState, dispatch }) => {
+    const loadMessage = "Uploading New Census Data...";
+    dispatch(startLoading(loadMessage));
     const {
       trees: {
         all: allTrees,
@@ -58,7 +66,7 @@ export const uploadCensusData = createAsyncThunk(
         drafts: treeCensusLabelDrafts,
         localDeletions: deletedTreeCensusLabels,
       },
-    } = thunkApi.getState() as RootState;
+    } = getState() as RootState;
     const trees: Tree[] = [];
     const treeCensuses: TreeCensus[] = [];
     const treePhotos: (TreePhoto & { buffer: string })[] = [];
@@ -85,23 +93,44 @@ export const uploadCensusData = createAsyncThunk(
           treeCensusLabels: Array.from(deletedTreeCensusLabels),
         },
       })
-      .then(async (response) => response.data)
-      .catch(() => {});
+      .then(async (response) => {
+        dispatch(stopLoading(loadMessage));
+        return response.data;
+      })
+      .catch((err: any) => {
+        dispatch(stopLoading(loadMessage));
+        alert(
+          "An error occurred while syncing your data: " +
+            err?.message +
+            ". Ensure your connection is reliable and try again."
+        );
+        throw err;
+      });
   }
 );
 
 export const loadForestData = createAsyncThunk(
   "sync/loadForestData",
   async (forestId: string, { dispatch }) => {
-    dispatch(getForest({ id: forestId }));
-    dispatch(getForestPlots({ forestId }));
-    dispatch(getForestTrees({ forestId }));
-    dispatch(getForestTreeCensuses({ forestId }));
-    dispatch(getAllTreeSpecies());
-    dispatch(getAllTreeLabels());
-    dispatch(getAllTreePhotoPurposes());
-    dispatch(getForestForestCensuses({ forestId }));
-    dispatch(getPlotCensuses());
+    const loadMessage = "Loading Census Data...";
+    try {
+      dispatch(startLoading(loadMessage));
+      await dispatch(getForest({ id: forestId }));
+      await dispatch(getForestPlots({ forestId }));
+      await dispatch(getForestTrees({ forestId }));
+      await dispatch(getForestTreeCensuses({ forestId }));
+      await dispatch(getAllTreeSpecies());
+      await dispatch(getAllTreeLabels());
+      await dispatch(getAllTreePhotoPurposes());
+      await dispatch(getForestForestCensuses({ forestId }));
+      await dispatch(getPlotCensuses());
+      dispatch(stopLoading(loadMessage));
+    } catch (err: any) {
+      console.error(err);
+      alert("Error while loading census data: " + err?.message + ".");
+      dispatch(stopLoading(loadMessage));
+      throw err;
+    }
   }
 );
 
@@ -122,6 +151,20 @@ export const syncSlice = createSlice({
       resetTreePhotos();
       resetTreeSpecies();
     },
+    startLoading: (
+      state,
+      action: { payload: string } = { payload: "Loading..." }
+    ) => {
+      state.loadingTasks.add(action.payload);
+      return state;
+    },
+    stopLoading: (
+      state,
+      action: { payload: string } = { payload: "Loading..." }
+    ) => {
+      state.loadingTasks.delete(action.payload);
+      return state;
+    },
   },
   extraReducers: (builder) => {
     builder.addCase(uploadCensusData.fulfilled, () => {
@@ -132,6 +175,6 @@ export const syncSlice = createSlice({
   },
 });
 
-export const { resetData } = syncSlice.actions;
+export const { resetData, startLoading, stopLoading } = syncSlice.actions;
 
 export default syncSlice.reducer;

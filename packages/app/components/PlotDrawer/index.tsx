@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Animated,
   Dimensions,
@@ -29,6 +29,7 @@ import {
   deselectTree,
   updateTree,
   locallyUpdateTree,
+  deleteTree,
 } from "../../redux/slices/treeSlice";
 import AppButton from "../AppButton";
 import { Text, TextStyles, TextVariants } from "../Themed";
@@ -39,13 +40,16 @@ import Colors from "../../constants/Colors";
 
 import {
   createTreeCensus,
+  deleteTreeCensus,
   deselectTreeCensus,
   locallyCreateTreeCensus,
+  locallyDeleteTreeCensus,
   locallyUpdateTreeCensus,
   updateTreeCensus,
 } from "../../redux/slices/treeCensusSlice";
 import { useIsConnected } from "react-native-offline";
 import { AUTHOR_ID } from "../../constants/dev";
+import ConfirmationModal from "../ConfirmationModal";
 
 const SearchBar = () => {
   return (
@@ -74,9 +78,8 @@ const SearchBar = () => {
 
 const blankTreeCensus: Omit<
   TreeCensus,
-  "id" | "treeId" | "plotCensusId" | "authorId"
+  "id" | "treeId" | "plotCensusId" | "authorId" | "dbh"
 > = {
-  dbh: 0,
   labels: [],
   photos: [],
   flagged: false,
@@ -87,12 +90,9 @@ type PlotDrawerProps = {
   zoom: MapScreenZoomLevels;
   drawerState: DrawerStates;
   plot?: Plot;
-  startCensus?: () => void;
   plotCensus: PlotCensus | undefined;
-  // forest?: Forest;
   expandDrawer: () => void;
   minimizeDrawer: () => void;
-  // beginPlotting?: () => void;
   setDrawerHeight?: (height: number) => void;
 };
 
@@ -102,10 +102,6 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
   drawerState,
   plot,
   plotCensus,
-  // forest,
-  // beginPlotting,
-  // startCensus,
-  // expandDrawer,
   minimizeDrawer,
   setDrawerHeight,
 }) => {
@@ -150,6 +146,8 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
   );
 
   const isConnected = useIsConnected();
+  const [confirmationModalOpen, setConfirmationModalOpen] =
+    useState<boolean>(false);
 
   const setStyle = useCallback(() => {
     switch (drawerState) {
@@ -162,25 +160,24 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
     }
   }, [drawerState]);
 
-  // TODO: fix this by pulling from date of most recent Plot Census. May require additional column and new RTK indices
-  const computePlotLastUpdatedDate = useCallback(
-    (plotId: string) => {
-      const plotTrees = byPlots?.[plotId];
-      let latestCensus: Date | undefined;
-      plotTrees instanceof Set &&
-        plotTrees.forEach((treeId) => {
-          const { updatedAt } = allTrees[treeId];
-          if (updatedAt && (!latestCensus || updatedAt > latestCensus)) {
-            latestCensus = updatedAt;
-          }
-        });
-      return latestCensus;
-    },
-    [byPlots, allTrees]
-  );
+  // const computePlotLastUpdatedDate = useCallback(
+  //   (plotId: string) => {
+  //     const plotTrees = byPlots?.[plotId];
+  //     let latestCensus: Date | undefined;
+  //     plotTrees instanceof Set &&
+  //       plotTrees.forEach((treeId) => {
+  //         const { updatedAt } = allTrees[treeId];
+  //         if (updatedAt && (!latestCensus || updatedAt > latestCensus)) {
+  //           latestCensus = updatedAt;
+  //         }
+  //       });
+  //     return latestCensus;
+  //   },
+  //   [byPlots, allTrees]
+  // );
 
   const editTree = useCallback(
-    (updatedFields) => {
+    (updatedFields: Partial<Tree>) => {
       if (selectedTree) {
         try {
           const updated: Tree = { ...selectedTree, ...updatedFields };
@@ -196,7 +193,7 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
   );
 
   const editTreeCensus = useCallback(
-    async (updatedFields) => {
+    async (updatedFields: Partial<TreeCensus>) => {
       if (selectedTreeCensus?.id) {
         try {
           const updated: TreeCensus = {
@@ -214,164 +211,208 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
     [dispatch, selectedTreeCensus, isConnected]
   );
 
+  const deleteCensus = useCallback(async () => {
+    if (!selectedTreeCensus || !selectedTree) return;
+    await dispatch(
+      isConnected
+        ? deleteTreeCensus(selectedTreeCensus.id)
+        : locallyDeleteTreeCensus(selectedTreeCensus.id)
+    );
+    if (selectedTree?.initCensusId === selectedTreeCensus.id)
+      await dispatch(
+        isConnected
+          ? deleteTree(selectedTree.id)
+          : locallyDeleteTree(selectedTree.id)
+      );
+  }, [isConnected, selectedTree, selectedTreeCensus, dispatch]);
+
   const toggleFlagged = useCallback(async () => {
     if (selectedTreeCensus?.id) {
       editTreeCensus({ flagged: !selectedTreeCensus.flagged });
     }
   }, [selectedTreeCensus, editTreeCensus]);
 
-  useEffect(() => {
+  const addNewCensus = useCallback(async () => {
     if (
-      selectedTree?.plotId &&
-      selectedTree?.id &&
-      plotCensus?.id &&
-      !byTreeActive?.[selectedTree.id]
-    ) {
-      try {
-        const newCensus = {
-          ...blankTreeCensus,
-          treeId: selectedTree?.id,
-          plotCensusId: plotCensus.id,
-          authorId: AUTHOR_ID,
-        };
-        isConnected
-          ? dispatch(createTreeCensus(newCensus))
-          : dispatch(locallyCreateTreeCensus(newCensus));
-      } catch (err: any) {
-        alert(err?.message || "An unknown error occurred.");
-      }
+      !(
+        selectedTree?.plotId &&
+        selectedTree?.id &&
+        plotCensus?.id &&
+        !byTreeActive?.[selectedTree.id]
+      )
+    )
+      return;
+    const newCensus: Partial<TreeCensus> = {
+      ...blankTreeCensus,
+      treeId: selectedTree?.id,
+      plotCensusId: plotCensus.id,
+      authorId: AUTHOR_ID,
+    };
+    if (isConnected) {
+      await dispatch(createTreeCensus(newCensus));
+    } else {
+      const { payload } = dispatch(locallyCreateTreeCensus(newCensus));
+      if (payload?.id) newCensus.id = payload.id;
     }
-  }, [selectedTree, plotCensus, dispatch, isConnected, byTreeActive]);
-
+    if (!selectedTree?.initCensus) editTree({ initCensusId: newCensus.id });
+  }, [selectedTree, plotCensus, dispatch, isConnected, byTreeActive, editTree]);
+  useEffect(() => {
+    addNewCensus();
+  }, [addNewCensus]);
   if (drawerState === DrawerStates.Closed) {
     return null;
   }
 
   return selectedForest ? (
-    <Animated.View
-      style={{ ...styles.container, ...setStyle() }}
-      onLayout={(e) => {
-        setDrawerHeight && setDrawerHeight(e.nativeEvent.layout.height);
-      }}
-    >
-      <BlurView style={styles.blurContainer} intensity={BLUR_VIEW_INTENSITY}>
-        {zoom === MapScreenZoomLevels.Forest && (
-          <View style={{}}>
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <Text variant={TextVariants.H2}>{selectedForest?.name}</Text>
-              {mode === MapScreenModes.Plot && (
-                <>
-                  <Queue size={36}></Queue>
-                  <Text variant={TextVariants.Body}>
-                    {selectedForestCensus?.name || "No project selected"}
-                  </Text>
-                </>
-              )}
+    <>
+      <Animated.View
+        style={{ ...styles.container, ...setStyle() }}
+        onLayout={(e) => {
+          setDrawerHeight && setDrawerHeight(e.nativeEvent.layout.height);
+        }}
+      >
+        <BlurView style={styles.blurContainer} intensity={BLUR_VIEW_INTENSITY}>
+          {zoom === MapScreenZoomLevels.Forest && (
+            <View style={{}}>
+              <View style={{ flexDirection: "row", alignItems: "center" }}>
+                <Text variant={TextVariants.H2}>{selectedForest?.name}</Text>
+                {mode === MapScreenModes.Plot && (
+                  <>
+                    <Queue size={36}></Queue>
+                    <Text variant={TextVariants.Body}>
+                      {selectedForestCensus?.name || "No project selected"}
+                    </Text>
+                  </>
+                )}
+              </View>
+              <Stack size={24}></Stack>
+              <SearchBar></SearchBar>
             </View>
-            <Stack size={24}></Stack>
-            <SearchBar></SearchBar>
-          </View>
-        )}
-        {zoom === MapScreenZoomLevels.Plot && !!plot && (
-          <>
-            {drawerState === "MINIMIZED" && (
-              <View style={{}}>
+          )}
+          {zoom === MapScreenZoomLevels.Plot && !!plot && (
+            <>
+              {drawerState === "MINIMIZED" && (
+                <View style={{}}>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <View
+                      style={{ flexDirection: "row", alignItems: "center" }}
+                    >
+                      <Text variant={TextVariants.H2}>Plot #{plot.number}</Text>
+                      {mode === MapScreenModes.Plot && (
+                        <>
+                          <Queue size={36}></Queue>
+                          <Text variant={TextVariants.Body}>
+                            Tap anywhere to plot a new tree
+                          </Text>
+                        </>
+                      )}
+                    </View>
+                    <AppButton
+                      onPress={() => {}}
+                      disabled={
+                        plotCensus?.status !== PlotCensusStatuses.InProgress
+                      }
+                    >
+                      Submit for review
+                    </AppButton>
+                  </View>
+                  <Stack size={24}></Stack>
+                  <SearchBar></SearchBar>
+                </View>
+              )}
+              {drawerState === "EXPANDED" && !!selectedTree && plot && (
                 <View
                   style={{
                     flexDirection: "row",
+                    // justifyContent: "space-between",
                     alignItems: "center",
-                    justifyContent: "space-between",
+                    width: "100%",
                   }}
                 >
-                  <View style={{ flexDirection: "row", alignItems: "center" }}>
-                    <Text variant={TextVariants.H2}>Plot #{plot.number}</Text>
-                    {mode === MapScreenModes.Plot && (
-                      <>
-                        <Queue size={36}></Queue>
-                        <Text variant={TextVariants.Body}>
-                          Tap anywhere to plot a new tree
-                        </Text>
-                      </>
-                    )}
+                  <View style={{ flexDirection: "column", flex: 1 }}>
+                    <Text variant={TextVariants.H2}>
+                      New Census Entry in Plot {plot.number}
+                    </Text>
+                    <Text variant={TextVariants.Body}>
+                      This is the {byPlots[plot.id].size + 1}th tree in the
+                      plot.
+                    </Text>
                   </View>
                   <AppButton
-                    onPress={() => {}}
-                    disabled={
-                      plotCensus?.status !== PlotCensusStatuses.InProgress
+                    style={{ marginLeft: 12 }}
+                    type="REDBORDER"
+                    onPress={() => {
+                      setConfirmationModalOpen(true);
+                    }}
+                  >
+                    Delete Census
+                  </AppButton>
+                  <AppButton
+                    style={{ marginHorizontal: 12 }}
+                    onPress={toggleFlagged}
+                    type={selectedTreeCensus?.flagged ? "RED" : "PLAIN"}
+                    icon={
+                      <FlagIcon
+                        height={16}
+                        width={16}
+                        style={{ marginRight: 12 }}
+                        strokeWidth={4}
+                        stroke={selectedTreeCensus?.flagged ? "white" : "black"}
+                      />
                     }
                   >
-                    Submit for review
+                    {selectedTreeCensus?.flagged ? "Flagged" : "Flag"} for
+                    Review
                   </AppButton>
+                  <Ionicons name="close" size={24} onPress={minimizeDrawer} />
                 </View>
-                <Stack size={24}></Stack>
-                <SearchBar></SearchBar>
-              </View>
-            )}
-            {drawerState === "EXPANDED" && !!selectedTree && plot && (
-              <View
-                style={{
-                  flexDirection: "row",
-                  // justifyContent: "space-between",
-                  alignItems: "center",
-                  width: "100%",
-                }}
-              >
-                <View style={{ flexDirection: "column", flex: 1 }}>
-                  <Text variant={TextVariants.H2}>
-                    New Census Entry in Plot {plot.number}
-                  </Text>
-                  <Text variant={TextVariants.Body}>
-                    This is the {byPlots[plot.id].size + 1}th tree in the plot.
-                  </Text>
-                </View>
-                <AppButton
-                  style={{ marginHorizontal: 12 }}
-                  onPress={toggleFlagged}
-                  type={selectedTreeCensus?.flagged ? "RED" : "PLAIN"}
-                  icon={
-                    <FlagIcon
-                      height={16}
-                      width={16}
-                      style={{ marginRight: 12 }}
-                      strokeWidth={4}
-                      stroke={selectedTreeCensus?.flagged ? "white" : "black"}
-                    />
-                  }
-                >
-                  {selectedTreeCensus?.flagged ? "Flagged" : "Flag"} for Review
-                </AppButton>
-                <Ionicons name="close" size={24} onPress={minimizeDrawer} />
-              </View>
-            )}
-            {drawerState === "EXPANDED" && !!selectedTree && (
-              <>
-                {!!selectedTreeCensus && (
-                  <>
-                    <Stack size={24}></Stack>
-                    <DataEntryForm
-                      selectedTree={selectedTree}
-                      selectedTreeCensus={selectedTreeCensus}
-                      editTree={editTree}
-                      editTreeCensus={editTreeCensus}
-                      cancel={() => {
-                        dispatch(locallyDeleteTree(selectedTree.id));
-                        dispatch(deselectTreeCensus());
-                        dispatch(deselectTree());
-                        minimizeDrawer();
-                      }}
-                      finish={() => {
-                        minimizeDrawer();
-                      }}
-                      style={{ flex: 1 }}
-                    />
-                  </>
-                )}
-              </>
-            )}
-          </>
-        )}
-      </BlurView>
-    </Animated.View>
+              )}
+              {drawerState === "EXPANDED" && !!selectedTree && (
+                <>
+                  {!!selectedTreeCensus && (
+                    <>
+                      <Stack size={24}></Stack>
+                      <DataEntryForm
+                        selectedTree={selectedTree}
+                        selectedTreeCensus={selectedTreeCensus}
+                        editTree={editTree}
+                        editTreeCensus={editTreeCensus}
+                        cancel={() => {
+                          dispatch(locallyDeleteTree(selectedTree.id));
+                          dispatch(deselectTreeCensus());
+                          dispatch(deselectTree());
+                          minimizeDrawer();
+                        }}
+                        finish={() => {
+                          minimizeDrawer();
+                        }}
+                        style={{ flex: 1 }}
+                      />
+                    </>
+                  )}
+                </>
+              )}
+            </>
+          )}
+        </BlurView>
+      </Animated.View>
+      <ConfirmationModal
+        title="Delete Census"
+        prompt="Are you sure you would like to delete this census?"
+        visible={confirmationModalOpen}
+        setVisible={setConfirmationModalOpen}
+        onConfirm={async () => {
+          await deleteCensus();
+          setConfirmationModalOpen(false);
+        }}
+      />
+    </>
   ) : null;
 };
 

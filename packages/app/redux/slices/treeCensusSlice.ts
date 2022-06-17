@@ -1,10 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import {
-  TreeCensus,
-  TreeCensusLabel,
-  TreeLabel,
-  TreePhoto,
-} from "@ong-forestry/schema";
+import { TreeCensus, TreeCensusLabel, TreePhoto } from "@ong-forestry/schema";
 import SERVER_URL from "../../constants/Url";
 import axios from "axios";
 import uuid from "react-native-uuid";
@@ -28,9 +23,8 @@ export const populateTreeCensusModels = createAsyncThunk(
     const newCensuses: TreeCensus[] = [];
     let newCensusLabels: TreeCensusLabel[] = [];
     let newPhotos: TreePhoto[] = [];
-    censuses.forEach((census, i) => {
+    censuses.forEach((census) => {
       const { labels, photos, ...censusData } = census;
-      if (i == 5) console.log(census);
       newCensuses.push(censusData);
       newCensusLabels = newCensusLabels.concat(
         //@ts-ignore
@@ -118,17 +112,13 @@ export const upsertTreeCensuses = (
   action: UpsertAction<TreeCensus>
 ) => {
   const newCensuses: TreeCensus[] = action.data;
-
   newCensuses.forEach((newCensus) => {
-    state.all[newCensus.id] = newCensus;
-
     if (!newCensus?.id) newCensus.id = uuid.v4().toString();
+    state.all[newCensus.id] = newCensus;
     // add to drafts
     if (action?.draft) state.drafts.add(newCensus.id);
-
     if (!(newCensus.plotCensusId in state.indices.byPlotCensus))
       state.indices.byPlotCensus[newCensus.plotCensusId] = new Set([]);
-
     state.indices.byPlotCensus[newCensus.plotCensusId].add(newCensus.id);
     if (!(newCensus.treeId in state.indices.byTree))
       state.indices.byTree[newCensus.treeId] = new Set([]);
@@ -229,6 +219,13 @@ export const treeCensusSlice = createSlice({
         });
       }
     );
+    // builder.addCase(
+    //   createTreeCensus.rejected,
+    //   (state, action: { payload: any }) => {
+    //     console.error(action);
+    //     alert("Tree census creation failed.");
+    //   }
+    // );
     builder.addCase(
       updateTreeCensus.fulfilled,
       (state, action: { payload: TreeCensus }) => {
@@ -236,6 +233,7 @@ export const treeCensusSlice = createSlice({
       }
     );
     builder.addCase(deleteTreeCensus.fulfilled, (state, action) => {
+      if (action.meta.arg === state.selected) state.selected = undefined;
       return deleteTreeCensuses(state, [action.meta.arg]);
     });
   },

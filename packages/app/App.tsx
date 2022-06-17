@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Provider } from "react-redux";
@@ -10,6 +10,10 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { HomeScreen } from "./screens/HomeScreen";
 import { MapScreenModes, MapScreenZoomLevels } from "./constants";
 import { Plot } from "@ong-forestry/schema";
+import { store, persistor } from "./redux";
+import MapScreen from "./screens/MapScreen";
+import { ActivityIndicator, StyleSheet, View } from "react-native";
+import { Text, TextVariants } from "./components/Themed";
 
 export type RootStackParamList = {
   map: {
@@ -21,14 +25,12 @@ export type RootStackParamList = {
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
-import { store, persistor } from "./redux";
-import MapScreen from "./screens/MapScreen";
 
 export default function App() {
   const isLoadingComplete = useCachedResources();
-  // useEffect(() => {
-  //   persistor.purge();
-  // }, []);
+  useEffect(() => {
+    persistor.purge();
+  }, []);
   return (
     <Provider store={store}>
       <NetworkProvider>

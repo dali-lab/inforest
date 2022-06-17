@@ -1,6 +1,11 @@
 import { TreeCensus } from "@ong-forestry/schema";
 import express from "express";
-import { createTreeCensus, editTreeCensus, getTreeCensuses } from "services";
+import {
+  createTreeCensus,
+  deleteTreeCensuses,
+  editTreeCensus,
+  getTreeCensuses,
+} from "services";
 import { requireAuth } from "util/auth";
 import { treeCensusLabelRouter } from "./tree-census-label-routes";
 
@@ -44,6 +49,20 @@ treeCensusRouter.patch<{ id: string }, any, TreeCensus>(
     try {
       const treeCensuses = await editTreeCensus(req.body, req.params);
       res.status(200).send(treeCensuses);
+    } catch (e: any) {
+      console.error(e);
+      res.status(500).send(e?.message ?? "Unknown error.");
+    }
+  }
+);
+
+treeCensusRouter.delete<{ id: string }, any, TreeCensus>(
+  "/:id",
+  requireAuth,
+  async (req, res) => {
+    try {
+      await deleteTreeCensuses(req.params);
+      res.status(200).send("Trees deleted successfully.");
     } catch (e: any) {
       console.error(e);
       res.status(500).send(e?.message ?? "Unknown error.");

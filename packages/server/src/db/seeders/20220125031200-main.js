@@ -52,7 +52,7 @@ module.exports = {
         })),
         { transaction }
       );
-      const dataSeederTeamId = uuid();
+      const dataSeederTeamId = "ac24c415-a773-40b1-ab0e-5f87db21d396";
       await queryInterface.bulkInsert(
         "teams",
         [
@@ -383,6 +383,14 @@ module.exports = {
       await queryInterface.bulkInsert("tree_census", tree_censuses, {
         transaction,
       });
+
+      await Promise.all(
+        tree_censuses.map(async (tree_census) => {
+          await queryInterface.sequelize.query(
+            `UPDATE trees SET "initCensusId" = '${tree_census.id}' WHERE id = '${tree_census.treeId}'`
+          );
+        })
+      );
 
       /**
        * Seed tree to tree label through table rows.

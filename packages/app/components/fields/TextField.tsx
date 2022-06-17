@@ -88,15 +88,16 @@ const TextField: React.FC<TextFieldProps> = ({
               setValue(e.nativeEvent.text);
             }}
             multiline={textType === "LONG_TEXT"}
-            returnKeyType="done"
+            returnKeyType={textType === "LONG_TEXT" ? "default" : "done"}
             placeholder={placeholder}
+            autoFocus={isModal}
           >
             {value}
           </TextInput>
         ) : (
           <Text
             variant={TextVariants.Body}
-            color={disabled ? Colors.neutral[4] : undefined}
+            color={value && value !== "" ? undefined : Colors.neutral[4]}
             style={{
               flex: 1,
               height: textType === "LONG_TEXT" ? 128 : undefined,

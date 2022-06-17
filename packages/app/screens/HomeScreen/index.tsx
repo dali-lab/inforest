@@ -53,6 +53,7 @@ export const HomeScreen = () => {
   useEffect(() => {
     if (isConnected && rehydrated) {
       try {
+        dispatch(uploadCensusData());
         dispatch(resetData());
         dispatch(getForests());
       } catch (err) {
@@ -60,13 +61,11 @@ export const HomeScreen = () => {
           "Unable to load data. If your connection is reliable, this is likely due to a server error."
         );
       }
-    } else if (!isConnected) {
-      dispatch(uploadCensusData());
     }
   }, [isConnected, rehydrated, dispatch]);
   const {
     all: allForests,
-    selected: selectedForest,
+    selected: selectedForestId,
     indices: { byTeam },
   } = useAppSelector((state: RootState) => state.forest);
   const { selected, all: allForestCensuses } = useAppSelector(
@@ -82,25 +81,23 @@ export const HomeScreen = () => {
     () => Array.from(byTeam?.[selectedTeam] || []).map((id) => allForests[id]),
     [byTeam, allForests]
   );
-
   useEffect(() => {
-    if (!selectedForest && availableForests.length > 0)
+    if (!selectedForestId && availableForests.length > 0)
       dispatch(selectForest(availableForests[0].id));
-  }, [selectedForest, availableForests, dispatch]);
-
+  }, [selectedForestId, availableForests, dispatch]);
   useEffect(() => {
-    if (isConnected && rehydrated && selectedForest) {
+    if (isConnected && rehydrated && selectedForestId) {
       try {
-        dispatch(loadForestData(selectedForest));
+        dispatch(loadForestData(selectedForestId));
       } catch (err) {
         alert(
           "Unable to load data. If your connection is reliable, this is likely due to a server error."
         );
       }
     }
-  }, [isConnected, rehydrated, selectedForest, dispatch]);
+  }, [isConnected, rehydrated, selectedForestId, dispatch]);
 
-  if (!selectedForest) {
+  if (!selectedForestId) {
     return (
       <View>
         <Text>Loading...</Text>
@@ -139,7 +136,7 @@ export const HomeScreen = () => {
       <View style={{ flexDirection: "row" }}>
         <RNPickerSelect
           itemKey="id"
-          value={selectedForest}
+          value={selectedForestId}
           onValueChange={(value) => console.log(value)}
           items={availableForests.map(({ name, id }) => ({
             label: name,

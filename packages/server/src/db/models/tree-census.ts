@@ -26,6 +26,7 @@ import {
   TreeLabel as ITreeLabel,
   User as IUser,
 } from "@ong-forestry/schema";
+import { Col } from "sequelize/dist/lib/utils";
 
 @Table({
   tableName: "tree_census",
@@ -66,7 +67,7 @@ class TreeCensus
   @BelongsToMany(() => TreeLabel, () => TreeCensusLabel)
   labels: ITreeLabel[];
 
-  @HasMany(() => TreePhoto)
+  @HasMany(() => TreePhoto, { onDelete: "CASCADE" })
   photos: ITreePhoto[];
 
   @Column(DataTypes.BOOLEAN)
@@ -90,6 +91,9 @@ class TreeCensus
 
   @HasOne(() => Tree)
   initTree: ITree;
+
+  @Column(DataTypes.STRING)
+  notes: string;
 }
 
 export default TreeCensus;

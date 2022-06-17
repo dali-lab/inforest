@@ -83,7 +83,6 @@ export const treeCensusLabelSlice = createSlice({
   initialState,
   reducers: {
     addTreeCensusLabels: (state, action: { payload: TreeCensusLabel[] }) => {
-      console.log("adding labels", action.payload);
       return upsertTreeCensusLabels(state, { data: action.payload });
     },
     locallyCreateTreeCensusLabel: (state, action) => {

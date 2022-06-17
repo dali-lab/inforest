@@ -1,7 +1,7 @@
 import React, { ReactElement, useEffect, useMemo, useState } from "react";
 import { Keyboard, Pressable, ViewStyle } from "react-native";
 import AppButton from "../AppButton";
-import FieldModal, { ModalSizes } from "./FieldModal";
+import AppModal, { ModalSizes } from "../AppModal";
 
 export interface CommonFieldProps {
   wrapperStyle?: ViewStyle;
@@ -81,12 +81,7 @@ export const FieldController: React.FC<FieldControllerProps> = ({
       <Pressable style={[style]} onPress={() => setEditing(true)}>
         {formField}
       </Pressable>
-      <FieldModal
-        visible={editing}
-        setVisible={setEditing}
-        modalSize={modalSize}
-        title={modalTitle}
-      >
+      <AppModal visible={editing} setVisible={setEditing} modalSize={modalSize}>
         {modalField}
         <AppButton
           onPress={() => {
@@ -98,7 +93,7 @@ export const FieldController: React.FC<FieldControllerProps> = ({
         >
           Set
         </AppButton>
-      </FieldModal>
+      </AppModal>
     </>
   );
 };

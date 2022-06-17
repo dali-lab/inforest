@@ -103,7 +103,6 @@ export const treePhotoSlice = createSlice({
   initialState,
   reducers: {
     addTreePhotos: (state, action: { payload: TreePhoto[] }) => {
-      console.log("adding photos", action.payload);
       return upsertTreePhotos(state, { data: action.payload });
     },
     locallyCreateTreePhoto: (state, action) => {

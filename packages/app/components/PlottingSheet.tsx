@@ -51,6 +51,8 @@ interface PlottingSheetProps {
 const STAKE_LABEL_HEIGHT = 18 + 8;
 const STAKE_LABEL_WIDTH = 36 + 16;
 
+const MIN_DOT_SIZE = 16;
+
 export const PlottingSheet: React.FC<PlottingSheetProps> = ({
   mode,
   plot,
@@ -151,7 +153,7 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
     });
   }, [animatedPlotRotationAngle]);
 
-  const createPlotAndCensus = useCallback(async () => {
+  const plotNewTree = useCallback(async () => {
     if (!markerPos) return;
     const { easting, northing, zoneNum, zoneLetter } = utm.fromLatLon(
       plot.latitude,
@@ -290,7 +292,7 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
           >
             <AppButton
               onPress={() => {
-                createPlotAndCensus();
+                plotNewTree();
               }}
             >
               Plot tree
@@ -382,14 +384,16 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
               const isCensusing = tree.id in inProgressCensuses;
               const { plotX, plotY } = tree;
               if (!!plotX && !!plotY) {
-                const treePixelSize =
+                const treePixelSize = Math.max(
                   (tree.censuses?.[0]?.dbh ?? DEFAULT_DBH) *
-                  0.01 *
-                  (sheetSize /
-                    Math.sqrt(
-                      Math.pow(plot.length, 2) + Math.pow(plot.width, 2)
-                    )) *
-                  FOLIAGE_MAGNIFICATION;
+                    0.01 *
+                    (sheetSize /
+                      Math.sqrt(
+                        Math.pow(plot.length, 2) + Math.pow(plot.width, 2)
+                      )) *
+                    FOLIAGE_MAGNIFICATION,
+                  MIN_DOT_SIZE
+                );
                 return (
                   <Pressable
                     key={tree.id}

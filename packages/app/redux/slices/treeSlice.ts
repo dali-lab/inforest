@@ -34,7 +34,6 @@ export const getForestTrees = createAsyncThunk(
 export const createTree = createAsyncThunk(
   "tree/createTree",
   async (newTree: Partial<Tree>) => {
-    // thunkApi.dispatch(locallyDraftNewTree(newTree));
     // todo handle failure
     return await axios
       .post(`${BASE_URL}`, newTree)
@@ -206,6 +205,7 @@ export const treeSlice = createSlice({
       }
     );
     builder.addCase(deleteTree.fulfilled, (state, action) => {
+      if (action.meta.arg === state.selected) state.selected = undefined;
       return deleteTrees(state, [action.meta.arg]);
     });
   },

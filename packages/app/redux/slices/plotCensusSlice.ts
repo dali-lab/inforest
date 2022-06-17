@@ -103,10 +103,16 @@ export const plotCensusSlice = createSlice({
       return upsertPlotCensuses(state, { data: action.payload });
     });
     builder.addCase(createPlotCensus.fulfilled, (state, action) => {
+      alert("Successfully assigned self to plot.");
       return upsertPlotCensuses(state, {
         data: [action.payload],
         selectFinal: true,
       });
+    });
+    builder.addCase(createPlotCensus.rejected, () => {
+      alert(
+        "Plot self-assignment failed. You either do not have the permissions to do this or a server error has occurred."
+      );
     });
   },
 });

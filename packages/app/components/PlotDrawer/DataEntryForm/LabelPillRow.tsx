@@ -1,5 +1,5 @@
 import React from "react";
-import { View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { Text } from "../../Themed";
 import { Ionicons } from "@expo/vector-icons";
 import Colors from "../../../constants/Colors";
@@ -33,17 +33,7 @@ interface LabelPillProps {
 
 const LabelPill: React.FC<LabelPillProps> = ({ label, onRemove }) => {
   return (
-    <View
-      style={{
-        flexDirection: "row",
-        borderRadius: 10,
-        backgroundColor: Colors.secondary.light,
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        alignItems: "center",
-        marginRight: 4,
-      }}
-    >
+    <View style={styles.pillRow}>
       <Text>{label}</Text>
       <Ionicons
         name="close-outline"
@@ -54,5 +44,17 @@ const LabelPill: React.FC<LabelPillProps> = ({ label, onRemove }) => {
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  pillRow: {
+    flexDirection: "row",
+    borderRadius: 10,
+    backgroundColor: Colors.secondary.light,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    alignItems: "center",
+    marginRight: 4,
+  },
+});
 
 export default LabelPillRow;

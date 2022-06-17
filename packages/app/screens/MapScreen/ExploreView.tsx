@@ -55,6 +55,7 @@ import {
 } from "../../redux/slices/plotCensusSlice";
 import { deselectTreeCensus } from "../../redux/slices/treeCensusSlice";
 import { useIsConnected } from "react-native-offline";
+import ConfirmationModal from "../../components/ConfirmationModal";
 
 const O_FARM_LAT = 43.7348569458618;
 const O_FARM_LNG = -72.2519099587406;
@@ -93,6 +94,8 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
   const [drawerState, setDrawerState] = useState<DrawerStates>(
     DrawerStates.Minimized
   );
+  const [confirmationModalOpen, setConfirmationModalOpen] =
+    useState<boolean>(false);
 
   const [locationPermissionStatus, setLocationPermissionStatus] =
     useState<PermissionStatus>();
@@ -383,6 +386,29 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
     return latestCensus;
   }, [selectedPlot, computePlotLastUpdatedDate]);
 
+  const openSelectedPlot = useCallback(() => {
+    if (!selectedPlot) return;
+    const { easting, northing, zoneNum, zoneLetter } = utm.fromLatLon(
+      selectedPlot.latitude,
+      selectedPlot.longitude
+    );
+    const { width, length } = selectedPlot;
+    const focusToPlotRegion = {
+      ...utm.toLatLon(
+        easting + width / 2,
+        northing - length / 2,
+        zoneNum,
+        zoneLetter
+      ),
+      latitudeDelta: MIN_REGION_DELTA,
+      longitudeDelta: MIN_REGION_DELTA,
+    };
+    mapRef.current?.animateToRegion(focusToPlotRegion, 500);
+    setRegionSnapshot(focusToPlotRegion);
+    setTimeout(() => {
+      beginPlotting(selectedPlot);
+    }, 250);
+  }, [selectedPlot, mapRef, setRegionSnapshot, beginPlotting]);
   return (
     <>
       <MapView
@@ -425,6 +451,7 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
           }
         }}
         onPress={(e) => {
+          if (confirmationModalOpen) return;
           closeVisualizationModal();
           dispatch(deselectTree());
           dispatch(deselectTreeCensus());
@@ -473,27 +500,14 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
                 }}
                 onPress={() => {
                   if (selectedPlot) {
-                    const { easting, northing, zoneNum, zoneLetter } =
-                      utm.fromLatLon(
-                        selectedPlot.latitude,
-                        selectedPlot.longitude
-                      );
-                    const { width, length } = selectedPlot;
-                    const focusToPlotRegion = {
-                      ...utm.toLatLon(
-                        easting + width / 2,
-                        northing - length / 2,
-                        zoneNum,
-                        zoneLetter
-                      ),
-                      latitudeDelta: MIN_REGION_DELTA,
-                      longitudeDelta: MIN_REGION_DELTA,
-                    };
-                    mapRef.current?.animateToRegion(focusToPlotRegion, 500);
-                    setRegionSnapshot(focusToPlotRegion);
-                    setTimeout(() => {
-                      beginPlotting(selectedPlot);
-                    }, 500);
+                    if (
+                      !plotCensusesByActivePlot?.[selectedPlot.id] ||
+                      allPlotCensuses[
+                        plotCensusesByActivePlot?.[selectedPlot.id]
+                      ].status === PlotCensusStatuses.Approved
+                    ) {
+                      setConfirmationModalOpen(true);
+                    } else openSelectedPlot();
                   }
                 }}
               >
@@ -601,12 +615,17 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
         </View>
       )}
       <View style={{ position: "absolute" }}>
-        {visualizationConfig.modalOpen && (
-          <VisualizationModal
-            config={visualizationConfig}
-            setConfig={setVisualizationConfig}
-          />
-        )}
+        <VisualizationModal
+          config={visualizationConfig}
+          setConfig={setVisualizationConfig}
+          visible={visualizationConfig.modalOpen}
+          setVisible={() => {
+            setVisualizationConfig((prev) => ({
+              ...prev,
+              modalOpen: !prev.modalOpen,
+            }));
+          }}
+        />
         {
           <SearchModal
             open={searchModalOpen}
@@ -639,23 +658,25 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
           setDrawerHeight={setDrawerHeight}
           plot={selectedPlot}
           plotCensus={selectedPlotCensus}
-          startCensus={async () => {
-            if (!isConnected) {
-              alert(
-                "You must be connected to the internet to assign yourself to a plot!"
-              );
-              return;
-            }
-            if (selectedPlot) {
-              await dispatch(createPlotCensus(selectedPlot.id));
-              // forceRerender();
-              // dispatch(deselectPlotCensus());
-            }
-          }}
           expandDrawer={() => setDrawerState(DrawerStates.Expanded)}
           minimizeDrawer={() => setDrawerState(DrawerStates.Minimized)}
         ></PlotDrawer>
       )}
+      <ConfirmationModal
+        title="Assign self to plot?"
+        prompt="Would you like to assign yourself to this plot? This will give you the ability to create and edit tree censuses within this plot."
+        confirmMessage="Assign Self"
+        visible={confirmationModalOpen}
+        setVisible={setConfirmationModalOpen}
+        onConfirm={async () => {
+          setConfirmationModalOpen(false);
+          if (!isConnected) {
+            alert("You must be online to assign yourself to a plot.");
+          } else {
+            selectedPlot && (await dispatch(createPlotCensus(selectedPlot.id)));
+          }
+        }}
+      />
     </>
   );
 };

@@ -5,11 +5,7 @@ import { Op } from "sequelize";
 export const bulkInsertTreeCensusLabels = async (
   treeCensusLabels: TreeCensusLabel[]
 ) => {
-  return await TreeCensusLabelModel.bulkCreate(treeCensusLabels, {
-    updateOnDuplicate: Object.keys(
-      TreeCensusLabelModel.rawAttributes
-    ) as (keyof TreeCensusLabel)[],
-  });
+  return await TreeCensusLabelModel.bulkCreate(treeCensusLabels);
 };
 
 export const createTreeCensusLabel = async (

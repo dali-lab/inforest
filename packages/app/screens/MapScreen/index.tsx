@@ -1,5 +1,5 @@
-import { useCallback, useState } from "react";
-import { Dimensions, StyleSheet, View } from "react-native";
+import React, { useCallback, useState } from "react";
+import { ActivityIndicator, Dimensions, StyleSheet, View } from "react-native";
 import { MapScreenModes, MapScreenZoomLevels } from "../../constants";
 
 import useAppDispatch from "../../hooks/useAppDispatch";
@@ -13,10 +13,14 @@ import useAppSelector from "../../hooks/useAppSelector";
 import { deselectTreeCensus } from "../../redux/slices/treeCensusSlice";
 import Colors from "../../constants/Colors";
 import { selectPlotCensus } from "../../redux/slices/plotCensusSlice";
+import { useIsConnected } from "react-native-offline";
+import { Text, TextVariants } from "../../components/Themed";
 
 export default function MapScreen() {
   const route = useRoute<RouteProp<RootStackParamList, "map">>();
   const dispatch = useAppDispatch();
+
+  const isConnected = useIsConnected();
 
   const [zoomLevel, setZoomLevel] = useState<MapScreenZoomLevels>(
     route.params.zoomLevel
@@ -32,6 +36,8 @@ export default function MapScreen() {
         break;
     }
   }, [mode]);
+
+  const { loadingTasks } = useAppSelector((state) => state.sync);
 
   const { all, selected: selectedPlotId } = useAppSelector(
     (state) => state.plots
@@ -57,17 +63,28 @@ export default function MapScreen() {
     dispatch(deselectTreeCensus());
     setZoomLevel(MapScreenZoomLevels.Forest);
   }, [dispatch, setZoomLevel]);
-
   return (
     <>
-      {/* {!isConnected && (
+      {loadingTasks.size > 0 && (
+        <View style={styles.loadingOverlay}>
+          <Text variant={TextVariants.H3} color="white">
+            {loadingTasks.keys().next().value}
+          </Text>
+          <ActivityIndicator
+            style={{ marginTop: 16 }}
+            size="large"
+            color="white"
+          />
+        </View>
+      )}
+      {!isConnected && (
         <View style={styles.offlineBar}>
           <Text style={styles.offlineText}>
             You are currently offline. Your changes will be saved once you
             reconnect.
           </Text>
         </View>
-      )} */}
+      )}
       <View style={styles.container}>
         {zoomLevel === "FOREST" && (
           <ForestView
@@ -96,6 +113,9 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.error,
     height: 24,
     width: "100%",
+    top: 0,
+    position: "absolute",
+    zIndex: 1,
   },
   offlineText: {
     width: "100%",
@@ -104,5 +124,15 @@ const styles = StyleSheet.create({
     marginTop: 2,
     color: "white",
     position: "absolute",
+  },
+  loadingOverlay: {
+    position: "absolute",
+    zIndex: 100,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    width: "100%",
+    height: "100%",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

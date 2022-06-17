@@ -5,11 +5,11 @@ import { resizeImage } from "util/resize";
 import { uploadImage } from "util/s3";
 
 export const bulkInsertTreePhotos = async (
-  treePhotos: (TreePhoto & { buffer?: Buffer })[]
+  treePhotos: (TreePhoto & { buffer?: string })[]
 ) => {
   treePhotos.map(async (photo) => {
     if (!photo?.buffer) throw new Error("An uploaded image has no buffer!");
-    const resizedPhoto = await resizeImage(photo.buffer);
+    const resizedPhoto = await resizeImage(Buffer.from(photo.buffer, "base64"));
     photo.fullUrl = await uploadImage(resizedPhoto.full);
     photo.thumbUrl = await uploadImage(resizedPhoto.thumb);
     delete photo.buffer;

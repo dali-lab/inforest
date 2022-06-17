@@ -1,22 +1,24 @@
-import React, { ReactNode, useMemo } from "react";
-import { Modal, Pressable, StyleSheet, View } from "react-native";
-import { ModalSizes } from "../AppModal";
-import { Text, TextVariants } from "../Themed";
+import React, { useMemo, useState } from "react";
+import { View, StyleSheet, Modal, Pressable } from "react-native";
+import { Text, TextVariants } from "./Themed";
 
-interface FieldModalProps {
+export type ModalSizes = "small" | "medium" | "large";
+
+interface ModalProps {
   modalSize?: ModalSizes;
-  children: ReactNode;
+  children?: React.ReactNode;
+  title?: string;
   visible: boolean;
   setVisible: (newVis: boolean) => void;
-  title?: string;
+  onClose?: () => void;
 }
-
-const FieldModal: React.FC<FieldModalProps> = ({
-  modalSize = "medium",
+const AppModal: React.FC<ModalProps> = ({
   children,
+  title,
+  modalSize = "medium",
   visible,
   setVisible,
-  title,
+  onClose,
 }) => {
   const modalWidth = useMemo(() => {
     if (modalSize === "small") return 200;
@@ -28,7 +30,10 @@ const FieldModal: React.FC<FieldModalProps> = ({
       visible={visible}
       animationType="fade"
       transparent={true}
-      onRequestClose={() => setVisible(false)}
+      onRequestClose={() => {
+        setVisible(false);
+        onClose && onClose();
+      }}
     >
       <Pressable
         style={styles.centeredView}
@@ -45,7 +50,7 @@ const FieldModal: React.FC<FieldModalProps> = ({
                   <Text variant={TextVariants.H3}>{title}</Text>
                 </View>
               )}
-              {children}
+              <View style={styles.body}>{children}</View>
             </View>
           </Pressable>
         </View>
@@ -58,6 +63,9 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: 12,
     paddingTop: 8,
+  },
+  body: {
+    paddingHorizontal: 12,
   },
   container: {
     backgroundColor: "white",
@@ -84,4 +92,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default FieldModal;
+export default AppModal;

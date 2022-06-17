@@ -17,7 +17,7 @@ interface AppButtonProps {
   disabled?: boolean;
   style?: StyleProp<ViewStyle>;
   icon?: ReactNode;
-  type?: "PLAIN" | "COLOR" | "RED";
+  type?: "PLAIN" | "COLOR" | "RED" | "REDBORDER";
 }
 
 const AppButton: React.FC<AppButtonProps> = ({
@@ -38,6 +38,7 @@ const AppButton: React.FC<AppButtonProps> = ({
               type === "PLAIN" && styles.plainButton,
               type === "COLOR" && styles.colorButton,
               type === "RED" && styles.redButton,
+              type === "REDBORDER" && styles.redBorderButton,
             ]
           : [styles.disabledButton]),
       ]}
@@ -53,7 +54,11 @@ const AppButton: React.FC<AppButtonProps> = ({
         <Text
           variant={TextVariants.Label}
           color={
-            disabled ? Colors.neutral[4] : type === "PLAIN" ? "black" : "white"
+            disabled
+              ? Colors.neutral[4]
+              : ["PLAIN", "REDBORDER"].includes(type)
+              ? "black"
+              : "white"
           }
         >
           {children}
@@ -78,6 +83,11 @@ const styles = StyleSheet.create({
   },
   redButton: {
     backgroundColor: Colors.error,
+  },
+  redBorderButton: {
+    backgroundColor: "rgba(255,255,255,0.8)",
+    borderColor: Colors.error,
+    borderWidth: 2,
   },
   disabledButton: {
     backgroundColor: Colors.neutral[1],

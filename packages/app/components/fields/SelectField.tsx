@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { Picker } from "@react-native-picker/picker";
 import { CommonFieldProps } from "./FieldController";
 import FieldWrapper from "./FieldWrapper";
@@ -20,6 +20,10 @@ const SelectField: React.FC<SelectFieldProps> = ({
         : [],
     [pickerOptions]
   );
+  // Prevents error when user clicks "Set" before actually selecting something from the picker
+  useEffect(() => {
+    setValue(sortedPickerOptions[0].value);
+  }, [setValue, sortedPickerOptions]);
   return (
     <FieldWrapper label={label}>
       <Picker

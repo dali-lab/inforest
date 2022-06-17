@@ -115,6 +115,7 @@ module.exports = {
             model: "tree_census",
             key: "id",
           },
+          onDelete: "CASCADE",
         },
         { transaction }
       );
@@ -183,6 +184,7 @@ module.exports = {
             model: "tree_census",
             key: "id",
           },
+          onDelete: "CASCADE",
         },
         { transaction }
       );

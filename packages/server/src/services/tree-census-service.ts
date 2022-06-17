@@ -7,7 +7,7 @@ import {
   getPlots,
   getTrees,
 } from "services";
-import { PlotCensus, TreeLabel, TreePhoto } from "db/models";
+import { PlotCensus, TreeCensusLabel, TreeLabel, TreePhoto } from "db/models";
 
 export const bulkUpsertTreeCensuses = async (treeCensuses: TreeCensus[]) => {
   return await TreeCensusModel.bulkCreate(treeCensuses, {
