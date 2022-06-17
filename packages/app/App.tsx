@@ -12,6 +12,7 @@ import { MapScreenModes, MapScreenZoomLevels } from "./constants";
 import { Plot } from "@ong-forestry/schema";
 import { store, persistor } from "./redux";
 import MapScreen from "./screens/MapScreen";
+<<<<<<< HEAD
 
 export type RootStackParamList = {
   map: {
@@ -56,6 +57,37 @@ export default function App() {
           )}
         </PersistGate>
       </NetworkProvider>
+=======
+import AuthScreen from "./screens/AuthScreen";
+import { useEffect } from "react";
+
+export default function App() {
+  const isLoadingComplete = useCachedResources();
+
+  // const persistedStore = persistStore(store);
+
+  useEffect(() => {
+    ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
+  }, []);
+
+  const isLoggedIn = store.user.token != "";
+
+  return (
+    <Provider store={store}>
+      {/* <PersistGate loading={null} persistor={persistedStore}> */}
+      {isLoadingComplete && !isLoggedIn && (
+        <SafeAreaProvider>
+          <AuthScreen />
+        </SafeAreaProvider>
+      )}
+      {isLoadingComplete && isLoggedIn && (
+        <SafeAreaProvider>
+          <MapScreen />
+          <StatusBar />
+        </SafeAreaProvider>
+      )}
+      {/* </PersistGate> */}
+>>>>>>> auth-frontend
     </Provider>
   );
 }
