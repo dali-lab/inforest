@@ -27,8 +27,10 @@ const LoginView: React.FC<LoginViewProps> = (props) => {
       // check username and password
       const response = await dispatch(login(state));
       // if correct but not verified
-      if (!response.verified) {
+      // @ts-ignore
+      if (!response?.verified) {
         // save user data to the store
+        // @ts-ignore
         dispatch(setCredentials({ user: response.user }));
 
         // move to verify

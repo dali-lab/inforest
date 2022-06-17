@@ -35,7 +35,7 @@ const VerifyView: React.FC<VerifyViewProps> = (props) => {
     if (index > CODE_LENGTH - 1) index = CODE_LENGTH - 1;
 
     // focus on the input text box with this index
-    refs.current[index].focus();
+    // refs.current[index].focus();
   };
 
   const handleKey = (index: number, key: string) => {
@@ -99,7 +99,7 @@ const VerifyView: React.FC<VerifyViewProps> = (props) => {
       <View style={styles.formContainer}>
         <View style={styles.formRow}>
           <View style={{ flexDirection: "column", marginBottom: 24 }}>
-            {...inputs}
+            {inputs}
           </View>
           <View>
             <AppButton

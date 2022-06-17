@@ -11,7 +11,7 @@ interface AuthParams {
   name?: string;
 }
 
-type LoginResponse = { token?: string; user?: User };
+type LoginResponse = { token: string; user: User };
 
 export const login = createAsyncThunk(
   "user/login",
@@ -124,7 +124,9 @@ export const userSlice = createSlice({
   extraReducers: (builder) => {
     builder.addCase(login.fulfilled, (state, action) => {
       if (action.payload) {
+        // @ts-ignore
         state.token = action.payload.token;
+        // @ts-ignore
         state.currentUser = action.payload.user;
       }
     });
