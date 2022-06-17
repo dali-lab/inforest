@@ -12,8 +12,6 @@ import { MapScreenModes, MapScreenZoomLevels } from "./constants";
 import { Plot } from "@ong-forestry/schema";
 import { store, persistor } from "./redux";
 import MapScreen from "./screens/MapScreen";
-import { ActivityIndicator, StyleSheet, View } from "react-native";
-import { Text, TextVariants } from "./components/Themed";
 
 export type RootStackParamList = {
   map: {
@@ -28,9 +26,9 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function App() {
   const isLoadingComplete = useCachedResources();
-  useEffect(() => {
-    persistor.purge();
-  }, []);
+  // useEffect(() => {
+  //   persistor.purge();
+  // }, []);
   return (
     <Provider store={store}>
       <NetworkProvider>

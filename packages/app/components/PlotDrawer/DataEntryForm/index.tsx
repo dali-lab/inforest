@@ -1,4 +1,4 @@
-import { Tree, TreeCensus, TreePhoto } from "@ong-forestry/schema";
+import { Tree, TreeCensus } from "@ong-forestry/schema";
 import { useCallback, useMemo, useState } from "react";
 import { View, StyleSheet, ScrollView, Dimensions } from "react-native";
 import useAppDispatch from "../../../hooks/useAppDispatch";
@@ -297,17 +297,9 @@ const ReviewableTreeFieldMap: { [key in keyof Tree]?: string } = {
   plotY: "Y coordinate within plot (meters)",
 };
 
-const ReviewableCensusFieldMap: { [key in keyof TreeCensus]?: string } = {
-  dbh: "DBH",
-};
-
 const ReviewableTreeFieldMapEntries = Object.entries(
   ReviewableTreeFieldMap
 ) as [keyof Tree, string][];
-
-const ReviewableCensusFieldMapEntries = Object.entries(
-  ReviewableCensusFieldMap
-) as [keyof TreeCensus, string][];
 
 interface ReviewFormProps {
   selectedCensus: TreeCensus;
@@ -337,7 +329,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({
     return byTreeCensus?.[selectedCensus.id]
       ? byTreeCensus[selectedCensus.id].size
       : 0;
-  }, [byTreeCensus, allPhotos, selectedCensus]);
+  }, [byTreeCensus, selectedCensus]);
   return (
     <View style={styles.formContainer}>
       <ScrollView

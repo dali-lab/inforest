@@ -1,4 +1,4 @@
-import React, { Dispatch, FC, SetStateAction } from "react";
+import React, { FC } from "react";
 import AppButton from "./AppButton";
 import Modal from "./AppModal";
 import { Text } from "./Themed";

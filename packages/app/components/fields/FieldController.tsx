@@ -22,7 +22,6 @@ export type FieldControllerProps = {
   onConfirm: (newValue: string) => void;
   formComponent: ReactElement;
   modalComponent?: ReactElement;
-  modalTitle?: string;
 };
 
 export const FieldController: React.FC<FieldControllerProps> = ({
@@ -32,7 +31,6 @@ export const FieldController: React.FC<FieldControllerProps> = ({
   formComponent,
   modalComponent,
   value,
-  modalTitle,
 }) => {
   // currValue is the temporary value within the form before it is pushed to the redux store
   const [currValue, setCurrValue] = useState<string>(value);
