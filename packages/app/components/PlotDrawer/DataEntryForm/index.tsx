@@ -322,7 +322,6 @@ const ReviewForm: React.FC<ReviewFormProps> = ({
     [selectedCensus, labelsByTreeCensus, allCensusLabels]
   );
   const {
-    all: allPhotos,
     indices: { byTreeCensus },
   } = useAppSelector((state: RootState) => state.treePhotos);
   const photoNum = useMemo(() => {

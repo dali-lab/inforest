@@ -1,46 +1,46 @@
 import { useCallback, useState } from "react";
 import { Dimensions, StyleSheet, View, Image } from "react-native";
 import useAppDispatch from "../../hooks/useAppDispatch";
-import { signUp } from "../../redux/slices/userSlice";
-import FieldController from "../../components/fields/FieldController";
+import { AuthParams, signUp } from "../../redux/slices/userSlice";
 import TextField from "../../components/fields/TextField";
 import AppButton from "../../components/AppButton";
 import { useNavigation } from "@react-navigation/native";
 import { titled_logo } from "../../assets/images";
 import { Text, TextVariants } from "../../components/Themed";
 
-interface SignupViewProps {}
-
-const SignupView: React.FC<SignupViewProps> = (props) => {
+const SignupView: React.FC = () => {
   const dispatch = useAppDispatch();
   const navigation = useNavigation();
 
-  const [state, setState] = useState({
-    name: "Julian George",
+  const [newUser, setNewUser] = useState<
+    AuthParams & { confirmEmail?: string; confirmPassword?: string }
+  >({
+    firstName: "Julian",
+    lastName: "George",
     email: "juliancgeorge@gmail.com",
     confirmEmail: "juliancgeorge@gmail.com",
     password: "Fudgemuffin11!",
     confirmPassword: "Fudgemuffin11!",
   });
 
-  const updateState = (updatedFields: Partial<typeof state>) => {
-    setState({ ...state, ...updatedFields });
+  const updateState = (updatedFields: Partial<typeof newUser>) => {
+    setNewUser({ ...newUser, ...updatedFields });
   };
 
   const handleSubmit = useCallback(() => {
     try {
-      if (state.email != state.confirmEmail)
+      if (newUser.email != newUser.confirmEmail)
         throw new Error("Emails do not match");
-      if (state.password != state.confirmPassword)
+      if (newUser.password != newUser.confirmPassword)
         throw new Error("Passwords do not match");
-
-      dispatch(signUp(state));
+      const { confirmEmail, confirmPassword, ...userData } = newUser;
+      dispatch(signUp(userData));
       //@ts-ignore
       navigation.navigate("verify", {});
     } catch (err: any) {
       alert(err?.message || "An unknown error occured.");
     }
-  }, [state, dispatch, navigation]);
+  }, [newUser, dispatch, navigation]);
 
   return (
     <View style={styles.container}>
@@ -49,14 +49,27 @@ const SignupView: React.FC<SignupViewProps> = (props) => {
       <View style={styles.formContainer}>
         <View style={styles.formRow}>
           <TextField
-            label="Full Name"
-            value={state.name}
+            label="First Name"
+            value={newUser.firstName}
             setValue={(newValue) => {
-              updateState({ name: newValue });
+              updateState({ firstName: newValue });
             }}
             textType="SHORT_TEXT"
             noHint
             editing
+            wrapperStyle={{ width: "49%", marginRight: "2%" }}
+          />
+
+          <TextField
+            label="Last Name"
+            value={newUser.lastName}
+            setValue={(newValue) => {
+              updateState({ lastName: newValue });
+            }}
+            textType="SHORT_TEXT"
+            noHint
+            editing
+            wrapperStyle={{ width: "49%" }}
           />
         </View>
 
@@ -64,7 +77,7 @@ const SignupView: React.FC<SignupViewProps> = (props) => {
           <TextField
             label="Email"
             textType="SHORT_TEXT"
-            value={state.email}
+            value={newUser.email}
             setValue={(newValue) => {
               updateState({ email: newValue });
             }}
@@ -74,7 +87,7 @@ const SignupView: React.FC<SignupViewProps> = (props) => {
         </View>
         <View style={styles.formRow}>
           <TextField
-            value={state.confirmEmail}
+            value={newUser.confirmEmail}
             setValue={(newValue) => {
               updateState({ confirmEmail: newValue });
             }}
@@ -88,7 +101,7 @@ const SignupView: React.FC<SignupViewProps> = (props) => {
           <TextField
             label="Password"
             textType="SHORT_TEXT"
-            value={state.password}
+            value={newUser.password}
             setValue={(newValue) => {
               updateState({ password: newValue });
             }}
@@ -99,7 +112,7 @@ const SignupView: React.FC<SignupViewProps> = (props) => {
         </View>
         <View style={styles.formRow}>
           <TextField
-            value={state.confirmPassword}
+            value={newUser.confirmPassword}
             setValue={(newValue) => {
               updateState({ confirmPassword: newValue });
             }}

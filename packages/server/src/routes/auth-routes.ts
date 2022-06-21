@@ -52,7 +52,7 @@ authRouter.delete<{}, any, User>(
   }
 );
 
-authRouter.get<{}, any, User>("/resend-code", async (req, res, next) => {
+authRouter.post<{}, any, User>("/resend-code", async (req, res, next) => {
   try {
     sendVerificationCode(req.body.email);
 

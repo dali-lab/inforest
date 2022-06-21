@@ -97,6 +97,8 @@ const TextField: React.FC<TextFieldProps> = ({
             returnKeyType={textType === "LONG_TEXT" ? "default" : "done"}
             placeholder={placeholder}
             autoFocus={isModal}
+            autoCapitalize={"none"}
+            autoCorrect={false}
           >
             {value}
           </TextInput>

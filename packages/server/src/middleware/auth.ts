@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import passport from "passport";
-import { Strategy as localStrategy } from "passport-local";
+import { Strategy as localStrategy, IStrategyOptions } from "passport-local";
 import { Strategy as jwtStrategy, ExtractJwt } from "passport-jwt";
 import dotenv from "dotenv";
 import {
@@ -19,24 +19,27 @@ import { MembershipRoles } from "@ong-forestry/schema";
 
 dotenv.config();
 
-const options = {
+const options: IStrategyOptions = {
   usernameField: "email",
   passwordField: "password",
 };
 
 passport.use(
   "signup",
-  new localStrategy(options, async (email, password, done) => {
-    try {
-      const user = await createUser({ email, password });
+  new localStrategy(
+    { ...options, passReqToCallback: true },
+    async (req, email, password, done) => {
+      try {
+        const user = await createUser(req.body);
 
-      sendVerificationCode(email);
+        sendVerificationCode(email);
 
-      return done("You must verify your email to gain access.", user);
-    } catch (e: any) {
-      done(e);
+        return done("You must verify your email to gain access.", user);
+      } catch (e: any) {
+        done(e);
+      }
     }
-  })
+  )
 );
 
 passport.use(
@@ -50,13 +53,13 @@ passport.use(
       const passwordValid = await isValidPassword(email, password);
       if (!passwordValid) return done(new Error("Wrong password"), false);
 
-      // check for verified
-      if (!user.verified) {
-        // send email with verification code
-        sendVerificationCode(email);
+      // // check for verified
+      // if (!user.verified) {
+      //   // send email with verification code
+      //   sendVerificationCode(email);
 
-        return done(new Error("You must verify your email to gain access."));
-      }
+      //   return done(new Error("You must verify your email to gain access."));
+      // }
 
       return done(null, user, { message: "Logged in successfully" });
     } catch (e: any) {

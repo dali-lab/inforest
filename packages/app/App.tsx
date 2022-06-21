@@ -44,7 +44,6 @@ export default function App() {
   }, []);
 
   const isLoggedIn = store.getState().user?.token;
-  console.log(isLoggedIn, store.getState().user.token);
   return (
     <Provider store={store}>
       <NetworkProvider>

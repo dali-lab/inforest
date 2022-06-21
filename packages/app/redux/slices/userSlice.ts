@@ -5,10 +5,11 @@ import axios from "axios";
 
 const BASE_URL = SERVER_URL + "users/";
 
-interface AuthParams {
+export interface AuthParams {
   email: string;
   password: string;
-  name?: string;
+  firstName?: string;
+  lastName?: string;
 }
 
 type LoginResponse = { token: string; user: User };
@@ -27,9 +28,10 @@ export const login = createAsyncThunk(
             verified: false,
           };
         }
-        return { ...response.data, verified: true };
+        return { ...response.data };
       })
       .catch((error) => {
+        console.log(error);
         console.error("Error when logging in", error);
       });
   }
@@ -55,7 +57,7 @@ export const verify = createAsyncThunk(
   "user/verify",
   async (credentials: { email: string; code: string }) => {
     return await axios
-      .post<LoginResponse>(`${BASE_URL}verify`, credentials)
+      .patch<LoginResponse>(`${BASE_URL}verify`, credentials)
       .then((response) => {
         return response.data;
       })
@@ -119,6 +121,7 @@ export const userSlice = createSlice({
     setCredentials: (state, action: PayloadAction<LoginResponse>) => {
       state.token = action.payload.token;
       state.currentUser = action.payload.user;
+      return state;
     },
   },
   extraReducers: (builder) => {
@@ -128,6 +131,7 @@ export const userSlice = createSlice({
         state.token = action.payload.token;
         // @ts-ignore
         state.currentUser = action.payload.user;
+        return state;
       }
     });
     builder.addCase(signUp.fulfilled, () => {});
@@ -135,12 +139,14 @@ export const userSlice = createSlice({
       if (action.payload) {
         state.currentUser = action.payload[0];
       }
+      return state;
     });
     builder.addCase(verify.fulfilled, (state, action) => {
       if (action.payload) {
         state.token = action.payload.token;
         state.currentUser = action.payload.user;
       }
+      return state;
     });
     builder.addCase(resendCode.fulfilled, () => {});
   },

@@ -1,10 +1,4 @@
-import {
-  MutableRefObject,
-  ReactElement,
-  useCallback,
-  useRef,
-  useState,
-} from "react";
+import { MutableRefObject, useCallback, useRef, useState } from "react";
 import { Dimensions, StyleSheet, View, TextInput, Image } from "react-native";
 import useAppDispatch from "../../hooks/useAppDispatch";
 import { verify, resendCode } from "../../redux/slices/userSlice";
@@ -17,11 +11,9 @@ import Colors from "../../constants/Colors";
 
 const CODE_LENGTH = 6;
 
-interface VerifyViewProps {}
-
-const VerifyView: React.FC<VerifyViewProps> = (props) => {
+const VerifyView: React.FC = () => {
   const dispatch = useAppDispatch();
-  const navigation = useNavigation();
+  // const navigation = useNavigation();
 
   const store = useStore();
   const email = store.getState().user.email;
@@ -42,7 +34,7 @@ const VerifyView: React.FC<VerifyViewProps> = (props) => {
     if (index > CODE_LENGTH - 1) index = CODE_LENGTH - 1;
 
     // focus on the input text box with this index
-    refs.current[index].focus();
+    // refs.current[index].focus();
   };
 
   const handleKey = (index: number, key: string) => {
@@ -59,7 +51,7 @@ const VerifyView: React.FC<VerifyViewProps> = (props) => {
       updateCode(index, key);
 
       // switch to next text input (if exists)
-      if (index < CODE_LENGTH - 1) switchInput(index + 1);
+      // if (index < CODE_LENGTH - 1) switchInput(index + 1);
     }
   };
 
@@ -72,13 +64,13 @@ const VerifyView: React.FC<VerifyViewProps> = (props) => {
     }
   }, [dispatch, code, email]);
 
-  const handleResend = () => {
+  const handleResend = useCallback(() => {
     try {
       dispatch(resendCode({ email }));
     } catch (err: any) {
       alert(err?.message || "An unknown error occured.");
     }
-  };
+  }, [dispatch, email]);
 
   const inputs: React.ReactElement[] = [];
   for (let i = 0; i < CODE_LENGTH; i++) {
@@ -143,7 +135,7 @@ const CharacterEntryBox: React.FC<CharacterEntryBoxProps> = ({
   index,
   value,
   handleKey,
-  refs,
+  // refs,
 }) => {
   return (
     <View

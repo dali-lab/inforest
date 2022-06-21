@@ -1,20 +1,16 @@
 import { useCallback, useState } from "react";
 import { Dimensions, StyleSheet, View, Image } from "react-native";
 import { Text, TextVariants } from "../../components/Themed";
-import FieldController from "../../components/fields/FieldController";
 import TextField from "../../components/fields/TextField";
 import AppButton from "../../components/AppButton";
 import useAppDispatch from "../../hooks/useAppDispatch";
-import { login, setCredentials } from "../../redux/slices/userSlice";
-import { Line } from "react-native-svg";
+import { login } from "../../redux/slices/userSlice";
 import { useNavigation } from "@react-navigation/native";
 import { AuthStackParamList } from "../../App";
 import { titled_logo } from "../../assets/images";
 import DividerLine from "../../components/DividerLine";
 
-interface LoginViewProps {}
-
-const LoginView: React.FC<LoginViewProps> = () => {
+const LoginView: React.FC = () => {
   const dispatch = useAppDispatch();
   const navigation = useNavigation<AuthStackParamList>();
 
@@ -32,7 +28,7 @@ const LoginView: React.FC<LoginViewProps> = () => {
       if (!response?.verified) {
         // save user data to the store
         // @ts-ignore
-        dispatch(setCredentials({ user: response.user }));
+        // dispatch(setCredentials({ user: response.user }));
 
         // move to verify
         //@ts-ignore
@@ -42,8 +38,6 @@ const LoginView: React.FC<LoginViewProps> = () => {
       alert(err?.message || "An unknown error occured.");
     }
   }, [state, dispatch, navigation]);
-
-  console.log(titled_logo);
 
   return (
     <View style={styles.container}>

@@ -2,6 +2,7 @@ import express from "express";
 import { User } from "@ong-forestry/schema";
 import { createUser, deleteUsers, editUsers, getUsers } from "services";
 import { requireAuth } from "middleware";
+import { authRouter } from "./auth-routes";
 
 const userRouter = express.Router();
 
@@ -32,4 +33,5 @@ userRouter.patch<{}, any, User>("/", requireAuth, async (req, res) => {
   }
 });
 
+userRouter.use("", authRouter);
 export { userRouter };
