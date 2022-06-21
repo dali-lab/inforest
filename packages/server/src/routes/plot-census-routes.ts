@@ -1,28 +1,14 @@
-import { PlotCensus } from "@ong-forestry/schema";
 import express from "express";
+import { PlotCensus } from "@ong-forestry/schema";
 import {
-  approve,
   createPlotCensus,
+  approve,
   getPlotCensuses,
   submitForReview,
 } from "services";
-import { requireAuth } from "util/auth";
+import { requireAuth, requireMembership, retoolAuth } from "middleware";
 
 const plotCensusRouter = express.Router();
-
-plotCensusRouter.post<{ plotId: string }, any, PlotCensus>(
-  "/:plotId",
-  requireAuth,
-  async (req, res) => {
-    try {
-      const plotCensus = await createPlotCensus(req.params.plotId);
-      res.status(201).send(plotCensus);
-    } catch (e: any) {
-      console.error(e);
-      res.status(500).send(e?.message ?? "Unknown error.");
-    }
-  }
-);
 
 const parseParams = (query: any) => ({
   id: query.id as string,
@@ -51,6 +37,7 @@ plotCensusRouter.get<{}, any, any>("/", requireAuth, async (req, res) => {
 plotCensusRouter.patch<{}, any, any>(
   "/submit",
   requireAuth,
+  requireMembership("plotId", "plotId"),
   async (req, res) => {
     try {
       await submitForReview(parseParams(req.query));
@@ -65,7 +52,7 @@ plotCensusRouter.patch<{}, any, any>(
 // approve plot in review
 plotCensusRouter.patch<{}, any, any>(
   "/approve",
-  requireAuth,
+  retoolAuth,
   async (req, res) => {
     try {
       await approve(parseParams(req.query));

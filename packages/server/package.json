@@ -10,6 +10,7 @@
     "seed": "sequelize db:seed:all"
   },
   "dependencies": {
+    "@aws-sdk/client-sesv2": "^3.87.0",
     "@ong-forestry/schema": "1.0.0",
     "@types/aws-sdk": "^2.7.0",
     "@types/bcrypt": "^5.0.0",

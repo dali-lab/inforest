@@ -6,7 +6,7 @@ export const createTeam = async (team: Team) => {
   return await TeamModel.create(team);
 };
 
-export interface GetTeamsParams {
+export interface TeamParams {
   id?: string;
   name?: string;
 
@@ -14,7 +14,7 @@ export interface GetTeamsParams {
   offset?: number;
 }
 
-const constructQuery = (params: GetTeamsParams) => {
+const constructQuery = (params: TeamParams) => {
   const { id, name, limit = 30, offset = 0 } = params;
   const query: any = {
     where: {},
@@ -34,20 +34,17 @@ const constructQuery = (params: GetTeamsParams) => {
   return query;
 };
 
-export const editTeams = async (
-  team: Partial<Team>,
-  params: GetTeamsParams
-) => {
+export const editTeams = async (team: Partial<Team>, params: TeamParams) => {
   const query = constructQuery(params);
   return await TeamModel.update(team, query);
 };
 
-export const getTeams = async (params: GetTeamsParams) => {
+export const getTeams = async (params: TeamParams) => {
   const query = constructQuery(params);
   return await TeamModel.findAll(query);
 };
 
-export const deleteTeams = async (params: GetTeamsParams) => {
+export const deleteTeams = async (params: TeamParams) => {
   const query = constructQuery(params);
   return await TeamModel.destroy(query);
 };

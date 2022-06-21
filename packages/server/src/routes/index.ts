@@ -1,3 +1,4 @@
+export * from "routes/auth-routes";
 export * from "routes/tree-routes";
 export * from "routes/tree-census-routes";
 export * from "routes/user-routes";

@@ -17,9 +17,10 @@ export const bulkUpsertTreeCensuses = async (treeCensuses: TreeCensus[]) => {
   });
 };
 
-const validatePlotCensus = async (
-  treeCensus: Omit<TreeCensus, "plotCensusId">
-) => {
+const validatePlotCensus = async (treeCensusData: Partial<TreeCensus>) => {
+  // get all data about whatever was passed about the tree census
+  const treeCensus = (await getTreeCensuses(treeCensusData))[0];
+
   // find tree being censused -> plot it's on -> active plot census
   const trees = await getTrees({
     ids: [treeCensus.treeId],
@@ -58,9 +59,7 @@ const validatePlotCensus = async (
   return plotCensuses[0].id;
 };
 
-export const createTreeCensus = async (
-  treeCensus: Omit<TreeCensus, "plotCensusId">
-) => {
+export const createTreeCensus = async (treeCensus: TreeCensus) => {
   const plotCensusId = await validatePlotCensus(treeCensus);
   // ^ throws error if census is not in_progress
 
@@ -145,6 +144,7 @@ export const editTreeCensus = async (
   treeCensus: Omit<TreeCensus, "plotCensusId">,
   params: TreeCensusParams
 ) => {
+  await validatePlotCensus({ ...params, ...treeCensus });
   const result = (
     await TreeCensusModel.update(treeCensus, constructQuery(params))
   )[1][0].get();

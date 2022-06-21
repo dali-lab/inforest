@@ -1,8 +1,7 @@
-import { TreeSpecies } from "@ong-forestry/schema";
-import { TreeSpeciesTypes } from "@ong-forestry/schema/src/tree";
 import express from "express";
-import { requireAuth } from "middleware/auth";
+import { TreeSpecies, TreeSpeciesTypes } from "@ong-forestry/schema";
 import { getTreeSpecies } from "services/tree-species-service";
+import { requireAuth } from "middleware";
 
 const treeSpeciesRouter = express.Router();
 

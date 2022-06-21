@@ -2,7 +2,7 @@ import { TreeSpeciesTypes } from "@ong-forestry/schema/src/tree";
 import TreeSpeciesModel from "db/models/tree-species";
 import { Op } from "sequelize";
 
-export interface GetTreeSpeciesParams {
+export interface TreeSpeciesParams {
   code?: string;
   codes?: string[];
 
@@ -16,7 +16,7 @@ export interface GetTreeSpeciesParams {
   offset?: number;
 }
 
-const constructQuery = (params: GetTreeSpeciesParams) => {
+const constructQuery = (params: TreeSpeciesParams) => {
   const { code, codes, name, family, genus, commonName, type, limit, offset } =
     params;
   const query: any = {
@@ -66,7 +66,7 @@ const constructQuery = (params: GetTreeSpeciesParams) => {
   return query;
 };
 
-export const getTreeSpecies = async (params: GetTreeSpeciesParams) => {
+export const getTreeSpecies = async (params: TreeSpeciesParams) => {
   const query = constructQuery(params);
   return await TreeSpeciesModel.findAll(query);
 };

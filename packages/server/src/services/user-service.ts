@@ -33,7 +33,7 @@ export const createInactiveAccount = async (email: string) => {
   });
 };
 
-export interface GetUsersParams {
+export interface UserParams {
   id?: string;
   email?: string;
 
@@ -43,7 +43,7 @@ export interface GetUsersParams {
   offset?: number;
 }
 
-const constructQuery = (params: GetUsersParams) => {
+const constructQuery = (params: UserParams) => {
   const { id, email, active, limit = 30, offset = 0 } = params;
   const query: any = {
     where: {},
@@ -73,26 +73,31 @@ const constructQuery = (params: GetUsersParams) => {
   return query;
 };
 
-export const getUsers = async (params: GetUsersParams) => {
+export const getUsers = async (params: UserParams) => {
   const query = constructQuery(params);
   return await UserModel.findAll(query);
 };
 
-export const editUsers = async (
-  user: Partial<User>,
-  params: GetUsersParams
-) => {
+export const editUsers = async (user: Partial<User>, params: UserParams) => {
   const query = constructQuery(params);
   return await UserModel.update(user, query);
 };
 
-export const deleteUsers = async (params: GetUsersParams) => {
+export const deleteUsers = async (params: UserParams) => {
   const query = constructQuery(params);
   return await UserModel.destroy(query);
 };
 
 export const isValidPassword = async (email: string, password: string) => {
   const users = await getUsers({ email });
-  if (users.length == 0) throw new Error("No user exists with this email.");
-  return await bcrypt.compare(password, users[0].password);
+  // get password; getUsers omits it
+  const hash = (
+    await UserModel.findAll({ where: { email: { [Op.eq]: email } } })
+  )[0].password;
+
+  if (users.length == 0 || hash == null) {
+    throw new Error("No user exists with this email.");
+  }
+
+  return await bcrypt.compare(password, hash);
 };

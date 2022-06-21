@@ -1,13 +1,13 @@
-import { TreePhoto } from "@ong-forestry/schema";
 import express from "express";
 import multer from "multer";
+import { TreePhoto } from "@ong-forestry/schema";
 import {
   createTreePhoto,
   getTreePhotos,
   editTreePhoto,
   deleteTreePhotos,
 } from "services";
-import { requireAuth, resizeMiddleware } from "middleware";
+import { requireAuth, requireMembership } from "middleware";
 import { treePhotoPurposeRouter } from "./tree-photo-purpose-routes";
 
 const upload = multer({
@@ -21,7 +21,8 @@ const treePhotoRouter = express.Router();
 treePhotoRouter.post<{}, any, TreePhoto>(
   "/",
   requireAuth,
-  async (req: any, res: any) => {
+  requireMembership("treeCensusId", "treeCensusId"),
+  async (req, res) => {
     try {
       const photo = await createTreePhoto(req.body);
       res.status(201).json(photo);
@@ -43,6 +44,7 @@ const parseParams = (query: any) => ({
 treePhotoRouter.patch<{ id: string }, any, TreePhoto>(
   "/:id",
   requireAuth,
+  requireMembership("treeCensusId", "treeCensusId"),
   async (req, res) => {
     try {
       const photos = await editTreePhoto(req.body, req.params);
@@ -67,6 +69,7 @@ treePhotoRouter.get<{}, any, TreePhoto>("/", requireAuth, async (req, res) => {
 treePhotoRouter.delete<{ id: string }, any, TreePhoto>(
   "/:id",
   requireAuth,
+  requireMembership("treeCensusId", "treeCensusId"),
   async (req, res) => {
     try {
       await deleteTreePhotos(req.params);

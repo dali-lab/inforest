@@ -6,7 +6,7 @@ export const createPlot = async (plot: Plot) => {
   return await PlotModel.create(plot);
 };
 
-export interface GetPlotsParams {
+export interface PlotParams {
   id?: string;
 
   number?: number;
@@ -23,7 +23,7 @@ export interface GetPlotsParams {
   offset?: number;
 }
 
-const constructQuery = (params: GetPlotsParams) => {
+const constructQuery = (params: PlotParams) => {
   const {
     id,
     number,
@@ -88,20 +88,17 @@ const constructQuery = (params: GetPlotsParams) => {
   return query;
 };
 
-export const editPlots = async (
-  plot: Partial<Plot>,
-  params: GetPlotsParams
-) => {
+export const editPlots = async (plot: Partial<Plot>, params: PlotParams) => {
   const query = constructQuery(params);
   return await PlotModel.update(plot, query);
 };
 
-export const getPlots = async (params: GetPlotsParams) => {
+export const getPlots = async (params: PlotParams) => {
   const query = constructQuery(params);
   return await PlotModel.findAll(query);
 };
 
-export const deletePlots = async (params: GetPlotsParams) => {
+export const deletePlots = async (params: PlotParams) => {
   const query = constructQuery(params);
   return await PlotModel.destroy(query);
 };
