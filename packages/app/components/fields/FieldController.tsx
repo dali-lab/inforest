@@ -12,6 +12,7 @@ export interface CommonFieldProps {
   setValue?: (newValue: string) => void;
   label: string;
   isModal?: boolean;
+  noHint?: boolean;
 }
 
 export type FieldControllerProps = {

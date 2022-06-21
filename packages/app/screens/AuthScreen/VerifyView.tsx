@@ -1,20 +1,27 @@
-import { LegacyRef, useCallback, useRef, useState } from "react";
-import { Dimensions, StyleSheet, View, TextInput } from "react-native";
-import { AuthSteps } from ".";
+import {
+  MutableRefObject,
+  ReactElement,
+  useCallback,
+  useRef,
+  useState,
+} from "react";
+import { Dimensions, StyleSheet, View, TextInput, Image } from "react-native";
 import useAppDispatch from "../../hooks/useAppDispatch";
 import { verify, resendCode } from "../../redux/slices/userSlice";
 import AppButton from "../../components/AppButton";
 import { useStore } from "react-redux";
+import { useNavigation } from "@react-navigation/native";
+import { titled_logo } from "../../assets/images";
+import { Text, TextVariants } from "../../components/Themed";
+import Colors from "../../constants/Colors";
 
 const CODE_LENGTH = 6;
 
-interface VerifyViewProps {
-  setStep: (mode: AuthSteps) => void;
-}
+interface VerifyViewProps {}
 
 const VerifyView: React.FC<VerifyViewProps> = (props) => {
   const dispatch = useAppDispatch();
-  const setStep = props.setStep;
+  const navigation = useNavigation();
 
   const store = useStore();
   const email = store.getState().user.email;
@@ -28,14 +35,14 @@ const VerifyView: React.FC<VerifyViewProps> = (props) => {
     );
   };
 
-  const refs = useRef([]);
+  const refs = useRef<TextInput[]>([]);
 
   const switchInput = (index: number) => {
     if (index < 0) index = 0;
     if (index > CODE_LENGTH - 1) index = CODE_LENGTH - 1;
 
     // focus on the input text box with this index
-    // refs.current[index].focus();
+    refs.current[index].focus();
   };
 
   const handleKey = (index: number, key: string) => {
@@ -65,15 +72,6 @@ const VerifyView: React.FC<VerifyViewProps> = (props) => {
     }
   }, [dispatch, code, email]);
 
-  const handleBack = () => {
-    try {
-      // move to login
-      setStep(AuthSteps.Login);
-    } catch (err: any) {
-      alert(err?.message || "An unknown error occured.");
-    }
-  };
-
   const handleResend = () => {
     try {
       dispatch(resendCode({ email }));
@@ -90,47 +88,44 @@ const VerifyView: React.FC<VerifyViewProps> = (props) => {
         value={code[i]}
         handleKey={handleKey}
         refs={refs}
+        key={i}
       ></CharacterEntryBox>
     );
   }
 
   return (
     <View style={styles.container}>
+      <Image style={{ height: 185, width: 250 }} source={titled_logo}></Image>
+      <Text variant={TextVariants.H1}>Verify Email</Text>
       <View style={styles.formContainer}>
+        <View
+          style={{
+            flexDirection: "row",
+            marginBottom: 24,
+            width: "100%",
+            justifyContent: "space-between",
+          }}
+        >
+          {inputs}
+        </View>
         <View style={styles.formRow}>
-          <View style={{ flexDirection: "column", marginBottom: 24 }}>
-            {inputs}
-          </View>
-          <View>
-            <AppButton
-              onPress={() => {
-                handleBack();
-              }}
-              style={[styles.navButton, { marginRight: "auto" }]}
-            >
-              Back
-            </AppButton>
-          </View>
-          <View>
-            <AppButton
-              onPress={() => {
-                handleSubmit();
-              }}
-              style={[styles.navButton, { marginRight: "auto" }]}
-            >
-              Submit
-            </AppButton>
-          </View>
-          <View>
-            <AppButton
-              onPress={() => {
-                handleResend();
-              }}
-              style={[styles.navButton, { marginRight: "auto" }]}
-            >
-              Request New Code?
-            </AppButton>
-          </View>
+          <AppButton
+            onPress={() => {
+              handleResend();
+            }}
+            style={[styles.navButton]}
+          >
+            Request New Code?
+          </AppButton>
+          <AppButton
+            onPress={() => {
+              handleSubmit();
+            }}
+            style={[styles.navButton]}
+            type="COLOR"
+          >
+            Submit
+          </AppButton>
         </View>
       </View>
     </View>
@@ -141,7 +136,7 @@ interface CharacterEntryBoxProps {
   index: number;
   value: string;
   handleKey: (index: number, key: string) => void;
-  refs: React.MutableRefObject<LegacyRef<TextInput>[]>;
+  refs: MutableRefObject<TextInput[]>;
 }
 
 const CharacterEntryBox: React.FC<CharacterEntryBoxProps> = ({
@@ -151,15 +146,26 @@ const CharacterEntryBox: React.FC<CharacterEntryBoxProps> = ({
   refs,
 }) => {
   return (
-    <View style={{ flexDirection: "column", marginBottom: 24 }}>
+    <View
+      style={{
+        flexDirection: "column",
+        alignContent: "center",
+        justifyContent: "center",
+        marginBottom: 12,
+        height: 100,
+        width: 76,
+        borderRadius: 16,
+        backgroundColor: Colors.secondary.light,
+      }}
+    >
       <TextInput
+        style={{ fontSize: 72, width: "100%", textAlign: "center" }}
         onKeyPress={(e) => {
           handleKey(index, e.nativeEvent.key);
         }}
-        ref={refs.current[index]}
-      >
-        {value}
-      </TextInput>
+        // ref={(el) => refs?.current?.[index] && (refs.current[index] = el)}
+        value={value}
+      ></TextInput>
     </View>
   );
 };
@@ -168,17 +174,23 @@ const styles = StyleSheet.create({
   container: {
     position: "relative",
     alignItems: "center",
-    justifyContent: "center",
+    justifyContent: "flex-start",
     width: Dimensions.get("window").width,
     height: Dimensions.get("window").height,
+    paddingVertical: 128,
   },
   formContainer: {
     flexDirection: "column",
+    alignItems: "center",
+    width: Dimensions.get("window").width,
+    paddingHorizontal: 128,
+    marginTop: 24,
   },
   formRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     marginTop: 12,
+    width: "100%",
   },
   progressRow: {
     flexDirection: "row",

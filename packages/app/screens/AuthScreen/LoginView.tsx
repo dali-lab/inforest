@@ -1,21 +1,22 @@
 import { useCallback, useState } from "react";
-import { Dimensions, StyleSheet, View } from "react-native";
-import { Text } from "../../components/Themed";
+import { Dimensions, StyleSheet, View, Image } from "react-native";
+import { Text, TextVariants } from "../../components/Themed";
 import FieldController from "../../components/fields/FieldController";
 import TextField from "../../components/fields/TextField";
 import AppButton from "../../components/AppButton";
 import useAppDispatch from "../../hooks/useAppDispatch";
-import { AuthSteps } from ".";
 import { login, setCredentials } from "../../redux/slices/userSlice";
 import { Line } from "react-native-svg";
+import { useNavigation } from "@react-navigation/native";
+import { AuthStackParamList } from "../../App";
+import { titled_logo } from "../../assets/images";
+import DividerLine from "../../components/DividerLine";
 
-interface LoginViewProps {
-  setStep: (mode: AuthSteps) => void;
-}
+interface LoginViewProps {}
 
-const LoginView: React.FC<LoginViewProps> = (props) => {
+const LoginView: React.FC<LoginViewProps> = () => {
   const dispatch = useAppDispatch();
-  const setStep = props.setStep;
+  const navigation = useNavigation<AuthStackParamList>();
 
   const [state, setState] = useState({ email: "", password: "" });
   const updateState = (updatedFields: Partial<typeof state>) => {
@@ -34,58 +35,96 @@ const LoginView: React.FC<LoginViewProps> = (props) => {
         dispatch(setCredentials({ user: response.user }));
 
         // move to verify
-        setStep(AuthSteps.Verify);
+        //@ts-ignore
+        navigation.navigate("verify", {});
       }
     } catch (err: any) {
       alert(err?.message || "An unknown error occured.");
     }
-  }, [state, dispatch, setStep]);
+  }, [state, dispatch, navigation]);
+
+  console.log(titled_logo);
 
   return (
     <View style={styles.container}>
-      <Text>Sign in</Text>
+      <Image style={{ height: 185, width: 250 }} source={titled_logo}></Image>
+      <Text variant={TextVariants.H1}>Sign in</Text>
       <View style={styles.formContainer}>
         <View style={styles.formRow}>
           <View style={{ flexDirection: "column", marginBottom: 24 }}>
-            <FieldController
-              value={state.email}
-              onConfirm={(newValue) => {
+            <TextField
+              value={state?.email}
+              setValue={(newValue) => {
                 updateState({ email: newValue });
               }}
-              formComponent={<TextField label="Email" textType="SHORT_TEXT" />}
+              label="Email"
+              textType="SHORT_TEXT"
+              editing
+              noHint
             />
           </View>
           <View style={{ flexDirection: "column", marginBottom: 24 }}>
-            <FieldController
-              value={state.password}
-              onConfirm={(newValue) => {
+            <TextField
+              value={state?.password}
+              setValue={(newValue) => {
                 updateState({ password: newValue });
               }}
-              formComponent={
-                <TextField
-                  secure={true}
-                  label="Password"
-                  textType="SHORT_TEXT"
-                />
-              }
+              label="Password"
+              textType="SHORT_TEXT"
+              secure
+              editing
+              noHint
             />
           </View>
-          <AppButton
-            onPress={() => {
-              handleSubmit();
+          <View
+            style={{
+              width: "100%",
+              flexDirection: "row",
+              justifyContent: "flex-end",
             }}
-            style={[styles.navButton, { marginRight: "auto" }]}
           >
-            Submit
-          </AppButton>
+            <AppButton
+              onPress={() => {
+                handleSubmit();
+              }}
+              style={[styles.navButton, { marginLeft: "auto" }]}
+              type="COLOR"
+            >
+              Submit
+            </AppButton>
+          </View>
         </View>
-        <Line></Line> or <Line></Line>
-        <View>
+        <View
+          style={{
+            width: "90%",
+            flexDirection: "row",
+            alignItems: "center",
+            marginVertical: 32,
+            justifyContent: "center",
+          }}
+        >
+          <DividerLine width="33%" />
+          <Text
+            variant={TextVariants.H3}
+            style={{ width: "33%", textAlign: "center" }}
+          >
+            or
+          </Text>
+          <DividerLine width="33%" />
+        </View>
+        <View
+          style={{
+            width: "100%",
+            justifyContent: "center",
+            flexDirection: "row",
+          }}
+        >
           <AppButton
             onPress={() => {
-              setStep(AuthSteps.Signup);
+              //@ts-ignore
+              navigation.navigate("signup", {});
             }}
-            style={[styles.navButton, { marginRight: "auto" }]}
+            style={[styles.navButton, { marginHorizontal: "auto" }]}
           >
             Create account
           </AppButton>
@@ -99,18 +138,24 @@ const styles = StyleSheet.create({
   container: {
     position: "relative",
     alignItems: "center",
-    justifyContent: "center",
+    justifyContent: "flex-start",
     width: Dimensions.get("window").width,
     height: Dimensions.get("window").height,
+    paddingVertical: 128,
   },
   formContainer: {
     flexDirection: "column",
+    alignItems: "center",
+    width: Dimensions.get("window").width,
+    paddingHorizontal: 128,
+    marginTop: 24,
   },
   formRow: {
-    flexDirection: "row",
+    flexDirection: "column",
     justifyContent: "space-between",
     marginTop: 12,
   },
+  dividerLine: {},
   progressRow: {
     flexDirection: "row",
     justifyContent: "center",

@@ -37,6 +37,7 @@ const TextField: React.FC<TextFieldProps> = ({
   editing,
   setEditing = () => {},
   isModal,
+  noHint,
 }) => {
   const keyboardType = useMemo<KeyboardTypeOptions>(() => {
     let keyboardType: KeyboardTypeOptions = "default";
@@ -63,6 +64,7 @@ const TextField: React.FC<TextFieldProps> = ({
       label={label}
       disabled={wrapperDisabled}
       wrapperStyle={wrapperStyle}
+      noHint={noHint}
     >
       <View
         style={{
@@ -76,6 +78,7 @@ const TextField: React.FC<TextFieldProps> = ({
           <TextInput
             style={[
               {
+                width: "100%",
                 fontFamily: "Open Sans Regular",
                 height: textType === "LONG_TEXT" ? 128 : undefined,
               },
@@ -107,10 +110,10 @@ const TextField: React.FC<TextFieldProps> = ({
               fontSize: 14,
             }}
           >
-            {value && value !== "" ? value : placeholder}
+            {value && value !== "" ? value : placeholder || null}
           </Text>
         )}
-        {suffix && (
+        {suffix ? (
           <Text
             style={[
               { textAlign: "right", fontSize: 16 },
@@ -119,7 +122,7 @@ const TextField: React.FC<TextFieldProps> = ({
           >
             {suffix}
           </Text>
-        )}
+        ) : null}
       </View>
     </FieldWrapper>
   );

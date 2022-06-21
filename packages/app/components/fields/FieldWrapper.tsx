@@ -11,6 +11,7 @@ interface FieldWrapperProps {
   disabled?: boolean;
   wrapperStyle?: ViewStyle;
   style?: ViewStyle;
+  noHint?: boolean;
 }
 
 const FieldWrapper: React.FC<FieldWrapperProps> = ({
@@ -19,6 +20,7 @@ const FieldWrapper: React.FC<FieldWrapperProps> = ({
   disabled,
   wrapperStyle,
   style,
+  noHint,
 }) => {
   return disabled ? (
     <>{children}</>
@@ -27,11 +29,13 @@ const FieldWrapper: React.FC<FieldWrapperProps> = ({
       <View style={styles.header}>
         {label && <Text variant={TextVariants.Label}>{label}</Text>}
         <Queue size={6}></Queue>
-        <Ionicons
-          name="ios-information-circle-outline"
-          size={16}
-          color={Colors.neutral[7]}
-        ></Ionicons>
+        {noHint ? null : (
+          <Ionicons
+            name="ios-information-circle-outline"
+            size={16}
+            color={Colors.neutral[7]}
+          ></Ionicons>
+        )}
       </View>
       <Inset vertical={4} horizontal={8}>
         <View style={style}>{children}</View>

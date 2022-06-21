@@ -1,26 +1,26 @@
 import { useCallback, useState } from "react";
-import { Dimensions, StyleSheet, View } from "react-native";
-import { AuthSteps } from ".";
+import { Dimensions, StyleSheet, View, Image } from "react-native";
 import useAppDispatch from "../../hooks/useAppDispatch";
 import { signUp } from "../../redux/slices/userSlice";
 import FieldController from "../../components/fields/FieldController";
 import TextField from "../../components/fields/TextField";
 import AppButton from "../../components/AppButton";
+import { useNavigation } from "@react-navigation/native";
+import { titled_logo } from "../../assets/images";
+import { Text, TextVariants } from "../../components/Themed";
 
-interface SignupViewProps {
-  setStep: (mode: AuthSteps) => void;
-}
+interface SignupViewProps {}
 
 const SignupView: React.FC<SignupViewProps> = (props) => {
   const dispatch = useAppDispatch();
-  const setStep = props.setStep;
+  const navigation = useNavigation();
 
   const [state, setState] = useState({
-    name: "",
-    email: "",
-    confirmEmail: "",
-    password: "",
-    confirmPassword: "",
+    name: "Julian George",
+    email: "juliancgeorge@gmail.com",
+    confirmEmail: "juliancgeorge@gmail.com",
+    password: "Fudgemuffin11!",
+    confirmPassword: "Fudgemuffin11!",
   });
 
   const updateState = (updatedFields: Partial<typeof state>) => {
@@ -35,76 +35,90 @@ const SignupView: React.FC<SignupViewProps> = (props) => {
         throw new Error("Passwords do not match");
 
       dispatch(signUp(state));
-      setStep(AuthSteps.Verify);
+      //@ts-ignore
+      navigation.navigate("verify", {});
     } catch (err: any) {
       alert(err?.message || "An unknown error occured.");
     }
-  }, [state, dispatch, setStep]);
+  }, [state, dispatch, navigation]);
 
   return (
     <View style={styles.container}>
+      <Image style={{ height: 185, width: 250 }} source={titled_logo}></Image>
+      <Text variant={TextVariants.H1}>Sign up</Text>
       <View style={styles.formContainer}>
         <View style={styles.formRow}>
-          <View style={{ flexDirection: "column", marginBottom: 24 }}>
-            <FieldController
-              value={state.name}
-              onConfirm={(newValue) => {
-                updateState({ name: newValue });
-              }}
-              formComponent={<TextField label="Name" textType="SHORT_TEXT" />}
-            />
-          </View>
-          <View style={{ flexDirection: "column", marginBottom: 24 }}>
-            <FieldController
-              value={state.email}
-              onConfirm={(newValue) => {
-                updateState({ email: newValue });
-              }}
-              formComponent={<TextField label="Email" textType="SHORT_TEXT" />}
-            />
-          </View>
-          <View style={{ flexDirection: "column", marginBottom: 24 }}>
-            <FieldController
-              value={state.confirmEmail}
-              onConfirm={(newValue) => {
-                updateState({ confirmEmail: newValue });
-              }}
-              formComponent={
-                <TextField label="Confirm email" textType="SHORT_TEXT" />
-              }
-            />
-          </View>
-          <View style={{ flexDirection: "column", marginBottom: 24 }}>
-            <FieldController
-              value={state.password}
-              onConfirm={(newValue) => {
-                updateState({ password: newValue });
-              }}
-              formComponent={
-                <TextField label="Password" textType="SHORT_TEXT" />
-              }
-            />
-          </View>
-          <View style={{ flexDirection: "column", marginBottom: 24 }}>
-            <FieldController
-              value={state.confirmPassword}
-              onConfirm={(newValue) => {
-                updateState({ confirmPassword: newValue });
-              }}
-              formComponent={
-                <TextField label="Confirm password" textType="SHORT_TEXT" />
-              }
-            />
-          </View>
-          <AppButton
-            onPress={() => {
-              handleSubmit();
+          <TextField
+            label="Full Name"
+            value={state.name}
+            setValue={(newValue) => {
+              updateState({ name: newValue });
             }}
-            style={[styles.navButton, { marginRight: "auto" }]}
-          >
-            Next
-          </AppButton>
+            textType="SHORT_TEXT"
+            noHint
+            editing
+          />
         </View>
+
+        <View style={styles.formRow}>
+          <TextField
+            label="Email"
+            textType="SHORT_TEXT"
+            value={state.email}
+            setValue={(newValue) => {
+              updateState({ email: newValue });
+            }}
+            noHint
+            editing
+          />
+        </View>
+        <View style={styles.formRow}>
+          <TextField
+            value={state.confirmEmail}
+            setValue={(newValue) => {
+              updateState({ confirmEmail: newValue });
+            }}
+            label="Confirm email"
+            textType="SHORT_TEXT"
+            noHint
+            editing
+          />
+        </View>
+        <View style={styles.formRow}>
+          <TextField
+            label="Password"
+            textType="SHORT_TEXT"
+            value={state.password}
+            setValue={(newValue) => {
+              updateState({ password: newValue });
+            }}
+            noHint
+            editing
+            secure
+          />
+        </View>
+        <View style={styles.formRow}>
+          <TextField
+            value={state.confirmPassword}
+            setValue={(newValue) => {
+              updateState({ confirmPassword: newValue });
+            }}
+            label="Confirm password"
+            textType="SHORT_TEXT"
+            noHint
+            editing
+            secure
+          />
+        </View>
+        <AppButton
+          onPress={() => {
+            handleSubmit();
+          }}
+          type="COLOR"
+          style={[styles.navButton, { marginLeft: "auto", marginTop: 12 }]}
+        >
+          Next
+        </AppButton>
       </View>
     </View>
   );
@@ -114,12 +128,17 @@ const styles = StyleSheet.create({
   container: {
     position: "relative",
     alignItems: "center",
-    justifyContent: "center",
+    justifyContent: "flex-start",
     width: Dimensions.get("window").width,
     height: Dimensions.get("window").height,
+    paddingVertical: 128,
   },
   formContainer: {
     flexDirection: "column",
+    alignItems: "center",
+    width: Dimensions.get("window").width,
+    paddingHorizontal: 128,
+    marginTop: 24,
   },
   formRow: {
     flexDirection: "row",

@@ -14,27 +14,37 @@ import { Plot } from "@ong-forestry/schema";
 import { store, persistor } from "./redux";
 import MapScreen from "./screens/MapScreen";
 import AuthScreen from "./screens/AuthScreen";
-export type RootStackParamList = {
+import LoginView from "./screens/AuthScreen/LoginView";
+import SignupView from "./screens/AuthScreen/SignupView";
+import VerifyView from "./screens/AuthScreen/VerifyView";
+export type CensusStackParamList = {
   map: {
     mode: MapScreenModes;
     zoomLevel: MapScreenZoomLevels;
     selectedPlot?: Plot;
   };
-  home: any;
+  home: {};
+};
+export type AuthStackParamList = {
+  login: {};
+  signup: {};
+  verify: {};
 };
 
-const Stack = createNativeStackNavigator<RootStackParamList>();
+const CensusStack = createNativeStackNavigator<CensusStackParamList>();
+const AuthStack = createNativeStackNavigator<AuthStackParamList>();
 
 export default function App() {
   const isLoadingComplete = useCachedResources();
-  // useEffect(() => {
-  //   persistor.purge();
-  // }, []);
+  useEffect(() => {
+    persistor.purge();
+  }, []);
   useEffect(() => {
     ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
   }, []);
 
-  const isLoggedIn = store.getState().user.token != "";
+  const isLoggedIn = store.getState().user?.token;
+  console.log(isLoggedIn, store.getState().user.token);
   return (
     <Provider store={store}>
       <NetworkProvider>
@@ -44,12 +54,12 @@ export default function App() {
               (isLoggedIn ? (
                 <>
                   <NavigationContainer>
-                    <Stack.Navigator
+                    <CensusStack.Navigator
                       initialRouteName="home"
                       screenOptions={{ headerShown: false }}
                     >
-                      <Stack.Screen name="home" component={HomeScreen} />
-                      <Stack.Screen
+                      <CensusStack.Screen name="home" component={HomeScreen} />
+                      <CensusStack.Screen
                         name="map"
                         component={MapScreen}
                         initialParams={{
@@ -57,12 +67,33 @@ export default function App() {
                           zoomLevel: MapScreenZoomLevels.Forest,
                         }}
                       />
-                    </Stack.Navigator>
+                    </CensusStack.Navigator>
                   </NavigationContainer>
                   <StatusBar />
                 </>
               ) : (
-                <AuthScreen />
+                <NavigationContainer>
+                  <AuthStack.Navigator
+                    initialRouteName="login"
+                    screenOptions={{ headerBackTitleVisible: false }}
+                  >
+                    <AuthStack.Screen
+                      name="signup"
+                      options={{ headerTitle: "Sign Up" }}
+                      component={SignupView}
+                    />
+                    <AuthStack.Screen
+                      name="login"
+                      component={LoginView}
+                      options={{ headerShown: false }}
+                    />
+                    <AuthStack.Screen
+                      name="verify"
+                      options={{ headerTitle: "Verify" }}
+                      component={VerifyView}
+                    />
+                  </AuthStack.Navigator>
+                </NavigationContainer>
               ))}
           </SafeAreaProvider>
         </PersistGate>

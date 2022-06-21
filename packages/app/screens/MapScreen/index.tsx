@@ -8,7 +8,7 @@ import { deselectTree } from "../../redux/slices/treeSlice";
 import PlotView from "./PlotView";
 import ForestView from "./ExploreView";
 import { RouteProp, useRoute } from "@react-navigation/native";
-import { RootStackParamList } from "../../App";
+import { CensusStackParamList } from "../../App";
 import useAppSelector from "../../hooks/useAppSelector";
 import { deselectTreeCensus } from "../../redux/slices/treeCensusSlice";
 import Colors from "../../constants/Colors";
@@ -17,7 +17,7 @@ import { useIsConnected } from "react-native-offline";
 import { Text, TextVariants } from "../../components/Themed";
 
 export default function MapScreen() {
-  const route = useRoute<RouteProp<RootStackParamList, "map">>();
+  const route = useRoute<RouteProp<CensusStackParamList, "map">>();
   const dispatch = useAppDispatch();
 
   const isConnected = useIsConnected();
