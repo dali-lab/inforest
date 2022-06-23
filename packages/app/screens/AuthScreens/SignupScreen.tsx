@@ -21,8 +21,8 @@ const SignupScreen: React.FC = () => {
     lastName: "George",
     email: "juliancgeorge@gmail.com",
     confirmEmail: "juliancgeorge@gmail.com",
-    password: "Fudgemuffin11!",
-    confirmPassword: "Fudgemuffin11!",
+    password: "onglab",
+    confirmPassword: "onglab",
   });
 
   const updateState = (updatedFields: Partial<typeof newUser>) => {

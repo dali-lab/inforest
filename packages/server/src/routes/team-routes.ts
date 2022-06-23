@@ -18,8 +18,9 @@ teamRouter.post<{}, any, Team>("/", requireAuth, async (req, res) => {
 const parseParams = (query: any) => ({
   id: query?.id as string,
   name: query?.name as string,
-  limit: parseInt(query.limit as string),
-  offset: parseInt(query.offset as string),
+  userId: query?.userId as string,
+  limit: parseInt(query?.limit as string),
+  offset: parseInt(query?.offset as string),
 });
 
 teamRouter.patch<{}, any, Team>("/", requireAuth, async (req, res) => {
@@ -34,6 +35,7 @@ teamRouter.patch<{}, any, Team>("/", requireAuth, async (req, res) => {
 
 teamRouter.get("/", requireAuth, async (req, res) => {
   try {
+    console.log(req.query);
     const teams = await getTeams(parseParams(req.query));
     res.status(200).json(teams);
   } catch (e: any) {

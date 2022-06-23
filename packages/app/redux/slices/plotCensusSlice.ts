@@ -40,6 +40,17 @@ export const createPlotCensus = createAsyncThunk(
   }
 );
 
+export const submitPlotCensus = createAsyncThunk(
+  "plotCensus/submitPlotCensus",
+  async (plotId: string) => {
+    return await axios
+      .patch(`${BASE_URL}/submit/${plotId}`)
+      .then((response) => {
+        return response.data;
+      });
+  }
+);
+
 export interface PlotCensusState {
   all: Record<string, PlotCensus>;
   selected: string | undefined;

@@ -36,7 +36,7 @@ passport.use(
 
         return done(null, user, { message: "Sign up successful." });
       } catch (e: any) {
-        done(e);
+        return done(e);
       }
     }
   )

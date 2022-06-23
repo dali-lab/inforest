@@ -10,6 +10,20 @@ import { requireAuth, requireMembership, retoolAuth } from "middleware";
 
 const plotCensusRouter = express.Router();
 
+plotCensusRouter.post<{ plotId: string }, any, PlotCensus>(
+  "/:plotId",
+  requireAuth,
+  async (req, res) => {
+    try {
+      const plotCensus = await createPlotCensus(req.params.plotId);
+      res.status(201).send(plotCensus);
+    } catch (e: any) {
+      console.error(e);
+      res.status(500).send(e?.message ?? "Unknown error.");
+    }
+  }
+);
+
 const parseParams = (query: any) => ({
   id: query.id as string,
 
@@ -34,13 +48,13 @@ plotCensusRouter.get<{}, any, any>("/", requireAuth, async (req, res) => {
 });
 
 // mark ready for review
-plotCensusRouter.patch<{}, any, any>(
-  "/submit",
+plotCensusRouter.patch<{ id: string }, any, any>(
+  "/submit/:id",
   requireAuth,
   requireMembership("plotId", "plotId"),
   async (req, res) => {
     try {
-      await submitForReview(parseParams(req.query));
+      await submitForReview(parseParams(req.params.id));
       res.status(200).send("Successfully submitted plot census for review");
     } catch (e: any) {
       console.error(e);

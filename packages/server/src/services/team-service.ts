@@ -1,5 +1,6 @@
 import { Team } from "@ong-forestry/schema";
 import TeamModel from "db/models/team";
+import UserModel from "db/models/user";
 import { Op } from "sequelize";
 
 export const createTeam = async (team: Team) => {
@@ -9,17 +10,16 @@ export const createTeam = async (team: Team) => {
 export interface TeamParams {
   id?: string;
   name?: string;
+  userId?: string;
 
   limit?: number;
   offset?: number;
 }
 
 const constructQuery = (params: TeamParams) => {
-  const { id, name, limit = 30, offset = 0 } = params;
+  const { id, name, userId, limit = 30, offset = 0 } = params;
   const query: any = {
     where: {},
-    limit,
-    offset,
   };
   if (id) {
     query.where.id = {
@@ -30,6 +30,16 @@ const constructQuery = (params: TeamParams) => {
     query.where.name = {
       [Op.eq]: name,
     };
+  }
+  if (userId) {
+    query.include = [{ model: UserModel, attributes: ["id"] }];
+    query.where["$members->Membership.userId$"] = userId;
+  }
+  if (limit) {
+    query.limit = 100;
+  }
+  if (offset) {
+    query.offset = 0;
   }
   return query;
 };

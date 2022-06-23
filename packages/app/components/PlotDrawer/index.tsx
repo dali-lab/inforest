@@ -50,6 +50,7 @@ import {
 import { useIsConnected } from "react-native-offline";
 import { AUTHOR_ID } from "../../constants/dev";
 import ConfirmationModal from "../ConfirmationModal";
+import { submitPlotCensus } from "../../redux/slices/plotCensusSlice";
 
 const SearchBar = () => {
   return (
@@ -314,7 +315,9 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
                       )}
                     </View>
                     <AppButton
-                      onPress={() => {}}
+                      onPress={() => {
+                        dispatch(submitPlotCensus(plot.id));
+                      }}
                       disabled={
                         plotCensus?.status !== PlotCensusStatuses.InProgress
                       }

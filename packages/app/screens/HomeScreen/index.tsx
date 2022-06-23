@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useCallback, useEffect, useMemo } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -35,6 +35,7 @@ import {
 import { TEAM_ID } from "../../constants/dev";
 import { titled_logo } from "../../assets/images";
 import { getUserByToken } from "../../redux/slices/userSlice";
+import { getTeams } from "../../redux/slices/teamSlice";
 
 const TABLE_COLUMN_WIDTHS = {
   PLOT_NUMBER: 96,
@@ -54,14 +55,22 @@ export const HomeScreen = () => {
   const { token, currentUser } = useAppSelector((state) => state.user);
 
   const dispatch = useDispatch();
+
+  const fetchUserData = useCallback(async () => {
+    if (!(isConnected && rehydrated && token && currentUser?.id)) return;
+    await dispatch(getUserByToken(token));
+    await dispatch(getTeams(currentUser.id));
+  }, [isConnected, rehydrated, token, currentUser, dispatch]);
+
   useEffect(() => {
     if (isConnected && rehydrated && token) {
       console.log(token);
       try {
-        dispatch(getUserByToken(token));
-        dispatch(uploadCensusData());
-        dispatch(resetData());
-        dispatch(getForests());
+        fetchUserData().then(() => {
+          dispatch(uploadCensusData());
+          dispatch(resetData());
+          dispatch(getForests());
+        });
       } catch (err) {
         alert(
           "Unable to load data. If your connection is reliable, this is likely due to a server error."
