@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo } from "react";
 import {
+  ActivityIndicator,
   Image,
   Pressable,
   ScrollView,
@@ -32,6 +33,7 @@ import {
   uploadCensusData,
 } from "../../redux/slices/syncSlice";
 import { TEAM_ID } from "../../constants/dev";
+import { titled_logo } from "../../assets/images";
 
 const TABLE_COLUMN_WIDTHS = {
   PLOT_NUMBER: 96,
@@ -99,8 +101,25 @@ export const HomeScreen = () => {
 
   if (!selectedForestId) {
     return (
-      <View>
-        <Text>Loading...</Text>
+      <View
+        style={{
+          flexDirection: "column",
+          width: "100%",
+          height: "100%",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <Image
+          style={{ height: 111, width: 150, marginBottom: 24 }}
+          source={titled_logo}
+        ></Image>
+        <Text variant={TextVariants.H2}>Loading Forests</Text>
+        <ActivityIndicator
+          style={{ marginTop: 24 }}
+          size="large"
+          color="black"
+        />
       </View>
     );
   }

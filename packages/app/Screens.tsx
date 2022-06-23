@@ -1,7 +1,7 @@
 import { Plot } from "@ong-forestry/schema";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import React, { FC } from "react";
+import React, { FC, useEffect } from "react";
 import { StatusBar } from "expo-status-bar";
 import { MapScreenModes, MapScreenZoomLevels } from "./constants";
 import useAppSelector from "./hooks/useAppSelector";
@@ -11,6 +11,7 @@ import SignupScreen from "./screens/AuthScreens/SignupScreen";
 import VerifyScreen from "./screens/AuthScreens/VerifyScreen";
 import { HomeScreen } from "./screens/HomeScreen";
 import MapScreen from "./screens/MapScreen";
+import axios from "axios";
 
 export type CensusStackParamList = {
   map: {
@@ -34,6 +35,10 @@ const AuthStack = createNativeStackNavigator<AuthStackParamList>();
 const Screens: FC = () => {
   const isLoadingComplete = useCachedResources();
   const { token } = useAppSelector((state) => state.user);
+  useEffect(() => {
+    axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+  }, [token]);
+
   return isLoadingComplete ? (
     token ? (
       <>

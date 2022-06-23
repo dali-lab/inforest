@@ -15,7 +15,7 @@ import {
 } from "services";
 import { sendVerificationCode } from "../util";
 import { HeaderAPIKeyStrategy } from "passport-headerapikey";
-import { MembershipRoles } from "@ong-forestry/schema";
+import { MembershipRoles, User } from "@ong-forestry/schema";
 
 dotenv.config();
 
@@ -79,10 +79,10 @@ passport.use(
     async (token, done) => {
       try {
         // use id encrypted in token to get user
-        const user = await getUsers({ id: token.user.id });
-        if (user.length == 0) return done(new Error("Invalid token."));
+        const userResult: User[] = await getUsers({ id: token.user.id });
+        if (userResult.length == 0) return done(new Error("Invalid token."));
 
-        return done(null, user[0]);
+        return done(null, userResult[0]);
       } catch (e: any) {
         done(e);
       }

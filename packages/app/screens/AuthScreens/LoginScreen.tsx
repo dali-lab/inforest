@@ -24,14 +24,10 @@ const LoginScreen: React.FC = () => {
       // check username and password
       const response = await dispatch(login(state));
       // if correct but not verified
+      console.log(response);
+
       // @ts-ignore
       if (!response?.verified) {
-        // save user data to the store
-        // @ts-ignore
-        // dispatch(setCredentials({ user: response.user }));
-        console.log(response);
-
-        // move to verify
         //@ts-ignore
         navigation.navigate("verify", {});
       }
@@ -42,7 +38,6 @@ const LoginScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <Image style={{ height: 185, width: 250 }} source={titled_logo}></Image>
       <Text variant={TextVariants.H1}>Sign in</Text>
       <View style={styles.formContainer}>
         <View style={styles.formRow}>
