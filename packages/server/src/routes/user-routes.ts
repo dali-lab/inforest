@@ -23,6 +23,14 @@ userRouter.get<{}, any, User>("/", requireAuth, async (req, res) => {
   }
 });
 
+userRouter.get<{}, any, User>(
+  "/getTokenUser",
+  requireAuth,
+  async (req, res) => {
+    console.log(req);
+  }
+);
+
 userRouter.patch<{}, any, User>("/", requireAuth, async (req, res) => {
   try {
     const users = await editUsers(req.body, parseParams(req.query));

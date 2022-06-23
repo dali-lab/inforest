@@ -17,7 +17,7 @@ authRouter.post<{}, any, User>("/signup", (req, res, next) => {
     async (err, user, info) => {
       try {
         if (err) throw err;
-        if (!user) throw new Error();
+        res.status(201).json({ user });
       } catch (e: any) {
         console.error(e);
         res.status(500).send(e?.message ?? "An unknown error has occurred");

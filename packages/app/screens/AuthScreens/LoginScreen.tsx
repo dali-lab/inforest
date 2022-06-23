@@ -21,16 +21,7 @@ const LoginScreen: React.FC = () => {
 
   const handleSubmit = useCallback(async () => {
     try {
-      // check username and password
-      const response = await dispatch(login(state));
-      // if correct but not verified
-      console.log(response);
-
-      // @ts-ignore
-      if (!response?.verified) {
-        //@ts-ignore
-        navigation.navigate("verify", {});
-      }
+      await dispatch(login(state));
     } catch (err: any) {
       alert(err?.message || "An unknown error occured.");
     }
@@ -38,6 +29,7 @@ const LoginScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
+      <Image style={{ height: 185, width: 250 }} source={titled_logo}></Image>
       <Text variant={TextVariants.H1}>Sign in</Text>
       <View style={styles.formContainer}>
         <View style={styles.formRow}>

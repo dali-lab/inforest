@@ -12,6 +12,9 @@ import VerifyScreen from "./screens/AuthScreens/VerifyScreen";
 import { HomeScreen } from "./screens/HomeScreen";
 import MapScreen from "./screens/MapScreen";
 import axios from "axios";
+import useAppDispatch from "./hooks/useAppDispatch";
+import { login } from "./redux/slices/userSlice";
+import ProfileScreen from "./screens/ProfileScreen";
 
 export type CensusStackParamList = {
   map: {
@@ -20,6 +23,7 @@ export type CensusStackParamList = {
     selectedPlot?: Plot;
   };
   home: {};
+  profile: {};
 };
 export type AuthStackParamList = {
   login: {};
@@ -34,53 +38,51 @@ const AuthStack = createNativeStackNavigator<AuthStackParamList>();
 // It is separate from App to allow for use of useAppSelector
 const Screens: FC = () => {
   const isLoadingComplete = useCachedResources();
-  const { token } = useAppSelector((state) => state.user);
+  const { token, currentUser } = useAppSelector((state) => state.user);
   useEffect(() => {
     axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
   }, [token]);
-
   return isLoadingComplete ? (
     token ? (
-      <>
-        <NavigationContainer>
-          <CensusStack.Navigator
-            initialRouteName="home"
-            screenOptions={{ headerShown: false }}
-          >
-            <CensusStack.Screen name="home" component={HomeScreen} />
-            <CensusStack.Screen
-              name="map"
-              component={MapScreen}
-              initialParams={{
-                mode: MapScreenModes.Explore,
-                zoomLevel: MapScreenZoomLevels.Forest,
-              }}
-            />
-          </CensusStack.Navigator>
-        </NavigationContainer>
-        <StatusBar />
-      </>
+      currentUser?.verified ? (
+        <>
+          <NavigationContainer>
+            <CensusStack.Navigator
+              initialRouteName="home"
+              screenOptions={{ headerShown: false }}
+            >
+              <CensusStack.Screen name="home" component={HomeScreen} />
+              <CensusStack.Screen
+                name="map"
+                component={MapScreen}
+                initialParams={{
+                  mode: MapScreenModes.Explore,
+                  zoomLevel: MapScreenZoomLevels.Forest,
+                }}
+              />
+              <CensusStack.Screen name="profile" component={ProfileScreen} />
+            </CensusStack.Navigator>
+          </NavigationContainer>
+          <StatusBar />
+        </>
+      ) : (
+        <VerifyScreen />
+      )
     ) : (
       <NavigationContainer>
         <AuthStack.Navigator
           initialRouteName="login"
-          screenOptions={{ headerBackTitleVisible: false }}
+          screenOptions={{
+            headerBackTitleVisible: false,
+            headerTitle: "",
+          }}
         >
-          <AuthStack.Screen
-            name="signup"
-            options={{ headerTitle: "Sign Up" }}
-            component={SignupScreen}
-          />
           <AuthStack.Screen
             name="login"
             component={LoginScreen}
             options={{ headerShown: false }}
           />
-          <AuthStack.Screen
-            name="verify"
-            options={{ headerTitle: "Verify" }}
-            component={VerifyScreen}
-          />
+          <AuthStack.Screen name="signup" component={SignupScreen} />
         </AuthStack.Navigator>
       </NavigationContainer>
     )

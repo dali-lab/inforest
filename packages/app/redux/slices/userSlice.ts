@@ -31,7 +31,9 @@ export const login = createAsyncThunk(
         return { ...response.data };
       })
       .catch((error) => {
-        console.log(error);
+        alert(
+          "Unable to log in, please ensure your email and password are correct."
+        );
         console.error("Error when logging in", error);
       });
   }
@@ -43,8 +45,9 @@ export const signUp = createAsyncThunk(
   async (credentials: AuthParams) => {
     return await axios
       .post(`${BASE_URL}signup`, credentials)
-      .then(() => {
-        return true;
+      .then((response) => {
+        alert("Sign up successful! Use your account information to sign in.");
+        return response.data;
       })
       .catch((error) => {
         console.error("Error when signing up", error);
@@ -123,6 +126,7 @@ export const userSlice = createSlice({
       state.currentUser = action.payload.user;
       return state;
     },
+    logout: () => initialState,
   },
   extraReducers: (builder) => {
     builder.addCase(login.fulfilled, (state, action) => {
@@ -131,10 +135,20 @@ export const userSlice = createSlice({
         state.token = action.payload.token;
         // @ts-ignore
         state.currentUser = action.payload.user;
+        axios.defaults.headers.common[
+          "Authorization"
+        ] = `Bearer ${state.token}`;
         return state;
       }
     });
-    builder.addCase(signUp.fulfilled, () => {});
+    // builder.addCase(signUp.fulfilled, (state, action) => {
+    //   // console.log(action.payload);
+    //   // // @ts-ignore
+    //   // state.token = action.payload.token;
+    //   // // @ts-ignore
+    //   // state.currentUser = action.payload.user;
+    //   // return state;
+    // });
     builder.addCase(editUser.fulfilled, (state, action) => {
       if (action.payload) {
         state.currentUser = action.payload[0];
@@ -152,6 +166,6 @@ export const userSlice = createSlice({
   },
 });
 
-export const { setCredentials } = userSlice.actions;
+export const { setCredentials, logout } = userSlice.actions;
 
 export default userSlice.reducer;

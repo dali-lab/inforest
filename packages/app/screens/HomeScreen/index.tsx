@@ -50,10 +50,12 @@ export const HomeScreen = () => {
   const {
     _persist: { rehydrated },
   } = useAppSelector((state) => state);
+  const { token, currentUser } = useAppSelector((state) => state.user);
 
   const dispatch = useDispatch();
   useEffect(() => {
-    if (isConnected && rehydrated) {
+    if (isConnected && rehydrated && token) {
+      console.log(token);
       try {
         dispatch(uploadCensusData());
         dispatch(resetData());
@@ -64,7 +66,7 @@ export const HomeScreen = () => {
         );
       }
     }
-  }, [isConnected, rehydrated, dispatch]);
+  }, [isConnected, rehydrated, dispatch, token]);
   const {
     all: allForests,
     selected: selectedForestId,
@@ -88,7 +90,7 @@ export const HomeScreen = () => {
       dispatch(selectForest(availableForests[0].id));
   }, [selectedForestId, availableForests, dispatch]);
   useEffect(() => {
-    if (isConnected && rehydrated && selectedForestId) {
+    if (isConnected && rehydrated && selectedForestId && token) {
       try {
         dispatch(loadForestData(selectedForestId));
       } catch (err) {
@@ -97,7 +99,7 @@ export const HomeScreen = () => {
         );
       }
     }
-  }, [isConnected, rehydrated, selectedForestId, dispatch]);
+  }, [isConnected, rehydrated, selectedForestId, dispatch, token]);
 
   if (!selectedForestId) {
     return (
@@ -141,15 +143,27 @@ export const HomeScreen = () => {
           zIndex: 1,
         }}
       >
-        <Text variant={TextVariants.H1}>Welcome, Ziray</Text>
-        <Image
-          style={{
-            height: TextStyles[TextVariants.H1].fontSize,
-            width: TextStyles[TextVariants.H1].fontSize,
-            resizeMode: "contain",
-          }}
-          source={require("../../assets/images/logo.png")}
-        ></Image>
+        <Text variant={TextVariants.H1}>Welcome, {currentUser?.firstName}</Text>
+        <View style={{ flexDirection: "row" }}>
+          <Ionicons
+            name="person-outline"
+            size={TextStyles[TextVariants.H1].fontSize}
+            onPress={() => {
+              console.log("p");
+              // @ts-ignore
+              navigation.navigate("profile", {});
+            }}
+          />
+          <Image
+            style={{
+              marginLeft: 16,
+              height: TextStyles[TextVariants.H1].fontSize,
+              width: TextStyles[TextVariants.H1].fontSize,
+              resizeMode: "contain",
+            }}
+            source={require("../../assets/images/logo.png")}
+          />
+        </View>
       </View>
       <Stack size={12}></Stack>
       <View style={{ flexDirection: "row" }}>

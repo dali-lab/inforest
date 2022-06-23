@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 import { Dimensions, StyleSheet, View, Image } from "react-native";
+import { useHeaderHeight } from "@react-navigation/elements";
 import useAppDispatch from "../../hooks/useAppDispatch";
 import { AuthParams, signUp } from "../../redux/slices/userSlice";
 import TextField from "../../components/fields/TextField";
@@ -10,6 +11,7 @@ import { Text, TextVariants } from "../../components/Themed";
 
 const SignupScreen: React.FC = () => {
   const dispatch = useAppDispatch();
+  const headerHeight = useHeaderHeight();
   const navigation = useNavigation();
 
   const [newUser, setNewUser] = useState<
@@ -27,23 +29,33 @@ const SignupScreen: React.FC = () => {
     setNewUser({ ...newUser, ...updatedFields });
   };
 
-  const handleSubmit = useCallback(() => {
+  const handleSubmit = useCallback(async () => {
     try {
-      if (newUser.email != newUser.confirmEmail)
+      if (newUser.email != newUser.confirmEmail) {
+        alert("Your emails do not match");
         throw new Error("Emails do not match");
-      if (newUser.password != newUser.confirmPassword)
+      }
+      if (newUser.password != newUser.confirmPassword) {
+        alert("Your passwords do not match");
         throw new Error("Passwords do not match");
+      }
       const { confirmEmail, confirmPassword, ...userData } = newUser;
-      dispatch(signUp(userData));
-      //@ts-ignore
-      navigation.navigate("verify", {});
+      dispatch(signUp(userData)).then(() => {
+        // @ts-ignore
+        navigation.navigate("login", {});
+      });
     } catch (err: any) {
       alert(err?.message || "An unknown error occured.");
     }
   }, [newUser, dispatch, navigation]);
 
   return (
-    <View style={styles.container}>
+    <View
+      style={{
+        ...styles.container,
+        paddingVertical: styles.container.paddingVertical - headerHeight,
+      }}
+    >
       <Image style={{ height: 185, width: 250 }} source={titled_logo}></Image>
       <Text variant={TextVariants.H1}>Sign up</Text>
       <View style={styles.formContainer}>

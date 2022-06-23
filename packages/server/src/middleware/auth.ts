@@ -34,7 +34,7 @@ passport.use(
 
         sendVerificationCode(email);
 
-        return done("You must verify your email to gain access.", user);
+        return done(null, user, { message: "Sign up successful." });
       } catch (e: any) {
         done(e);
       }
