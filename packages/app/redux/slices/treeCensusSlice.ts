@@ -35,9 +35,9 @@ export const populateTreeCensusModels = createAsyncThunk(
     // this is O(4n) which we don't like since ideally we just loop thru it once
     // we have to do this because we don't have direct access to the treeCensusLabel and treePhoto states in this slice
     // possible slice restructuring could solve this inefficiency
-    await thunkApi.dispatch(addTreeCensuses(newCensuses));
-    await thunkApi.dispatch(addTreeCensusLabels(newCensusLabels));
-    await thunkApi.dispatch(addTreePhotos(newPhotos));
+    thunkApi.dispatch(addTreeCensuses(newCensuses));
+    thunkApi.dispatch(addTreeCensusLabels(newCensusLabels));
+    thunkApi.dispatch(addTreePhotos(newPhotos));
   }
 );
 

@@ -2,7 +2,9 @@ import express from "express";
 import { User } from "@ong-forestry/schema";
 import { createUser, deleteUsers, editUsers, getUsers } from "services";
 import { requireAuth } from "middleware";
+import jwt from "jsonwebtoken";
 import { authRouter } from "./auth-routes";
+import { decodeToken } from "../util/auth";
 
 const userRouter = express.Router();
 
@@ -23,11 +25,20 @@ userRouter.get<{}, any, User>("/", requireAuth, async (req, res) => {
   }
 });
 
-userRouter.get<{}, any, User>(
-  "/getTokenUser",
+userRouter.get<{ token: string }, any, User>(
+  "/:token",
   requireAuth,
   async (req, res) => {
-    console.log(req);
+    const { token } = req.params;
+    try {
+      const id = decodeToken(token);
+      if (!id) throw new Error("Token could not be decoded.");
+      const users: User[] = await getUsers({ id });
+      res.status(200).json(users[0]);
+    } catch (e: any) {
+      console.error(e);
+      res.status(500).send(e?.message ?? "Unknown error.");
+    }
   }
 );
 

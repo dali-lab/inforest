@@ -107,6 +107,19 @@ export const editUser = createAsyncThunk(
   }
 );
 
+export const getUserByToken = createAsyncThunk(
+  "user/getUserByToken",
+  async (token: string) => {
+    return await axios
+      .get<User>(`${BASE_URL}${token}`)
+      .then((response) => response.data)
+      .catch((err) => {
+        console.error(err);
+        alert("Your login session has expired.");
+      });
+  }
+);
+
 export interface UserState {
   token: string | null;
   currentUser: User | null;
@@ -154,6 +167,16 @@ export const userSlice = createSlice({
         state.currentUser = action.payload[0];
       }
       return state;
+    });
+    builder.addCase(getUserByToken.fulfilled, (state, action) => {
+      console.log(action);
+      if (action.payload && action.meta.arg === state.token) {
+        state.currentUser = action.payload;
+      }
+      return state;
+    });
+    builder.addCase(getUserByToken.rejected, (state, action) => {
+      return initialState;
     });
     builder.addCase(verify.fulfilled, (state, action) => {
       if (action.payload) {

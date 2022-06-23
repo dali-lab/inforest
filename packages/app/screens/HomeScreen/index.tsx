@@ -34,6 +34,7 @@ import {
 } from "../../redux/slices/syncSlice";
 import { TEAM_ID } from "../../constants/dev";
 import { titled_logo } from "../../assets/images";
+import { getUserByToken } from "../../redux/slices/userSlice";
 
 const TABLE_COLUMN_WIDTHS = {
   PLOT_NUMBER: 96,
@@ -57,6 +58,7 @@ export const HomeScreen = () => {
     if (isConnected && rehydrated && token) {
       console.log(token);
       try {
+        dispatch(getUserByToken(token));
         dispatch(uploadCensusData());
         dispatch(resetData());
         dispatch(getForests());

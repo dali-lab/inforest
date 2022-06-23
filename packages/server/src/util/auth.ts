@@ -1,4 +1,4 @@
-import jwt from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
 import { User, VerificationCode } from "@ong-forestry/schema";
 import {
   getUsers,
@@ -10,14 +10,30 @@ import {
 import { emailCode } from "../util";
 
 export const createToken = (user: User) => {
+  if (!process.env?.AUTH_SECRET) throw new Error("No secret defined!");
   const userData = { id: user.id, email: user.email };
   const token = jwt.sign(
     { user: userData },
-    process.env.AUTH_SECRET as string,
+    process.env.AUTH_SECRET,
     { expiresIn: "14d" } // two weeks
   );
 
   return token;
+};
+
+export const decodeToken: (token: string) => string | null = (
+  token: string
+) => {
+  if (!process.env?.AUTH_SECRET) throw new Error("No secret defined!");
+  let userId: string | null = null;
+  jwt.verify(token, process.env.AUTH_SECRET, (err, decoded) => {
+    const { exp, user } = decoded as JwtPayload;
+    if (!exp || !user) return null;
+    if (new Date(exp * 1000) < new Date())
+      throw new Error("Token has expired.");
+    userId = user.id;
+  });
+  return userId;
 };
 
 export const sendVerificationCode = async (email: string) => {
