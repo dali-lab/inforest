@@ -6,11 +6,11 @@ import AppButton from "../../components/AppButton";
 import useAppDispatch from "../../hooks/useAppDispatch";
 import { login } from "../../redux/slices/userSlice";
 import { useNavigation } from "@react-navigation/native";
-import { AuthStackParamList } from "../../App";
+import { AuthStackParamList } from "../../Screens";
 import { titled_logo } from "../../assets/images";
 import DividerLine from "../../components/DividerLine";
 
-const LoginView: React.FC = () => {
+const LoginScreen: React.FC = () => {
   const dispatch = useAppDispatch();
   const navigation = useNavigation<AuthStackParamList>();
 
@@ -29,6 +29,7 @@ const LoginView: React.FC = () => {
         // save user data to the store
         // @ts-ignore
         // dispatch(setCredentials({ user: response.user }));
+        console.log(response);
 
         // move to verify
         //@ts-ignore
@@ -166,4 +167,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default LoginView;
+export default LoginScreen;

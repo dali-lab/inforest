@@ -8,7 +8,7 @@ import { deselectTree } from "../../redux/slices/treeSlice";
 import PlotView from "./PlotView";
 import ForestView from "./ExploreView";
 import { RouteProp, useRoute } from "@react-navigation/native";
-import { CensusStackParamList } from "../../App";
+import { CensusStackParamList } from "../../Screens";
 import useAppSelector from "../../hooks/useAppSelector";
 import { deselectTreeCensus } from "../../redux/slices/treeCensusSlice";
 import Colors from "../../constants/Colors";

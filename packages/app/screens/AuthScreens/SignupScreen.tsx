@@ -8,7 +8,7 @@ import { useNavigation } from "@react-navigation/native";
 import { titled_logo } from "../../assets/images";
 import { Text, TextVariants } from "../../components/Themed";
 
-const SignupView: React.FC = () => {
+const SignupScreen: React.FC = () => {
   const dispatch = useAppDispatch();
   const navigation = useNavigation();
 
@@ -174,4 +174,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default SignupView;
+export default SignupScreen;

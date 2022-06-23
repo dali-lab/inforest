@@ -11,7 +11,7 @@ import Colors from "../../constants/Colors";
 
 const CODE_LENGTH = 6;
 
-const VerifyView: React.FC = () => {
+const VerifyScreen: React.FC = () => {
   const dispatch = useAppDispatch();
   // const navigation = useNavigation();
 
@@ -200,4 +200,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default VerifyView;
+export default VerifyScreen;
