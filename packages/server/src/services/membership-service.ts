@@ -27,7 +27,8 @@ export const createMembership = async (membership: {
   });
 
   // existing user was inactive or new inactive user was created. invite them
-  if (!users[0].active) await emailInvitation(membership);
+  console.log(users[0]);
+  // if (!users[0].active) await emailInvitation(membership);
 
   return newMembership;
 };
