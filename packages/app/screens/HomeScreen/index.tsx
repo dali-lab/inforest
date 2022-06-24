@@ -85,14 +85,7 @@ export const HomeScreen = () => {
         );
       }
     }
-  }, [
-    isConnected,
-    rehydrated,
-    dispatch,
-    token,
-    fetchUserData,
-    refreshCensusData,
-  ]);
+  }, [isConnected, rehydrated, token]);
   const {
     all: allForests,
     selected: selectedForestId,
@@ -122,7 +115,7 @@ export const HomeScreen = () => {
   useEffect(() => {
     if (!selectedForestId && availableForests.length > 0)
       dispatch(selectForest(availableForests[0].id));
-  }, [selectedForestId, availableForests, dispatch]);
+  }, [selectedForestId, availableForests]);
   useEffect(() => {
     if (isConnected && rehydrated && selectedForestId && token) {
       try {
@@ -136,14 +129,7 @@ export const HomeScreen = () => {
         );
       }
     }
-  }, [
-    isConnected,
-    rehydrated,
-    selectedForestId,
-    dispatch,
-    token,
-    loadCensusData,
-  ]);
+  }, [isConnected, rehydrated, selectedForestId, token, loadCensusData]);
 
   if (!selectedForestId) {
     return (

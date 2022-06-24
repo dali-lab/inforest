@@ -12,9 +12,9 @@ export const emailCode = async (verificationCode: {
   if (user.length == 0) {
     throw new Error("This email is not connected to an account.");
   }
-  if (user[0].verified) {
-    throw new Error("This user has already been verified.");
-  }
+  // if (user[0].verified) {
+  //   throw new Error("This user has already been verified.");
+  // }
 
   // set up credentials
   const credentials = {
