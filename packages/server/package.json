@@ -9,6 +9,10 @@
     "migrate": "sequelize db:migrate --env production",
     "seed": "sequelize db:seed:all"
   },
+  "engines": {
+    "npm": ">=7.0.0",
+    "node": ">=16.0.0"
+  },
   "dependencies": {
     "@aws-sdk/client-sesv2": "^3.87.0",
     "@ong-forestry/schema": "1.0.0",
