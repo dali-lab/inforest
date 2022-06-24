@@ -33,7 +33,7 @@ import {
   uploadCensusData,
 } from "../../redux/slices/syncSlice";
 import { titled_logo } from "../../assets/images";
-import { getUserByToken } from "../../redux/slices/userSlice";
+import { getUserByToken, logout } from "../../redux/slices/userSlice";
 import { getTeams } from "../../redux/slices/teamSlice";
 
 const TABLE_COLUMN_WIDTHS = {
@@ -171,10 +171,20 @@ export const HomeScreen = () => {
             />
           </>
         ) : (
-          <Text variant={TextVariants.H2} style={{ textAlign: "center" }}>
-            Your account currently has no forests available. Create a new team
-            and forest or ask a forest admin to invite you to their team.
-          </Text>
+          <>
+            <Text variant={TextVariants.H2} style={{ textAlign: "center" }}>
+              Your account currently has no forests available. Create a new team
+              and forest or ask a forest admin to invite you to their team.
+            </Text>
+            <AppButton
+              onPress={() => {
+                dispatch(logout());
+              }}
+              type="RED"
+            >
+              Log Out
+            </AppButton>
+          </>
         )}
       </View>
     );
