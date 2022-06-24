@@ -169,15 +169,12 @@ export const userSlice = createSlice({
       return state;
     });
     builder.addCase(getUserByToken.fulfilled, (state, action) => {
-      console.log(action);
       if (action.payload && action.meta.arg === state.token) {
         state.currentUser = action.payload;
       }
       return state;
     });
-    builder.addCase(getUserByToken.rejected, (state, action) => {
-      return initialState;
-    });
+    builder.addCase(getUserByToken.rejected, () => initialState);
     builder.addCase(verify.fulfilled, (state, action) => {
       if (action.payload) {
         state.token = action.payload.token;

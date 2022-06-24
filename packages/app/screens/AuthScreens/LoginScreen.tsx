@@ -25,7 +25,7 @@ const LoginScreen: React.FC = () => {
     } catch (err: any) {
       alert(err?.message || "An unknown error occured.");
     }
-  }, [state, dispatch, navigation]);
+  }, [state, dispatch]);
 
   return (
     <View style={styles.container}>

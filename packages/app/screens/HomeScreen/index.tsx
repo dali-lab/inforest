@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -32,7 +32,6 @@ import {
   resetData,
   uploadCensusData,
 } from "../../redux/slices/syncSlice";
-import { TEAM_ID } from "../../constants/dev";
 import { titled_logo } from "../../assets/images";
 import { getUserByToken } from "../../redux/slices/userSlice";
 import { getTeams } from "../../redux/slices/teamSlice";
@@ -43,8 +42,6 @@ const TABLE_COLUMN_WIDTHS = {
   ACTION: 96,
 };
 
-const selectedTeam = TEAM_ID;
-
 export const HomeScreen = () => {
   const navigation = useNavigation();
 
@@ -54,7 +51,11 @@ export const HomeScreen = () => {
   } = useAppSelector((state) => state);
   const { token, currentUser } = useAppSelector((state) => state.user);
 
+  const { currentTeam: currentTeamId } = useAppSelector((state) => state.teams);
+
   const dispatch = useDispatch();
+
+  const [dataLoading, setDataLoading] = useState<boolean>(false);
 
   const fetchUserData = useCallback(async () => {
     if (!(isConnected && rehydrated && token && currentUser?.id)) return;
@@ -62,14 +63,21 @@ export const HomeScreen = () => {
     await dispatch(getTeams(currentUser.id));
   }, [isConnected, rehydrated, token, currentUser, dispatch]);
 
+  const refreshCensusData = useCallback(async () => {
+    if (!(isConnected && rehydrated && token)) return;
+    await dispatch(uploadCensusData());
+    await dispatch(resetData());
+    await dispatch(getForests());
+  }, [isConnected, rehydrated, token, dispatch]);
+
   useEffect(() => {
     if (isConnected && rehydrated && token) {
-      console.log(token);
       try {
+        setDataLoading(true);
         fetchUserData().then(() => {
-          dispatch(uploadCensusData());
-          dispatch(resetData());
-          dispatch(getForests());
+          refreshCensusData().then(() => {
+            setDataLoading(false);
+          });
         });
       } catch (err) {
         alert(
@@ -77,12 +85,24 @@ export const HomeScreen = () => {
         );
       }
     }
-  }, [isConnected, rehydrated, dispatch, token]);
+  }, [
+    isConnected,
+    rehydrated,
+    dispatch,
+    token,
+    fetchUserData,
+    refreshCensusData,
+  ]);
   const {
     all: allForests,
     selected: selectedForestId,
     indices: { byTeam },
   } = useAppSelector((state: RootState) => state.forest);
+
+  const loadCensusData = useCallback(async () => {
+    if (!(isConnected && rehydrated && token && selectedForestId)) return;
+    await dispatch(loadForestData(selectedForestId));
+  }, [dispatch, isConnected, rehydrated, token, selectedForestId]);
   const { selected, all: allForestCensuses } = useAppSelector(
     (state: RootState) => state.forestCensuses
   );
@@ -93,8 +113,11 @@ export const HomeScreen = () => {
   const { height: windowHeight, width: windowWidth } = useWindowDimensions();
 
   const availableForests = useMemo(
-    () => Array.from(byTeam?.[selectedTeam] || []).map((id) => allForests[id]),
-    [byTeam, allForests]
+    () =>
+      currentTeamId
+        ? Array.from(byTeam?.[currentTeamId] || []).map((id) => allForests[id])
+        : [],
+    [byTeam, allForests, currentTeamId]
   );
   useEffect(() => {
     if (!selectedForestId && availableForests.length > 0)
@@ -103,14 +126,24 @@ export const HomeScreen = () => {
   useEffect(() => {
     if (isConnected && rehydrated && selectedForestId && token) {
       try {
-        dispatch(loadForestData(selectedForestId));
+        setDataLoading(true);
+        loadCensusData().then(() => {
+          setDataLoading(false);
+        });
       } catch (err) {
         alert(
           "Unable to load data. If your connection is reliable, this is likely due to a server error."
         );
       }
     }
-  }, [isConnected, rehydrated, selectedForestId, dispatch, token]);
+  }, [
+    isConnected,
+    rehydrated,
+    selectedForestId,
+    dispatch,
+    token,
+    loadCensusData,
+  ]);
 
   if (!selectedForestId) {
     return (
@@ -121,18 +154,28 @@ export const HomeScreen = () => {
           height: "100%",
           alignItems: "center",
           justifyContent: "center",
+          paddingHorizontal: 128,
         }}
       >
-        <Image
-          style={{ height: 111, width: 150, marginBottom: 24 }}
-          source={titled_logo}
-        ></Image>
-        <Text variant={TextVariants.H2}>Loading Forests</Text>
-        <ActivityIndicator
-          style={{ marginTop: 24 }}
-          size="large"
-          color="black"
-        />
+        {dataLoading ? (
+          <>
+            <Image
+              style={{ height: 111, width: 150, marginBottom: 24 }}
+              source={titled_logo}
+            ></Image>
+            <Text variant={TextVariants.H2}>Loading Forests</Text>
+            <ActivityIndicator
+              style={{ marginTop: 24 }}
+              size="large"
+              color="black"
+            />
+          </>
+        ) : (
+          <Text variant={TextVariants.H2} style={{ textAlign: "center" }}>
+            Your account currently has no forests available. Create a new team
+            and forest or ask a forest admin to invite you to their team.
+          </Text>
+        )}
       </View>
     );
   }
@@ -160,7 +203,6 @@ export const HomeScreen = () => {
             name="person-outline"
             size={TextStyles[TextVariants.H1].fontSize}
             onPress={() => {
-              console.log("p");
               // @ts-ignore
               navigation.navigate("profile", {});
             }}

@@ -2,6 +2,7 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { Team } from "@ong-forestry/schema";
 import SERVER_URL from "../../constants/Url";
 import axios from "axios";
+import { UpsertAction } from "..";
 
 const BASE_URL = SERVER_URL + "teams/";
 
@@ -18,13 +19,22 @@ export const getTeams = createAsyncThunk(
 );
 
 export interface TeamState {
-  availableTeams: Team[];
-  currentTeam: Team | null;
+  availableTeams: Record<string, Team>;
+  currentTeam: string | null;
 }
 
 const initialState: TeamState = {
-  availableTeams: [],
+  availableTeams: {},
   currentTeam: null,
+};
+
+const upsertTeams = (state: TeamState, action: UpsertAction<Team>) => {
+  const newTeams: Team[] = action.data;
+  newTeams.forEach((newTeam) => {
+    state.availableTeams[newTeam.id] = newTeam;
+    if (action?.selectFinal) state.currentTeam = newTeam.id;
+  });
+  return state;
 };
 
 export const teamSlice = createSlice({
@@ -33,8 +43,7 @@ export const teamSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder.addCase(getTeams.fulfilled, (state, action) => {
-      state.availableTeams = action.payload;
-      return state;
+      return upsertTeams(state, { data: action.payload, selectFinal: true });
     });
   },
 });

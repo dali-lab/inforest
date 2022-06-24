@@ -12,8 +12,6 @@ import VerifyScreen from "./screens/AuthScreens/VerifyScreen";
 import { HomeScreen } from "./screens/HomeScreen";
 import MapScreen from "./screens/MapScreen";
 import axios from "axios";
-import useAppDispatch from "./hooks/useAppDispatch";
-import { login } from "./redux/slices/userSlice";
 import ProfileScreen from "./screens/ProfileScreen";
 
 export type CensusStackParamList = {
@@ -22,13 +20,13 @@ export type CensusStackParamList = {
     zoomLevel: MapScreenZoomLevels;
     selectedPlot?: Plot;
   };
-  home: {};
-  profile: {};
+  home: Record<string, unknown>;
+  profile: Record<string, unknown>;
 };
 export type AuthStackParamList = {
-  login: {};
-  signup: {};
-  verify: {};
+  login: Record<string, unknown>;
+  signup: Record<string, unknown>;
+  verify: Record<string, unknown>;
 };
 
 const CensusStack = createNativeStackNavigator<CensusStackParamList>();

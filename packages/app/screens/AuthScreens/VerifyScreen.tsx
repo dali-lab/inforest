@@ -3,7 +3,6 @@ import { Dimensions, StyleSheet, View, TextInput, Image } from "react-native";
 import useAppDispatch from "../../hooks/useAppDispatch";
 import { verify, resendCode, logout } from "../../redux/slices/userSlice";
 import AppButton from "../../components/AppButton";
-import { useStore } from "react-redux";
 import { titled_logo } from "../../assets/images";
 import { Text, TextVariants } from "../../components/Themed";
 import Colors from "../../constants/Colors";
@@ -18,7 +17,6 @@ const VerifyScreen: React.FC = () => {
 
   const { currentUser } = useAppSelector((state) => state.user);
 
-  const store = useStore();
   const email = currentUser?.email;
 
   const [code, setCode] = useState(" ".repeat(CODE_LENGTH));

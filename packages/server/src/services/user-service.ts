@@ -13,7 +13,8 @@ export const createUser = async (user: Pick<User, "email" | "password">) => {
 
   // if no inactive user is found, create a new one
   if (inactiveUsers.length == 0) {
-    return await UserModel.create({ ...user, verified: false, active: true });
+    // TODO: change verified back to false!
+    return await UserModel.create({ ...user, verified: true, active: true });
   }
   // else update this user's information and make them active
   else {
@@ -29,7 +30,8 @@ export const createInactiveAccount = async (email: string) => {
     email,
     password: "",
     active: false,
-    verified: false,
+    //TODO: change this!
+    verified: true,
   });
 };
 

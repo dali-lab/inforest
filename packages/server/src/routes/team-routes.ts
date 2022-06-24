@@ -35,7 +35,6 @@ teamRouter.patch<{}, any, Team>("/", requireAuth, async (req, res) => {
 
 teamRouter.get("/", requireAuth, async (req, res) => {
   try {
-    console.log(req.query);
     const teams = await getTeams(parseParams(req.query));
     res.status(200).json(teams);
   } catch (e: any) {

@@ -3,7 +3,6 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Provider } from "react-redux";
 import * as ScreenOrientation from "expo-screen-orientation";
 import { PersistGate } from "redux-persist/integration/react";
-import axios from "axios";
 import { NetworkProvider } from "react-native-offline";
 import { store, persistor } from "./redux";
 import Screens from "./Screens";
