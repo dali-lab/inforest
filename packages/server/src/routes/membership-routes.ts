@@ -14,16 +14,20 @@ membershipRouter.post<
   {},
   any,
   Pick<Membership, "teamId" | "role"> & { email: string }
->("/", retoolAuth, async (req, res) => {
-  try {
-    console.log("service");
-    const membership = await createMembership(req.body);
-    res.status(201).json(membership);
-  } catch (e: any) {
-    console.error(e);
-    res.status(500).send(e?.message ?? "Unknown error.");
+>(
+  "/",
+  // retoolAuth,
+  async (req, res) => {
+    try {
+      console.log("service");
+      const membership = await createMembership(req.body);
+      res.status(201).json(membership);
+    } catch (e: any) {
+      console.error(e);
+      res.status(500).send(e?.message ?? "Unknown error.");
+    }
   }
-});
+);
 
 const parseParams = (query: any) => ({
   id: query.id as string,
