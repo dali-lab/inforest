@@ -1,2 +1,2 @@
-release: cd packages/server && yarn sequelize db:migrate
+release: cd packages/server
 web: cd packages/server && yarn start
