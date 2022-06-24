@@ -6,7 +6,7 @@ import {
   editMemberships,
   getMemberships,
 } from "services";
-import { requireAuth, requireMembership } from "middleware";
+import { requireAuth, requireMembership, retoolAuth } from "middleware";
 
 const membershipRouter = express.Router();
 
@@ -14,20 +14,15 @@ membershipRouter.post<
   {},
   any,
   Pick<Membership, "teamId" | "role"> & { email: string }
->(
-  "/",
-  requireAuth,
-  requireMembership("teamId", "teamId", { admin: true }),
-  async (req, res) => {
-    try {
-      const membership = await createMembership(req.body);
-      res.status(201).json(membership);
-    } catch (e: any) {
-      console.error(e);
-      res.status(500).send(e?.message ?? "Unknown error.");
-    }
+>("/", retoolAuth, async (req, res) => {
+  try {
+    const membership = await createMembership(req.body);
+    res.status(201).json(membership);
+  } catch (e: any) {
+    console.error(e);
+    res.status(500).send(e?.message ?? "Unknown error.");
   }
-);
+});
 
 const parseParams = (query: any) => ({
   id: query.id as string,
