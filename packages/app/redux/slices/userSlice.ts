@@ -116,6 +116,7 @@ export const getUserByToken = createAsyncThunk(
       .catch((err) => {
         console.error(err);
         alert("Your login session has expired.");
+        throw err;
       });
   }
 );
