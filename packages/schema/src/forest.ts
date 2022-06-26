@@ -1,4 +1,4 @@
-import { ForestCensus } from "forest-census";
+import { ForestCensus } from "./forest-census";
 import { Plot } from "./plot";
 import { Team } from "./team";
 /**

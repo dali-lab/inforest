@@ -1,4 +1,3 @@
-import { PlotCensus } from "./plot-census";
 import { Plot } from "./plot";
 import { TreeCensus } from "./tree-census";
 
