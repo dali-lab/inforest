@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { ActivityIndicator, Dimensions, StyleSheet, View } from "react-native";
 import { MapScreenModes, MapScreenZoomLevels } from "../../constants";
 
@@ -42,20 +42,37 @@ export default function MapScreen() {
   const { all, selected: selectedPlotId } = useAppSelector(
     (state) => state.plots
   );
+
+  const { selected: selectedForestCensusId } = useAppSelector(
+    (state) => state.forestCensuses
+  );
   const {
-    indices: { byPlotActive },
+    all: allPlotCensuses,
+    indices: { byForestCensuses },
   } = useAppSelector((state) => state.plotCensuses);
   const selectedPlot = selectedPlotId ? all[selectedPlotId] : undefined;
+
+  // TODO: replace with hook
+  const plotCensusesByActivePlot = useMemo(() => {
+    if (!selectedForestCensusId || !byForestCensuses?.[selectedForestCensusId])
+      return {};
+    const index: Record<string, string> = {};
+    byForestCensuses[selectedForestCensusId].forEach((plotCensusId) => {
+      const census = allPlotCensuses[plotCensusId];
+      index[census.plotId] = plotCensusId;
+    });
+    return index;
+  }, [selectedForestCensusId, byForestCensuses, allPlotCensuses]);
 
   const beginPlotting = useCallback(
     (plot) => {
       setZoomLevel(MapScreenZoomLevels.Plot);
       dispatch(selectPlot(plot.id));
-      if (plot.id in byPlotActive) {
-        dispatch(selectPlotCensus(byPlotActive[plot.id]));
+      dispatch(selectPlotCensus(plotCensusesByActivePlot[plot.id]));
+      if (plot.id in plotCensusesByActivePlot) {
       }
     },
-    [setZoomLevel, dispatch, byPlotActive]
+    [setZoomLevel, dispatch, plotCensusesByActivePlot]
   );
 
   const endPlotting = useCallback(() => {

@@ -69,7 +69,7 @@ export interface Tree {
    * The id of the initial tree census
    */
 
-  initCensusId: string;
+  initCensusId: string | null;
 
   /**
    * Date and time when this entry was created.

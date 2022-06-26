@@ -113,6 +113,27 @@ export const usePlotsInRegion = createSelector(
   }
 );
 
+// export const useActivePlotCensuses = createSelector(
+//   [(state: RootState) => state],
+//   (state) => {
+//     const { forest, plotCensuses } = state;
+//     const { selected: selectedForestCensusId } = forest;
+//     const {
+//       all: allPlotCensuses,
+//       indices: { byForestCensuses },
+//     } = plotCensuses;
+//     if (!selectedForestCensusId || !byForestCensuses?.[selectedForestCensusId])
+//       return {};
+//     const index: Record<string, string> = {};
+//     byForestCensuses[selectedForestCensusId].forEach((plotCensusId) => {
+//       const census = allPlotCensuses[plotCensusId];
+//       index[census.plotId] = plotCensusId;
+//     });
+//     console.log(index);
+//     return index;
+//   }
+// );
+
 // export const usePlots = ({ viewingBox }: PlotsSelectorParams) =>
 //   useAppSelector(({ plots }) => {
 //     const {

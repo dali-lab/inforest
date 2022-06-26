@@ -67,12 +67,24 @@ export const createTreeCensus = async (treeCensus: TreeCensus) => {
   // check whether census on this tree in this plot census already exists
   const existingCensuses = await getTreeCensuses({
     treeIds: [treeCensus.treeId],
+    plotCensusId: treeCensus.plotCensusId,
   });
   if (existingCensuses.length > 0) {
     throw new Error("This tree has already been censused.");
   }
 
-  return await TreeCensusModel.create(treeCensus);
+  const newCensus = await TreeCensusModel.create(treeCensus);
+
+  const relatedTree = (
+    await getTrees({
+      id: newCensus.treeId,
+    })
+  )[0];
+  if (relatedTree.initCensusId === null) {
+    relatedTree.initCensusId = newCensus.id;
+    relatedTree.save();
+  }
+  return newCensus;
 };
 
 export interface TreeCensusParams {

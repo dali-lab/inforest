@@ -261,7 +261,7 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
       const { payload } = dispatch(locallyCreateTreeCensus(newCensus));
       if (payload?.id) newCensus.id = payload.id;
     }
-    if (!selectedTree?.initCensus) editTree({ initCensusId: newCensus.id });
+    // if (!selectedTree?.initCensus) editTree({ initCensusId: newCensus.id });
   }, [selectedTree, plotCensus, dispatch, isConnected, byTreeActive, editTree]);
   useEffect(() => {
     addNewCensus();
