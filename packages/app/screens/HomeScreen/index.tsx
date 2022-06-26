@@ -35,6 +35,10 @@ import {
 import { titled_logo } from "../../assets/images";
 import { getUserByToken, logout } from "../../redux/slices/userSlice";
 import { getTeams } from "../../redux/slices/teamSlice";
+import useAppDispatch from "../../hooks/useAppDispatch";
+import { selectForestCensus } from "../../redux/slices/forestCensusSlice";
+import { selectPlot } from "../../redux/slices/plotSlice";
+import { selectPlotCensus } from "../../redux/slices/plotCensusSlice";
 
 const TABLE_COLUMN_WIDTHS = {
   PLOT_NUMBER: 96,
@@ -49,36 +53,36 @@ export const HomeScreen = () => {
   const {
     _persist: { rehydrated },
   } = useAppSelector((state) => state);
-  const { token, currentUser } = useAppSelector((state) => state.user);
+  const {
+    token,
+    currentUser,
+    loading: userLoading,
+  } = useAppSelector((state) => state.user);
 
-  const { currentTeam: currentTeamId } = useAppSelector((state) => state.teams);
+  const { currentTeam: currentTeamId, loading: teamLoading } = useAppSelector(
+    (state) => state.teams
+  );
 
-  const dispatch = useDispatch();
-
-  const [dataLoading, setDataLoading] = useState<boolean>(false);
+  const dispatch = useAppDispatch();
 
   const fetchUserData = useCallback(async () => {
     if (!(isConnected && rehydrated && token && currentUser?.id)) return;
-    await dispatch(getUserByToken(token));
-    await dispatch(getTeams(currentUser.id));
+    dispatch(getUserByToken(token));
+    dispatch(getTeams(currentUser.id));
   }, [isConnected, rehydrated, token, currentUser, dispatch]);
 
   const refreshCensusData = useCallback(async () => {
     if (!(isConnected && rehydrated && token)) return;
-    await dispatch(uploadCensusData());
-    await dispatch(resetData());
-    await dispatch(getForests());
+    dispatch(uploadCensusData());
+    dispatch(resetData());
+    dispatch(getForests());
   }, [isConnected, rehydrated, token, dispatch]);
 
   useEffect(() => {
     if (isConnected && rehydrated && token) {
       try {
-        setDataLoading(true);
-        fetchUserData().then(() => {
-          refreshCensusData().then(() => {
-            setDataLoading(false);
-          });
-        });
+        fetchUserData();
+        refreshCensusData();
       } catch (err) {
         alert(
           "Unable to load data. If your connection is reliable, this is likely due to a server error."
@@ -90,15 +94,15 @@ export const HomeScreen = () => {
     all: allForests,
     selected: selectedForestId,
     indices: { byTeam },
+    loading: forestLoading,
   } = useAppSelector((state: RootState) => state.forest);
 
   const loadCensusData = useCallback(async () => {
     if (!(isConnected && rehydrated && token && selectedForestId)) return;
     await dispatch(loadForestData(selectedForestId));
   }, [dispatch, isConnected, rehydrated, token, selectedForestId]);
-  const { selected, all: allForestCensuses } = useAppSelector(
-    (state: RootState) => state.forestCensuses
-  );
+  const { selected: selectedForestCensus, all: allForestCensuses } =
+    useAppSelector((state: RootState) => state.forestCensuses);
   const { all: allPlots } = useAppSelector((state: RootState) => state.plots);
   const { all: allPlotCensus } = useAppSelector(
     (state: RootState) => state.plotCensuses
@@ -119,10 +123,7 @@ export const HomeScreen = () => {
   useEffect(() => {
     if (isConnected && rehydrated && selectedForestId && token) {
       try {
-        setDataLoading(true);
-        loadCensusData().then(() => {
-          setDataLoading(false);
-        });
+        loadCensusData();
       } catch (err) {
         alert(
           "Unable to load data. If your connection is reliable, this is likely due to a server error."
@@ -143,13 +144,13 @@ export const HomeScreen = () => {
           paddingHorizontal: 128,
         }}
       >
-        {dataLoading ? (
+        {userLoading || forestLoading || teamLoading ? (
           <>
             <Image
               style={{ height: 111, width: 150, marginBottom: 24 }}
               source={titled_logo}
             ></Image>
-            <Text variant={TextVariants.H2}>Loading Forests</Text>
+            <Text variant={TextVariants.H2}>Loading Data</Text>
             <ActivityIndicator
               style={{ marginTop: 24 }}
               size="large"
@@ -219,7 +220,9 @@ export const HomeScreen = () => {
         <RNPickerSelect
           itemKey="id"
           value={selectedForestId}
-          onValueChange={(value) => console.log(value)}
+          onValueChange={(value) => {
+            dispatch(selectForest(value));
+          }}
           items={availableForests.map(({ name, id }) => ({
             label: name,
             value: id,
@@ -246,8 +249,12 @@ export const HomeScreen = () => {
         <Queue size={TextStyles[TextVariants.H3].fontSize / 2}></Queue>
         <RNPickerSelect
           itemKey="id"
-          value={selected && allForestCensuses[selected]?.id}
-          onValueChange={(value) => console.log(value)}
+          value={
+            selectedForestCensus && allForestCensuses[selectedForestCensus]?.id
+          }
+          onValueChange={(value) => {
+            dispatch(selectForestCensus(value));
+          }}
           items={Object.values(allForestCensuses).map(({ name, id }) => ({
             label: name,
             value: id,
@@ -437,14 +444,16 @@ export const HomeScreen = () => {
                 <View>
                   <AppButton
                     // @ts-ignore
-                    onPress={() =>
+                    onPress={() => {
+                      dispatch(selectPlot(plotCensuses.plotId));
+                      dispatch(selectPlotCensus(plotCensuses.id));
                       // @ts-ignore
                       navigation.navigate("map", {
                         mode: MapScreenModes.Plot,
                         zoomLevel: MapScreenZoomLevels.Plot,
                         selectedPlot: allPlots[plotCensuses.plotId],
-                      })
-                    }
+                      });
+                    }}
                     icon={<Ionicons name={"ios-eye"} size={16} />}
                     type="PLAIN"
                   >

@@ -10,20 +10,26 @@ type GetForestParams = {
   id: string;
 };
 
-export const getForests = createAsyncThunk("forest/getForests", async () => {
-  return await axios
-    .get<Forest[]>(BASE_URL)
-    .then((response) => {
-      return response.data;
-    })
-    .catch((e) => {
-      throw e;
-    });
-});
+export const getForests = createAsyncThunk(
+  "forest/getForests",
+  async (_params, { dispatch }) => {
+    dispatch(startForestLoading());
+    return await axios
+      .get<Forest[]>(BASE_URL)
+      .then((response) => {
+        dispatch(stopForestLoading());
+        return response.data;
+      })
+      .catch((e) => {
+        dispatch(stopForestLoading());
+        throw e;
+      });
+  }
+);
 
 export const getForest = createAsyncThunk(
   "forest/getForest",
-  async (params: GetForestParams) => {
+  async (params: GetForestParams, { dispatch }) => {
     return await axios
       .get<Forest[]>(`${BASE_URL}?id=${params.id}`)
       .then((response) => {
@@ -40,6 +46,7 @@ export interface ForestState {
     byTeam: Record<string, Set<string>>;
   };
   selected: string | undefined;
+  loading: boolean;
 }
 
 const initialState: ForestState = {
@@ -48,6 +55,7 @@ const initialState: ForestState = {
     byTeam: {},
   },
   selected: undefined,
+  loading: false,
 };
 
 const upsertForests = (state: ForestState, action: UpsertAction<Forest>) => {
@@ -70,6 +78,8 @@ export const forestSlice = createSlice({
       return state;
     },
     resetForests: () => initialState,
+    startForestLoading: (state) => ({ ...state, loading: true }),
+    stopForestLoading: (state) => ({ ...state, loading: false }),
   },
   extraReducers: (builder) => {
     builder.addCase(getForests.fulfilled, (state, action) => {
@@ -81,6 +91,11 @@ export const forestSlice = createSlice({
   },
 });
 
-export const { selectForest, resetForests } = forestSlice.actions;
+export const {
+  selectForest,
+  resetForests,
+  startForestLoading,
+  stopForestLoading,
+} = forestSlice.actions;
 
 export default forestSlice.reducer;

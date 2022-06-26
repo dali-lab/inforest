@@ -8,11 +8,16 @@ const BASE_URL = SERVER_URL + "teams/";
 
 export const getTeams = createAsyncThunk(
   "team/getTeams",
-  async (userId: string) => {
+  async (userId: string, { dispatch }) => {
+    dispatch(startTeamLoading());
     return await axios
       .get<Team[]>(`${BASE_URL}?userId=${userId}`)
-      .then((response) => response.data)
+      .then((response) => {
+        dispatch(stopTeamLoading());
+        return response.data;
+      })
       .catch((err) => {
+        dispatch(stopTeamLoading());
         throw err;
       });
   }
@@ -21,11 +26,13 @@ export const getTeams = createAsyncThunk(
 export interface TeamState {
   availableTeams: Record<string, Team>;
   currentTeam: string | null;
+  loading: boolean;
 }
 
 const initialState: TeamState = {
   availableTeams: {},
   currentTeam: null,
+  loading: false,
 };
 
 const upsertTeams = (state: TeamState, action: UpsertAction<Team>) => {
@@ -40,12 +47,17 @@ const upsertTeams = (state: TeamState, action: UpsertAction<Team>) => {
 export const teamSlice = createSlice({
   name: "team",
   initialState,
-  reducers: {},
+  reducers: {
+    startTeamLoading: (state) => ({ ...state, loading: true }),
+    stopTeamLoading: (state) => ({ ...state, loading: false }),
+  },
   extraReducers: (builder) => {
     builder.addCase(getTeams.fulfilled, (state, action) => {
       return upsertTeams(state, { data: action.payload, selectFinal: true });
     });
   },
 });
+
+export const { startTeamLoading, stopTeamLoading } = teamSlice.actions;
 
 export default teamSlice.reducer;

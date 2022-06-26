@@ -109,11 +109,16 @@ export const editUser = createAsyncThunk(
 
 export const getUserByToken = createAsyncThunk(
   "user/getUserByToken",
-  async (token: string) => {
+  async (token: string, { dispatch }) => {
+    dispatch(startUserLoading());
     return await axios
       .get<User>(`${BASE_URL}${token}`)
-      .then((response) => response.data)
+      .then((response) => {
+        dispatch(stopUserLoading());
+        return response.data;
+      })
       .catch((err) => {
+        dispatch(stopUserLoading());
         console.error(err);
         alert("Your login session has expired.");
         throw err;
@@ -124,11 +129,13 @@ export const getUserByToken = createAsyncThunk(
 export interface UserState {
   token: string | null;
   currentUser: User | null;
+  loading: boolean;
 }
 
 const initialState: UserState = {
   token: null,
   currentUser: null,
+  loading: false,
 };
 
 export const userSlice = createSlice({
@@ -141,6 +148,8 @@ export const userSlice = createSlice({
       return state;
     },
     logout: () => initialState,
+    startUserLoading: (state) => ({ ...state, loading: true }),
+    stopUserLoading: (state) => ({ ...state, loading: false }),
   },
   extraReducers: (builder) => {
     builder.addCase(login.fulfilled, (state, action) => {
@@ -155,14 +164,6 @@ export const userSlice = createSlice({
         return state;
       }
     });
-    // builder.addCase(signUp.fulfilled, (state, action) => {
-    //   // console.log(action.payload);
-    //   // // @ts-ignore
-    //   // state.token = action.payload.token;
-    //   // // @ts-ignore
-    //   // state.currentUser = action.payload.user;
-    //   // return state;
-    // });
     builder.addCase(editUser.fulfilled, (state, action) => {
       if (action.payload) {
         state.currentUser = action.payload[0];
@@ -187,6 +188,7 @@ export const userSlice = createSlice({
   },
 });
 
-export const { setCredentials, logout } = userSlice.actions;
+export const { setCredentials, logout, startUserLoading, stopUserLoading } =
+  userSlice.actions;
 
 export default userSlice.reducer;

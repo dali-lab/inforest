@@ -32,7 +32,7 @@ import { createTransform, persistReducer, persistStore } from "redux-persist";
 import hardSet from "redux-persist/lib/stateReconciler/hardSet";
 import ExpoFileSystemStorage from "redux-persist-expo-filesystem";
 import { enableMapSet } from "immer";
-import { isArray } from "lodash";
+import { isArray, isObject } from "lodash";
 import { SyncState } from "./slices/syncSlice";
 
 enableMapSet();
@@ -119,7 +119,7 @@ const IndicesTransform = createTransform(
         for (const [key, value] of Object.entries(
           outboundState.indices[index]
         ) as [string, string | Set<string>][]) {
-          if (isArray(value)) {
+          if (isArray(value) || isObject(value)) {
             indices[index][key] = new Set(value);
           } else indices[index][key] = value;
         }

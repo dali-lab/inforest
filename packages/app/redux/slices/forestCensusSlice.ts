@@ -64,7 +64,7 @@ export const forestCensusSlice = createSlice({
 
       state.indices.byForests[census.forestId].add(census.id);
     },
-    selectForestCensus: (state, action) => {
+    selectForestCensus: (state, action: { payload: string }) => {
       state.selected = action.payload;
       return state;
     },

@@ -143,7 +143,8 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
   } = useAppSelector((state: RootState) => state.plotCensuses);
 
   const plotCensusesByActivePlot = useMemo(() => {
-    if (!selectedForestCensusId) return {};
+    if (!selectedForestCensusId || !byForestCensuses?.[selectedForestCensusId])
+      return {};
     const index: Record<string, string> = {};
     byForestCensuses[selectedForestCensusId].forEach((plotCensusId) => {
       const census = allPlotCensuses[plotCensusId];

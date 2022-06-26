@@ -75,7 +75,7 @@
     "@types/color": "^3.0.3",
     "@types/dateformat": "^5.0.0",
     "@types/lodash": "^4.14.182",
-    "@types/react": "~18.0.14",
+    "@types/react": "~17.0.14",
     "@types/react-native": "~0.69.0",
     "@types/utm": "^1.1.1",
     "@typescript-eslint/eslint-plugin": "^5.29.0",
