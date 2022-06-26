@@ -1,4 +1,4 @@
-import { PlotCensus, PlotCensusStatuses } from "@ong-forestry/schema";
+import { PlotCensus } from "@ong-forestry/schema";
 import PlotCensusModel from "db/models/plot-census";
 import UserModel from "db/models/user";
 import { Op } from "sequelize";
@@ -10,6 +10,8 @@ import {
   getTrees,
   getTreeCensuses,
 } from "services";
+import { PlotCensusStatuses } from "../enums";
+
 import { PlotCensusAssignment } from "db/models";
 
 const uuid = require("uuid4");

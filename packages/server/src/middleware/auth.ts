@@ -15,7 +15,8 @@ import {
 } from "services";
 import { sendVerificationCode } from "../util";
 import { HeaderAPIKeyStrategy } from "passport-headerapikey";
-import { MembershipRoles, User } from "@ong-forestry/schema";
+import { User } from "@ong-forestry/schema";
+import { MembershipRoles } from "../enums";
 
 dotenv.config();
 

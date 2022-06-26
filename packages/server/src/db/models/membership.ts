@@ -12,8 +12,8 @@ import {
   Team as ITeam,
   User as IUser,
   Membership as IMembership,
-  MembershipRoles,
 } from "@ong-forestry/schema";
+import { MembershipRoles } from "../../enums";
 import Team from "db/models/team";
 import User from "db/models/user";
 import { DataTypes } from "sequelize";

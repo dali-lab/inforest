@@ -1,5 +1,6 @@
 import express from "express";
-import { TreeSpecies, TreeSpeciesTypes } from "@ong-forestry/schema";
+import { TreeSpecies } from "@ong-forestry/schema";
+import { TreeSpeciesTypes } from "../enums";
 import { getTreeSpecies } from "services/tree-species-service";
 import { requireAuth } from "middleware";
 

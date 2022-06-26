@@ -1,5 +1,5 @@
 import express from "express";
-import { Membership, MembershipRoles } from "@ong-forestry/schema";
+import { Membership } from "@ong-forestry/schema";
 import {
   createMembership,
   deleteMemberships,
@@ -7,6 +7,7 @@ import {
   getMemberships,
 } from "services";
 import { requireAuth, requireMembership, retoolAuth } from "middleware";
+import { MembershipRoles } from "../enums";
 
 const membershipRouter = express.Router();
 

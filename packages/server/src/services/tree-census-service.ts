@@ -1,4 +1,4 @@
-import { PlotCensusStatuses, TreeCensus } from "@ong-forestry/schema";
+import { TreeCensus } from "@ong-forestry/schema";
 import TreeCensusModel from "db/models/tree-census";
 import { Op } from "sequelize";
 import {
@@ -8,6 +8,7 @@ import {
   getTrees,
 } from "services";
 import { PlotCensus, TreeCensusLabel, TreeLabel, TreePhoto } from "db/models";
+import { PlotCensusStatuses } from "../enums";
 
 export const bulkUpsertTreeCensuses = async (treeCensuses: TreeCensus[]) => {
   return await TreeCensusModel.bulkCreate(treeCensuses, {

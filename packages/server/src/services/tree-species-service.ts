@@ -1,4 +1,4 @@
-import { TreeSpeciesTypes } from "@ong-forestry/schema/src/tree";
+import { TreeSpeciesTypes } from "../enums";
 import TreeSpeciesModel from "db/models/tree-species";
 import { Op } from "sequelize";
 

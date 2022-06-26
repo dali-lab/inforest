@@ -1,8 +1,9 @@
-import { ForestCensus, PlotCensusStatuses } from "@ong-forestry/schema";
+import { ForestCensus } from "@ong-forestry/schema";
 import ForestCensusModel from "db/models/forest-census";
 import { Op } from "sequelize";
 import { getPlotCensuses, getPlots } from "services";
 import { getForests } from "./forest-service";
+import { PlotCensusStatuses } from "../enums";
 
 export const createForestCensus = async (forestCensus: ForestCensus) => {
   // check for active census on this forest
