@@ -12,10 +12,6 @@
     "lint": "prettier --check **/*",
     "lint:fix": "prettier --write **/*"
   },
-  "engines": {
-    "npm": ">=7.0.0",
-    "node": "16.0.0"
-  },
   "devDependencies": {
     "prettier": "^2.5.1",
     "typescript": "^4.5.5"
