@@ -135,7 +135,6 @@ const constructQuery = (params: TreeCensusParams) => {
 
 export const getTreeCensuses = async (params: TreeCensusParams) => {
   const query = constructQuery(params);
-  console.log(query);
   return await TreeCensusModel.findAll({
     ...query,
     include: [
