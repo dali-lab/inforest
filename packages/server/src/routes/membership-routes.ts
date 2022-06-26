@@ -20,7 +20,6 @@ membershipRouter.post<
   // retoolAuth,
   async (req, res) => {
     try {
-      console.log("service");
       const membership = await createMembership(req.body);
       res.status(201).json(membership);
     } catch (e: any) {

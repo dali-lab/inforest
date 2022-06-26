@@ -75,7 +75,7 @@ const PlotView: React.FC<PlotViewProps> = (props) => {
         >
           <Ionicons name="ios-refresh" size={32} onPress={rotate} />
         </View>
-        {!!selectedPlot && (
+        {!!selectedPlot ? (
           <PlottingSheet
             mode={mode}
             plot={selectedPlot}
@@ -107,7 +107,7 @@ const PlotView: React.FC<PlotViewProps> = (props) => {
             expandDrawer={() => setDrawerState(DrawerStates.Expanded)}
             minimizeDrawer={() => setDrawerState(DrawerStates.Minimized)}
           />
-        )}
+        ) : null}
       </View>
       <PlotDrawer
         mode={mode}
@@ -118,6 +118,7 @@ const PlotView: React.FC<PlotViewProps> = (props) => {
         plotCensus={selectedPlotCensus}
         expandDrawer={() => setDrawerState(DrawerStates.Expanded)}
         minimizeDrawer={() => setDrawerState(DrawerStates.Minimized)}
+        stopPlotting={onExit}
       ></PlotDrawer>
     </>
   );

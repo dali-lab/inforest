@@ -18,24 +18,24 @@ export const bulkUpsertTreeCensuses = async (treeCensuses: TreeCensus[]) => {
   });
 };
 
-const validatePlotCensus = async (treeCensusData: Partial<TreeCensus>) => {
+//TODO: revisit this
+const validateTreeCensus = async (treeCensusData: Partial<TreeCensus>) => {
   // get all data about whatever was passed about the tree census
-  const treeCensus = (await getTreeCensuses(treeCensusData))[0];
-
+  const treeCensus = (await getTreeCensuses({ id: treeCensusData.id }))[0];
   // find tree being censused -> plot it's on -> active plot census
   const trees = await getTrees({
     ids: [treeCensus.treeId],
   });
-  if (trees.length == 0) {
-    throw new Error("Tree does not exist");
-  }
+  // if (trees.length == 0) {
+  //   throw new Error("Tree does not exist");
+  // }
 
   const plots = await getPlots({
     id: trees[0].plotId,
   });
-  if (plots.length == 0) {
-    throw new Error("Plot does not exist");
-  }
+  // if (plots.length == 0) {
+  //   throw new Error("Plot does not exist");
+  // }
 
   const plotCensuses = await getPlotCensuses({
     plotId: plots[0].id,
@@ -61,27 +61,24 @@ const validatePlotCensus = async (treeCensusData: Partial<TreeCensus>) => {
 };
 
 export const createTreeCensus = async (treeCensus: TreeCensus) => {
-  const plotCensusId = await validatePlotCensus(treeCensus);
+  // const plotCensusId = await validateTreeCensus(treeCensus);
   // ^ throws error if census is not in_progress
 
   // check whether census on this tree in this plot census already exists
   const existingCensuses = await getTreeCensuses({
     treeIds: [treeCensus.treeId],
-    plotCensusId: plotCensusId,
   });
   if (existingCensuses.length > 0) {
     throw new Error("This tree has already been censused.");
   }
 
-  return await TreeCensusModel.create({
-    ...treeCensus,
-    plotCensusId,
-  });
+  return await TreeCensusModel.create(treeCensus);
 };
 
 export interface TreeCensusParams {
   id?: string;
   ids?: string[];
+  treeId?: string;
   treeIds?: string[];
   plotCensusId?: string;
   forestId?: string;
@@ -93,14 +90,26 @@ export interface TreeCensusParams {
 }
 
 const constructQuery = (params: TreeCensusParams) => {
-  const { id, ids, treeIds, plotCensusId, authorId, flagged, limit, offset } =
-    params;
+  const {
+    id,
+    ids,
+    treeId,
+    treeIds,
+    plotCensusId,
+    authorId,
+    flagged,
+    limit,
+    offset,
+  } = params;
   const query: any = { where: {}, returning: true };
   if (id) {
     query.where.id = { [Op.eq]: id };
   }
   if (ids) {
     query.where.id = { [Op.in]: ids };
+  }
+  if (treeId) {
+    query.where.treeId = { [Op.eq]: treeId };
   }
   if (treeIds) {
     query.where.treeId = { [Op.in]: treeIds };
@@ -126,6 +135,7 @@ const constructQuery = (params: TreeCensusParams) => {
 
 export const getTreeCensuses = async (params: TreeCensusParams) => {
   const query = constructQuery(params);
+  console.log(query);
   return await TreeCensusModel.findAll({
     ...query,
     include: [
@@ -145,7 +155,7 @@ export const editTreeCensus = async (
   treeCensus: Omit<TreeCensus, "plotCensusId">,
   params: TreeCensusParams
 ) => {
-  await validatePlotCensus({ ...params, ...treeCensus });
+  await validateTreeCensus({ ...params, ...treeCensus });
   const result = (
     await TreeCensusModel.update(treeCensus, constructQuery(params))
   )[1][0].get();

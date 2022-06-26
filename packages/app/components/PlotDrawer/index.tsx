@@ -50,7 +50,11 @@ import {
 import { useIsConnected } from "react-native-offline";
 import { AUTHOR_ID } from "../../constants/dev";
 import ConfirmationModal from "../ConfirmationModal";
-import { submitPlotCensus } from "../../redux/slices/plotCensusSlice";
+import {
+  deselectPlotCensus,
+  submitPlotCensus,
+} from "../../redux/slices/plotCensusSlice";
+import { deselectPlot } from "../../redux/slices/plotSlice";
 
 const SearchBar = () => {
   return (
@@ -95,6 +99,7 @@ type PlotDrawerProps = {
   expandDrawer: () => void;
   minimizeDrawer: () => void;
   setDrawerHeight?: (height: number) => void;
+  stopPlotting?: () => void;
 };
 
 export const PlotDrawer: React.FC<PlotDrawerProps> = ({
@@ -105,6 +110,7 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
   plotCensus,
   minimizeDrawer,
   setDrawerHeight,
+  stopPlotting,
 }) => {
   const dispatch = useAppDispatch();
   const {
@@ -147,8 +153,8 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
   );
 
   const isConnected = useIsConnected();
-  const [confirmationModalOpen, setConfirmationModalOpen] =
-    useState<boolean>(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState<boolean>(false);
+  const [submitModalOpen, setSubmitModalOpen] = useState<boolean>(false);
 
   const setStyle = useCallback(() => {
     switch (drawerState) {
@@ -316,7 +322,11 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
                     </View>
                     <AppButton
                       onPress={() => {
-                        dispatch(submitPlotCensus(plot.id));
+                        isConnected
+                          ? setSubmitModalOpen(true)
+                          : alert(
+                              "You must be online to submit a plot for review."
+                            );
                       }}
                       disabled={
                         plotCensus?.status !== PlotCensusStatuses.InProgress
@@ -351,7 +361,7 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
                     style={{ marginLeft: 12 }}
                     type="REDBORDER"
                     onPress={() => {
-                      setConfirmationModalOpen(true);
+                      setDeleteModalOpen(true);
                     }}
                   >
                     Delete Census
@@ -405,14 +415,31 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
           )}
         </BlurView>
       </Animated.View>
+
       <ConfirmationModal
         title="Delete Census"
         prompt="Are you sure you would like to delete this census?"
-        visible={confirmationModalOpen}
-        setVisible={setConfirmationModalOpen}
+        visible={deleteModalOpen}
+        setVisible={setDeleteModalOpen}
         onConfirm={async () => {
           await deleteCensus();
-          setConfirmationModalOpen(false);
+          setDeleteModalOpen(false);
+        }}
+      />
+      <ConfirmationModal
+        title="Submit Plot for Review"
+        prompt="Are you sure you would like to submit this plot? You will not be able to edit it after submitting."
+        visible={submitModalOpen}
+        setVisible={setSubmitModalOpen}
+        onConfirm={async () => {
+          if (!plot?.id) {
+            alert("Error: no plot submitted for submitting");
+            return;
+          }
+          await dispatch(submitPlotCensus(plot.id));
+          setSubmitModalOpen(false);
+          alert("Plot successfully submitted!");
+          stopPlotting && stopPlotting();
         }}
       />
     </>

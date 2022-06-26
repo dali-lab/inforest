@@ -157,7 +157,6 @@ export const getPlotCensuses = async (params: PlotCensusParams) => {
 
 export const submitForReview = async (params: Pick<PlotCensus, "plotId">) => {
   const { plotId } = params;
-
   // ensure plot exists
   if (plotId == null) {
     throw new Error("You must specify a plot.");
@@ -189,8 +188,8 @@ export const submitForReview = async (params: Pick<PlotCensus, "plotId">) => {
   // find tree censuses for each tree in this plot census
   const treeTreeCensuses = await Promise.all(
     trees.map(async (tree) => {
-      return getTreeCensuses({
-        treeIds: [tree.id],
+      return await getTreeCensuses({
+        treeId: tree.id,
         plotCensusId: census[0].id,
       });
     })
@@ -209,10 +208,12 @@ export const submitForReview = async (params: Pick<PlotCensus, "plotId">) => {
     }
   });
 
-  return await PlotCensusModel.update(
-    { status: PlotCensusStatuses.Pending },
-    { where: { id: { [Op.eq]: census[0].id } } }
-  );
+  return (
+    await PlotCensusModel.update(
+      { status: PlotCensusStatuses.Pending },
+      { where: { id: { [Op.eq]: census[0].id } }, returning: true }
+    )
+  )[1];
 };
 
 export const approve = async (params: Pick<PlotCensus, "id">) => {

@@ -134,14 +134,24 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
     longitude,
     selected: selectedPlotId,
   } = useAppSelector((state: RootState) => state.plots);
-  const { all: allForestCensuses } = useAppSelector(
-    (state: RootState) => state.forestCensuses
-  );
+  const { all: allForestCensuses, selected: selectedForestCensusId } =
+    useAppSelector((state: RootState) => state.forestCensuses);
   const {
     all: allPlotCensuses,
     selected: selectedPlotCensusId,
-    indices: { byPlotActive: plotCensusesByActivePlot },
+    indices: { byForestCensuses },
   } = useAppSelector((state: RootState) => state.plotCensuses);
+
+  const plotCensusesByActivePlot = useMemo(() => {
+    if (!selectedForestCensusId) return {};
+    const index: Record<string, string> = {};
+    byForestCensuses[selectedForestCensusId].forEach((plotCensusId) => {
+      const census = allPlotCensuses[plotCensusId];
+      index[census.plotId] = plotCensusId;
+    });
+    return index;
+  }, [selectedForestCensusId, byForestCensuses, allPlotCensuses]);
+
   const { colorMap } = useAppSelector((state: RootState) => state.treeSpecies);
 
   const isConnected = useIsConnected();
@@ -409,6 +419,7 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
       beginPlotting(selectedPlot);
     }, 250);
   }, [selectedPlot, mapRef, setRegionSnapshot, beginPlotting]);
+
   return (
     <>
       <MapView
@@ -501,6 +512,11 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
                 onPress={() => {
                   if (selectedPlot) {
                     if (
+                      selectedPlotCensus?.status === "PENDING" ||
+                      selectedPlotCensus?.status === "APPROVED"
+                    )
+                      return;
+                    if (
                       !plotCensusesByActivePlot?.[selectedPlot.id] ||
                       allPlotCensuses[
                         plotCensusesByActivePlot?.[selectedPlot.id]
@@ -511,7 +527,10 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
                   }
                 }}
               >
-                <Ionicons name="ios-create-outline" size={24}></Ionicons>
+                {selectedPlotCensus?.status === "PENDING" ||
+                selectedPlotCensus?.status === "APPROVED" ? null : (
+                  <Ionicons name="ios-create-outline" size={24}></Ionicons>
+                )}
                 <Queue size={12}></Queue>
                 <View>
                   <Text variant={TextVariants.Label}>

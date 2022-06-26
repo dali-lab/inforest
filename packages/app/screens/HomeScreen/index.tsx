@@ -397,7 +397,9 @@ export const HomeScreen = () => {
                   style={{ width: TABLE_COLUMN_WIDTHS.PLOT_NUMBER }}
                   variant={TextVariants.Label}
                 >
-                  {allPlots[plotCensuses.plotId].number}
+                  {(plotCensuses.plotId &&
+                    allPlots?.[plotCensuses.plotId]?.number) ||
+                    "No number"}
                 </Text>
                 <Text
                   style={styles.collaboratorsColumn}

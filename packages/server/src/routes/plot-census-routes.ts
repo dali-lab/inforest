@@ -48,14 +48,14 @@ plotCensusRouter.get<{}, any, any>("/", requireAuth, async (req, res) => {
 });
 
 // mark ready for review
-plotCensusRouter.patch<{ id: string }, any, any>(
-  "/submit/:id",
+plotCensusRouter.patch<{ plotId: string }, any, any>(
+  "/submit/:plotId",
   requireAuth,
   requireMembership("plotId", "plotId"),
   async (req, res) => {
     try {
-      await submitForReview(parseParams(req.params.id));
-      res.status(200).send("Successfully submitted plot census for review");
+      const plotCensus = await submitForReview(parseParams(req.params));
+      res.status(200).send(plotCensus);
     } catch (e: any) {
       console.error(e);
       res.status(500).send(e?.message ?? "Unknown error.");

@@ -47,6 +47,10 @@ export const submitPlotCensus = createAsyncThunk(
       .patch(`${BASE_URL}/submit/${plotId}`)
       .then((response) => {
         return response.data;
+      })
+      .catch((err) => {
+        alert("Error: could not submit plot census");
+        throw err;
       });
   }
 );
@@ -57,7 +61,6 @@ export interface PlotCensusState {
   indices: {
     byForestCensuses: Record<string, Set<string>>;
     byPlots: Record<string, Set<string>>;
-    byPlotActive: Record<string, string>;
   };
 }
 
@@ -67,7 +70,6 @@ const initialState: PlotCensusState = {
   indices: {
     byForestCensuses: {},
     byPlots: {},
-    byPlotActive: {},
   },
 };
 
@@ -85,8 +87,6 @@ const upsertPlotCensuses = (
     if (!(newCensus.plotId in state.indices.byPlots))
       state.indices.byPlots[newCensus.plotId] = new Set([]);
     state.indices.byPlots[newCensus.plotId].add(newCensus.id);
-    if (newCensus.status != "APPROVED")
-      state.indices.byPlotActive[newCensus.plotId] = newCensus.id;
     if (action?.selectFinal) state.selected = newCensus.id;
   });
   return state;
@@ -124,6 +124,9 @@ export const plotCensusSlice = createSlice({
       alert(
         "Plot self-assignment failed. You either do not have the permissions to do this or a server error has occurred."
       );
+    });
+    builder.addCase(submitPlotCensus.fulfilled, (state, action) => {
+      return upsertPlotCensuses(state, { data: action.payload });
     });
   },
 });
