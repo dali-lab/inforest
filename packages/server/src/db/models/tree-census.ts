@@ -26,7 +26,6 @@ import {
   TreeLabel as ITreeLabel,
   User as IUser,
 } from "@ong-forestry/schema";
-import { Col } from "sequelize/dist/lib/utils";
 
 @Table({
   tableName: "tree_census",
