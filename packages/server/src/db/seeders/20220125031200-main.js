@@ -387,7 +387,8 @@ module.exports = {
       await Promise.all(
         tree_censuses.map(async (tree_census) => {
           await queryInterface.sequelize.query(
-            `UPDATE trees SET "initCensusId" = '${tree_census.id}' WHERE id = '${tree_census.treeId}'`
+            `UPDATE trees SET "initCensusId" = '${tree_census.id}' WHERE "id" = '${tree_census.treeId}'`,
+            { transaction }
           );
         })
       );

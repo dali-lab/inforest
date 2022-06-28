@@ -6,6 +6,7 @@ import uuid from "react-native-uuid";
 import { RootState, UpsertAction } from "..";
 import { addTreePhotos } from "./treePhotoSlice";
 import { addTreeCensusLabels } from "./treeCensusLabelSlice";
+import { deselectTree } from "./treeSlice";
 
 const BASE_URL = SERVER_URL + "trees/censuses";
 
@@ -65,11 +66,16 @@ export const getForestTreeCensuses = createAsyncThunk(
 
 export const createTreeCensus = createAsyncThunk(
   "treeCensus/createTreeCensus",
-  async (newCensus: Partial<TreeCensus>) => {
+  async (newCensus: Partial<TreeCensus>, { dispatch }) => {
+    dispatch(startTreeCensusLoading());
     return await axios
       .post(`${BASE_URL}`, newCensus)
-      .then((response) => response.data)
+      .then((response) => {
+        dispatch(stopTreeCensusLoading());
+        return response.data;
+      })
       .catch((err) => {
+        dispatch(stopTreeCensusLoading());
         alert("Error while uploading tree census data: " + err?.message);
         throw err;
       });
@@ -99,10 +105,18 @@ export const updateTreeCensus = createAsyncThunk(
 
 export const deleteTreeCensus = createAsyncThunk(
   "treeCensus/deleteTreeCensus",
-  async (id: string) => {
+  async (id: string, { dispatch }) => {
     return await axios
       .delete(`${BASE_URL}/${id}`)
-      .then((response) => response.data);
+      .then((response) => {
+        dispatch(deselectTree());
+        alert("Census successfully deleted.");
+        return response.data;
+      })
+      .catch((err) => {
+        alert("Error while deleting tree census: " + err?.message);
+        throw err;
+      });
   }
 );
 
@@ -152,6 +166,7 @@ export interface TreeCensusState {
   drafts: Set<string>;
   localDeletions: Set<string>;
   selected: string | undefined;
+  loading: boolean;
 }
 
 const initialState: TreeCensusState = {
@@ -164,6 +179,7 @@ const initialState: TreeCensusState = {
   drafts: new Set([]),
   localDeletions: new Set([]),
   selected: undefined,
+  loading: false,
 };
 
 export const treeCensusSlice = createSlice({
@@ -205,6 +221,8 @@ export const treeCensusSlice = createSlice({
       };
     },
     resetTreeCensuses: () => initialState,
+    startTreeCensusLoading: (state) => ({ ...state, loading: true }),
+    stopTreeCensusLoading: (state) => ({ ...state, loading: false }),
   },
   extraReducers: (builder) => {
     builder.addCase(getPlotCensusTreeCensuses.fulfilled, (state, action) => {
@@ -248,6 +266,8 @@ export const {
   deselectTreeCensus,
   clearTreeCensusDrafts,
   resetTreeCensuses,
+  startTreeCensusLoading,
+  stopTreeCensusLoading,
 } = treeCensusSlice.actions;
 
 export default treeCensusSlice.reducer;

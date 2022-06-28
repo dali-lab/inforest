@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -16,7 +16,6 @@ import { selectForest, getForests } from "../../redux/slices/forestSlice";
 import { Queue, Stack } from "react-native-spacing-system";
 import { useNavigation } from "@react-navigation/native";
 import ForestView from "../MapScreen/ExploreView";
-import { useDispatch } from "react-redux";
 import Colors from "../../constants/Colors";
 import {
   convertToNaturalLanguage,
@@ -67,29 +66,35 @@ export const HomeScreen = () => {
 
   const fetchUserData = useCallback(async () => {
     if (!(isConnected && rehydrated && token && currentUser?.id)) return;
-    dispatch(getUserByToken(token));
-    dispatch(getTeams(currentUser.id));
+    await dispatch(getUserByToken(token));
+    await dispatch(getTeams(currentUser.id));
   }, [isConnected, rehydrated, token, currentUser, dispatch]);
 
   const refreshCensusData = useCallback(async () => {
-    if (!(isConnected && rehydrated && token)) return;
-    dispatch(uploadCensusData());
+    if (!(isConnected && rehydrated && token && currentTeamId)) return;
+    await dispatch(uploadCensusData());
     dispatch(resetData());
-    dispatch(getForests());
-  }, [isConnected, rehydrated, token, dispatch]);
+    await dispatch(getForests(currentTeamId));
+  }, [isConnected, rehydrated, token, currentTeamId, dispatch]);
 
   useEffect(() => {
-    if (isConnected && rehydrated && token) {
-      try {
-        fetchUserData();
-        refreshCensusData();
-      } catch (err) {
-        alert(
-          "Unable to load data. If your connection is reliable, this is likely due to a server error."
-        );
-      }
+    try {
+      fetchUserData();
+    } catch (err) {
+      alert(
+        "Unable to load user data. If your connection is reliable, this is likely due to a server error."
+      );
     }
-  }, [isConnected, rehydrated, token]);
+  }, [fetchUserData]);
+  useEffect(() => {
+    try {
+      refreshCensusData();
+    } catch (err) {
+      alert(
+        "Unable to load census data. If your connection is reliable, this is likely due to a server error."
+      );
+    }
+  }, [refreshCensusData]);
   const {
     all: allForests,
     selected: selectedForestId,
@@ -116,10 +121,6 @@ export const HomeScreen = () => {
         : [],
     [byTeam, allForests, currentTeamId]
   );
-  useEffect(() => {
-    if (!selectedForestId && availableForests.length > 0)
-      dispatch(selectForest(availableForests[0].id));
-  }, [selectedForestId, availableForests]);
   useEffect(() => {
     if (isConnected && rehydrated && selectedForestId && token) {
       try {
@@ -159,7 +160,10 @@ export const HomeScreen = () => {
           </>
         ) : (
           <>
-            <Text variant={TextVariants.H2} style={{ textAlign: "center" }}>
+            <Text
+              variant={TextVariants.H2}
+              style={{ textAlign: "center", marginBottom: 16 }}
+            >
               Your account currently has no forests available. Create a new team
               and forest or ask a forest admin to invite you to their team.
             </Text>

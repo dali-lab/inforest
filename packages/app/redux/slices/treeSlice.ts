@@ -33,12 +33,17 @@ export const getForestTrees = createAsyncThunk(
 
 export const createTree = createAsyncThunk(
   "tree/createTree",
-  async (newTree: Partial<Tree>) => {
+  async (newTree: Partial<Tree>, { dispatch }) => {
     // todo handle failure
+    dispatch(startTreeLoading());
     return await axios
       .post(`${BASE_URL}`, newTree)
-      .then((response) => response.data)
+      .then((response) => {
+        dispatch(stopTreeLoading());
+        return response.data;
+      })
       .catch((err) => {
+        dispatch(stopTreeLoading());
         alert("Error when creating tree: " + err?.message);
         throw err;
       });
@@ -98,6 +103,7 @@ export interface TreeState {
   drafts: Set<string>;
   localDeletions: Set<string>;
   selected: string | undefined;
+  loading: boolean;
 }
 
 const initialState: TreeState = {
@@ -111,6 +117,7 @@ const initialState: TreeState = {
   drafts: new Set([]),
   localDeletions: new Set([]),
   selected: undefined,
+  loading: false,
 };
 
 // takes the state and the action payload(!!) and returns the updated state with the payload's trees added. used for downloading, drafting, and rehydrating
@@ -184,6 +191,8 @@ export const treeSlice = createSlice({
       };
     },
     resetTrees: () => initialState,
+    startTreeLoading: (state) => ({ ...state, loading: true }),
+    stopTreeLoading: (state) => ({ ...state, loading: false }),
   },
   extraReducers: (builder) => {
     builder.addCase(getForestTrees.fulfilled, (state, action) => {
@@ -219,6 +228,8 @@ export const {
   deselectTree,
   clearTreeDrafts,
   resetTrees,
+  startTreeLoading,
+  stopTreeLoading,
 } = treeSlice.actions;
 
 export default treeSlice.reducer;

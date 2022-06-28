@@ -15,6 +15,7 @@ import Colors from "../../constants/Colors";
 import { selectPlotCensus } from "../../redux/slices/plotCensusSlice";
 import { useIsConnected } from "react-native-offline";
 import { Text, TextVariants } from "../../components/Themed";
+import LoadingOverlay from "../../components/LoadingOverlay";
 
 export default function MapScreen() {
   const route = useRoute<RouteProp<CensusStackParamList, "map">>();
@@ -83,16 +84,7 @@ export default function MapScreen() {
   return (
     <>
       {loadingTasks.size > 0 && (
-        <View style={styles.loadingOverlay}>
-          <Text variant={TextVariants.H3} color="white">
-            {loadingTasks.keys().next().value}
-          </Text>
-          <ActivityIndicator
-            style={{ marginTop: 16 }}
-            size="large"
-            color="white"
-          />
-        </View>
+        <LoadingOverlay>{loadingTasks.values().next().value}</LoadingOverlay>
       )}
       {!isConnected && (
         <View style={styles.offlineBar}>

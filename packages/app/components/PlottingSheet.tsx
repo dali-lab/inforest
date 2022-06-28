@@ -113,6 +113,7 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
     selected: selectedTreeId,
   } = useAppSelector((state) => state.trees);
   const {
+    selected: selectedTreeCensusId,
     indices: { byTreeActive },
   } = useAppSelector((state) => state.treeCensuses);
   const selectedTree = useMemo(
@@ -196,21 +197,21 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
     <Pressable
       style={{ ...styles.container, width: sheetSize, height: sheetSize }}
       onTouchMove={(e) => {
-        dispatch(deselectTree());
-        dispatch(deselectTreeCensus());
+        if (selectedTreeId) dispatch(deselectTree());
+        if (selectedTreeCensusId) dispatch(deselectTreeCensus());
 
         const { locationX, locationY } = e.nativeEvent;
         const { x, y } = transformXY(locationX, locationY);
 
         if (0 > x || x > sheetSize || 0 > y || y > sheetSize) {
-          dispatch(deselectTree());
+          if (selectedTreeId) dispatch(deselectTree());
         } else {
           setMarkerPos({ x, y, adjustedX: locationX, adjustedY: locationY });
         }
       }}
       onPress={() => {
-        dispatch(deselectTree());
-        dispatch(deselectTreeCensus());
+        if (selectedTreeId) dispatch(deselectTree());
+        if (selectedTreeCensusId) dispatch(deselectTreeCensus());
       }}
       onPressIn={() => {
         setMarkerPos(undefined);

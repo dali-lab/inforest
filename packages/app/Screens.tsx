@@ -37,6 +37,7 @@ const AuthStack = createNativeStackNavigator<AuthStackParamList>();
 const Screens: FC = () => {
   const isLoadingComplete = useCachedResources();
   const { token, currentUser } = useAppSelector((state) => state.user);
+
   useEffect(() => {
     axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
   }, [token]);

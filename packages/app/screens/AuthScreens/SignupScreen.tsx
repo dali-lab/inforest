@@ -8,11 +8,15 @@ import AppButton from "../../components/AppButton";
 import { useNavigation } from "@react-navigation/native";
 import { titled_logo } from "../../assets/images";
 import { Text, TextVariants } from "../../components/Themed";
+import LoadingOverlay from "../../components/LoadingOverlay";
+import useAppSelector from "../../hooks/useAppSelector";
 
 const SignupScreen: React.FC = () => {
   const dispatch = useAppDispatch();
   const headerHeight = useHeaderHeight();
   const navigation = useNavigation();
+
+  const { loading } = useAppSelector((state) => state.user);
 
   const [newUser, setNewUser] = useState<
     AuthParams & { confirmEmail?: string; confirmPassword?: string }
@@ -50,102 +54,105 @@ const SignupScreen: React.FC = () => {
   }, [newUser, dispatch, navigation]);
 
   return (
-    <View
-      style={{
-        ...styles.container,
-        paddingVertical: styles.container.paddingVertical - headerHeight,
-      }}
-    >
-      <Image style={{ height: 185, width: 250 }} source={titled_logo}></Image>
-      <Text variant={TextVariants.H1}>Sign up</Text>
-      <View style={styles.formContainer}>
-        <View style={styles.formRow}>
-          <TextField
-            label="First Name"
-            value={newUser.firstName}
-            setValue={(newValue) => {
-              updateState({ firstName: newValue });
-            }}
-            textType="SHORT_TEXT"
-            noHint
-            editing
-            wrapperStyle={{ width: "49%", marginRight: "2%" }}
-          />
+    <>
+      <View
+        style={{
+          ...styles.container,
+          paddingVertical: styles.container.paddingVertical - headerHeight,
+        }}
+      >
+        <Image style={{ height: 185, width: 250 }} source={titled_logo}></Image>
+        <Text variant={TextVariants.H1}>Sign up</Text>
+        <View style={styles.formContainer}>
+          <View style={styles.formRow}>
+            <TextField
+              label="First Name"
+              value={newUser.firstName}
+              setValue={(newValue) => {
+                updateState({ firstName: newValue });
+              }}
+              textType="SHORT_TEXT"
+              noHint
+              editing
+              wrapperStyle={{ width: "49%", marginRight: "2%" }}
+            />
 
-          <TextField
-            label="Last Name"
-            value={newUser.lastName}
-            setValue={(newValue) => {
-              updateState({ lastName: newValue });
-            }}
-            textType="SHORT_TEXT"
-            noHint
-            editing
-            wrapperStyle={{ width: "49%" }}
-          />
-        </View>
+            <TextField
+              label="Last Name"
+              value={newUser.lastName}
+              setValue={(newValue) => {
+                updateState({ lastName: newValue });
+              }}
+              textType="SHORT_TEXT"
+              noHint
+              editing
+              wrapperStyle={{ width: "49%" }}
+            />
+          </View>
 
-        <View style={styles.formRow}>
-          <TextField
-            label="Email"
-            textType="SHORT_TEXT"
-            value={newUser.email}
-            setValue={(newValue) => {
-              updateState({ email: newValue });
+          <View style={styles.formRow}>
+            <TextField
+              label="Email"
+              textType="SHORT_TEXT"
+              value={newUser.email}
+              setValue={(newValue) => {
+                updateState({ email: newValue });
+              }}
+              noHint
+              editing
+            />
+          </View>
+          <View style={styles.formRow}>
+            <TextField
+              value={newUser.confirmEmail}
+              setValue={(newValue) => {
+                updateState({ confirmEmail: newValue });
+              }}
+              label="Confirm email"
+              textType="SHORT_TEXT"
+              noHint
+              editing
+            />
+          </View>
+          <View style={styles.formRow}>
+            <TextField
+              label="Password"
+              textType="SHORT_TEXT"
+              value={newUser.password}
+              setValue={(newValue) => {
+                updateState({ password: newValue });
+              }}
+              noHint
+              editing
+              secure
+            />
+          </View>
+          <View style={styles.formRow}>
+            <TextField
+              value={newUser.confirmPassword}
+              setValue={(newValue) => {
+                updateState({ confirmPassword: newValue });
+              }}
+              label="Confirm password"
+              textType="SHORT_TEXT"
+              noHint
+              editing
+              secure
+            />
+          </View>
+          <AppButton
+            onPress={() => {
+              handleSubmit();
             }}
-            noHint
-            editing
-          />
+            type="COLOR"
+            style={[styles.navButton, { marginLeft: "auto", marginTop: 12 }]}
+          >
+            Next
+          </AppButton>
         </View>
-        <View style={styles.formRow}>
-          <TextField
-            value={newUser.confirmEmail}
-            setValue={(newValue) => {
-              updateState({ confirmEmail: newValue });
-            }}
-            label="Confirm email"
-            textType="SHORT_TEXT"
-            noHint
-            editing
-          />
-        </View>
-        <View style={styles.formRow}>
-          <TextField
-            label="Password"
-            textType="SHORT_TEXT"
-            value={newUser.password}
-            setValue={(newValue) => {
-              updateState({ password: newValue });
-            }}
-            noHint
-            editing
-            secure
-          />
-        </View>
-        <View style={styles.formRow}>
-          <TextField
-            value={newUser.confirmPassword}
-            setValue={(newValue) => {
-              updateState({ confirmPassword: newValue });
-            }}
-            label="Confirm password"
-            textType="SHORT_TEXT"
-            noHint
-            editing
-            secure
-          />
-        </View>
-        <AppButton
-          onPress={() => {
-            handleSubmit();
-          }}
-          type="COLOR"
-          style={[styles.navButton, { marginLeft: "auto", marginTop: 12 }]}
-        >
-          Next
-        </AppButton>
       </View>
-    </View>
+      {loading && <LoadingOverlay>Signing Up...</LoadingOverlay>}
+    </>
   );
 };
 

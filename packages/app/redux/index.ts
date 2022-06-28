@@ -33,6 +33,7 @@ import hardSet from "redux-persist/lib/stateReconciler/hardSet";
 import ExpoFileSystemStorage from "redux-persist-expo-filesystem";
 import { enableMapSet } from "immer";
 import { isArray, isObject } from "lodash";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { SyncState } from "./slices/syncSlice";
 
 enableMapSet();
@@ -94,7 +95,7 @@ const SurfaceSetTransform = createTransform(
 // This function will need to be edited if the structure of our indices changes
 // since it assumes all indices are of type Record<string, Set<string>>
 const IndicesTransform = createTransform(
-  (inboundState: any) => {
+  (inboundState: any, key) => {
     const indices: any = {};
     if ("indices" in inboundState) {
       for (const index of Object.keys(inboundState.indices)) {
@@ -109,9 +110,10 @@ const IndicesTransform = createTransform(
       }
       return { ...inboundState, indices };
     }
+    console.log("inbound", key, inboundState);
     return inboundState;
   },
-  (outboundState: any) => {
+  (outboundState: any, key) => {
     const indices: any = {};
     if ("indices" in outboundState) {
       for (const index of Object.keys(outboundState.indices)) {
@@ -126,6 +128,7 @@ const IndicesTransform = createTransform(
       }
       return { ...outboundState, indices };
     }
+    console.log("outbound", key, outboundState);
 
     return outboundState;
   }
@@ -142,7 +145,7 @@ const SelectedTransformer = createTransform(
 
 const persistConfig = {
   key: "root",
-  storage: ExpoFileSystemStorage,
+  storage: AsyncStorage,
   stateReconciler: hardSet,
   transforms: [SurfaceSetTransform, IndicesTransform, SelectedTransformer],
   blacklist: ["sync"],

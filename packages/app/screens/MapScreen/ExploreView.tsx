@@ -127,6 +127,7 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
   const {
     all: allTreeCensuses,
     indices: { byTreeActive },
+    selected: selectedTreeCensusId,
   } = useAppSelector((state: RootState) => state.treeCensuses);
   const {
     all: allPlots,
@@ -182,16 +183,6 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
       undefined,
     [selectedPlotCensusId, allPlotCensuses]
   );
-
-  useEffect(() => {
-    for (const census of Object.values(allForestCensuses)) {
-      if (census.active) {
-        dispatch(selectForestCensus(census.id));
-        dispatch(getForestCensusPlotCensuses({ forestCensusId: census.id }));
-        break;
-      }
-    }
-  }, [allForestCensuses, dispatch]);
 
   const plotArray = useMemo(() => Object.values(allPlots), [allPlots]);
   const plots = usePlotsInRegion(plotArray, regionSnapshot);
@@ -337,6 +328,8 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
     allTreeCensuses,
   ]);
 
+  console.log(selectedForestCensusId);
+
   const plotIdColorMap = useCallback(
     (id: string) => {
       if (plotCensusesByActivePlot?.[id]) {
@@ -465,8 +458,8 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
         onPress={(e) => {
           if (confirmationModalOpen) return;
           closeVisualizationModal();
-          dispatch(deselectTree());
-          dispatch(deselectTreeCensus());
+          if (selectedTreeId) dispatch(deselectTree());
+          if (selectedTreeCensusId) dispatch(deselectTreeCensus());
           if (!!e.nativeEvent.coordinate && !!selectedPlot) {
             if (
               !geolib.isPointInPolygon(
@@ -575,7 +568,6 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
                 fillColor={plotIdColorMap(plot.id)}
                 tappable={true}
                 onPress={() => {
-                  deselectPlotAndCensus();
                   plot?.id && selectPlotAndCensus(plot.id);
                 }}
               />

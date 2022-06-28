@@ -19,6 +19,7 @@
     "@expo/ngrok": "^4.1.0",
     "@expo/vector-icons": "^13.0.0",
     "@ong-forestry/schema": "1.0.0",
+    "@react-native-async-storage/async-storage": "^1.17.7",
     "@react-native-community/netinfo": "8.2.0",
     "@react-native-picker/picker": "^1.8.3",
     "@react-navigation/bottom-tabs": "^6.3.1",
@@ -77,6 +78,7 @@
     "@types/lodash": "^4.14.182",
     "@types/react": "~17.0.14",
     "@types/react-native": "~0.69.0",
+    "@types/redux-logger": "^3.0.9",
     "@types/utm": "^1.1.1",
     "@typescript-eslint/eslint-plugin": "^5.29.0",
     "@typescript-eslint/parser": "^5.29.0",
@@ -89,5 +91,8 @@
     "prettier": "^2.7.1",
     "react-test-renderer": "18.2.0",
     "typescript": "^4.7.4"
+  },
+  "resolutions": {
+    "react-devtools-core": "4.14.0"
   }
 }
