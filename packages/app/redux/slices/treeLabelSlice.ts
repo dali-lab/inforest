@@ -19,7 +19,7 @@ const initialState: TreeLabelState = {
 
 export const getAllTreeLabels = createAsyncThunk(
   "treeLabel/getAllTreeSpecies",
-  async (params?: GetTreeLabelsParams) => {
+  async (_params?: GetTreeLabelsParams) => {
     //TODO: add back limit param
     return await axios.get<TreeLabel[]>(`${BASE_URL}`).then((response) => {
       return response.data;
@@ -30,7 +30,9 @@ export const getAllTreeLabels = createAsyncThunk(
 export const treeLabelSlice = createSlice({
   name: "treeLabel",
   initialState,
-  reducers: {},
+  reducers: {
+    resetTreeLabels: () => initialState,
+  },
   extraReducers: (builder) => {
     builder.addCase(getAllTreeLabels.fulfilled, (state, action) => {
       action.payload.forEach((treeLabel) => {
@@ -40,5 +42,7 @@ export const treeLabelSlice = createSlice({
     });
   },
 });
+
+export const { resetTreeLabels } = treeLabelSlice.actions;
 
 export default treeLabelSlice.reducer;

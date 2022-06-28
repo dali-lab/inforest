@@ -1,18 +1,23 @@
-import { Membership, MembershipRoles } from "@ong-forestry/schema";
 import express from "express";
+import { Membership } from "@ong-forestry/schema";
 import {
   createMembership,
   deleteMemberships,
   editMemberships,
   getMemberships,
 } from "services";
-import { requireAuth } from "middleware/auth";
+import { requireAuth, requireMembership, retoolAuth } from "middleware";
+import { MembershipRoles } from "../enums";
 
 const membershipRouter = express.Router();
 
-membershipRouter.post<{}, any, Pick<Membership, "teamId"> & { email: string }>(
+membershipRouter.post<
+  {},
+  any,
+  Pick<Membership, "teamId" | "role"> & { email: string }
+>(
   "/",
-  requireAuth,
+  // retoolAuth,
   async (req, res) => {
     try {
       const membership = await createMembership(req.body);
@@ -36,6 +41,7 @@ const parseParams = (query: any) => ({
 membershipRouter.patch<{}, any, Membership>(
   "/",
   requireAuth,
+  requireMembership("teamId", "teamId", { admin: true }),
   async (req, res) => {
     try {
       const memberships = await editMemberships(
@@ -67,6 +73,7 @@ membershipRouter.get<{}, any, Membership>(
 membershipRouter.delete<{}, any, Membership>(
   "/",
   requireAuth,
+  requireMembership("teamId", "teamId", { admin: true }),
   async (req, res) => {
     try {
       await deleteMemberships(parseParams(req.query));

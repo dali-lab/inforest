@@ -1,6 +1,6 @@
 import { TreeCensus } from "./tree-census";
 import { Team } from "./team";
-import { PlotCensus } from "plot-census";
+import { PlotCensus } from "./plot-census";
 /**
  * App user
  */

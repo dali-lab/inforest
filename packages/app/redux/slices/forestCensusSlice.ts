@@ -59,12 +59,12 @@ export const forestCensusSlice = createSlice({
       const census = action.payload;
       state.all[census.id] = census;
       // add to plot index under forestCensus key
-      if (!(census.forestId in state.indices.byForests)) {
+      if (!(census.forestId in state.indices.byForests))
         state.indices.byForests[census.forestId] = new Set([]);
-      }
+
       state.indices.byForests[census.forestId].add(census.id);
     },
-    selectForestCensus: (state, action) => {
+    selectForestCensus: (state, action: { payload: string }) => {
       state.selected = action.payload;
       return state;
     },
@@ -72,6 +72,7 @@ export const forestCensusSlice = createSlice({
       state.selected = undefined;
       return state;
     },
+    resetForestCensuses: () => initialState,
   },
   extraReducers: (builder) => {
     builder.addCase(getForestCensus.fulfilled, (state, action) => {
@@ -79,6 +80,10 @@ export const forestCensusSlice = createSlice({
     });
     builder.addCase(getForestForestCensuses.fulfilled, (state, action) => {
       action.payload.forEach((census) => {
+        // set selected to be active census
+        if (census.active) {
+          state.selected = census.id;
+        }
         forestCensusSlice.caseReducers.createForestCensus(state, {
           payload: census,
           type: "forestCensus/createForestCensus",
@@ -88,7 +93,7 @@ export const forestCensusSlice = createSlice({
   },
 });
 
-export const { selectForestCensus, deselectForestCensus } =
+export const { selectForestCensus, deselectForestCensus, resetForestCensuses } =
   forestCensusSlice.actions;
 
 export default forestCensusSlice.reducer;

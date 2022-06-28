@@ -41,5 +41,5 @@ export interface Membership {
   /**
    * Role of the user within that specific team
    */
-  role?: MembershipRoles;
+  role: MembershipRoles;
 }

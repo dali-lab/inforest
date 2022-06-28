@@ -1,5 +1,6 @@
-import { PlotCensus, PlotCensusStatuses } from "@ong-forestry/schema";
+import { PlotCensus } from "@ong-forestry/schema";
 import PlotCensusModel from "db/models/plot-census";
+import UserModel from "db/models/user";
 import { Op } from "sequelize";
 import { CensusExistsError } from "errors";
 import {
@@ -9,6 +10,9 @@ import {
   getTrees,
   getTreeCensuses,
 } from "services";
+import { PlotCensusStatuses } from "../enums";
+
+import { PlotCensusAssignment } from "db/models";
 
 const uuid = require("uuid4");
 
@@ -118,7 +122,10 @@ const constructQuery = (params: PlotCensusParams) => {
 
 export const getPlotCensuses = async (params: PlotCensusParams) => {
   const query = constructQuery(params);
-  var plotCensuses = await PlotCensusModel.findAll(query);
+  var plotCensuses = await PlotCensusModel.findAll({
+    ...query,
+    include: UserModel,
+  });
 
   // search by user assigned to this plot census
   if (params.userId) {
@@ -150,7 +157,6 @@ export const getPlotCensuses = async (params: PlotCensusParams) => {
 
 export const submitForReview = async (params: Pick<PlotCensus, "plotId">) => {
   const { plotId } = params;
-
   // ensure plot exists
   if (plotId == null) {
     throw new Error("You must specify a plot.");
@@ -182,8 +188,8 @@ export const submitForReview = async (params: Pick<PlotCensus, "plotId">) => {
   // find tree censuses for each tree in this plot census
   const treeTreeCensuses = await Promise.all(
     trees.map(async (tree) => {
-      return getTreeCensuses({
-        treeIds: [tree.id],
+      return await getTreeCensuses({
+        treeId: tree.id,
         plotCensusId: census[0].id,
       });
     })
@@ -202,10 +208,12 @@ export const submitForReview = async (params: Pick<PlotCensus, "plotId">) => {
     }
   });
 
-  return await PlotCensusModel.update(
-    { status: PlotCensusStatuses.Pending },
-    { where: { id: { [Op.eq]: census[0].id } } }
-  );
+  return (
+    await PlotCensusModel.update(
+      { status: PlotCensusStatuses.Pending },
+      { where: { id: { [Op.eq]: census[0].id } }, returning: true }
+    )
+  )[1];
 };
 
 export const approve = async (params: Pick<PlotCensus, "id">) => {

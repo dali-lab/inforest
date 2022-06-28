@@ -7,6 +7,7 @@ import {
   ViewStyle,
   View,
 } from "react-native";
+import { Queue } from "react-native-spacing-system";
 import Colors from "../constants/Colors";
 import { Text, TextVariants } from "./Themed";
 
@@ -16,7 +17,7 @@ interface AppButtonProps {
   disabled?: boolean;
   style?: StyleProp<ViewStyle>;
   icon?: ReactNode;
-  type?: "PLAIN" | "COLOR" | "RED";
+  type?: "PLAIN" | "COLOR" | "RED" | "REDBORDER";
 }
 
 const AppButton: React.FC<AppButtonProps> = ({
@@ -30,23 +31,35 @@ const AppButton: React.FC<AppButtonProps> = ({
   return (
     <Pressable
       style={[
-        styles.button,
-        type === "PLAIN" && styles.plainButton,
-        type === "COLOR" && styles.colorButton,
-        type === "RED" && styles.redButton,
         style,
+        styles.button,
+        ...(!disabled
+          ? [
+              type === "PLAIN" && styles.plainButton,
+              type === "COLOR" && styles.colorButton,
+              type === "RED" && styles.redButton,
+              type === "REDBORDER" && styles.redBorderButton,
+            ]
+          : [styles.disabledButton]),
       ]}
       onPress={!disabled ? onPress : undefined}
     >
       <View style={{ flexDirection: "row", alignItems: "center" }}>
-        {icon}
+        {icon && (
+          <>
+            {icon}
+            <Queue size={8}></Queue>
+          </>
+        )}
         <Text
           variant={TextVariants.Label}
-          style={[
-            type === "PLAIN" && styles.plainText,
-            (type === "COLOR" || type === "RED") && styles.colorText,
-            disabled && styles.disabledText,
-          ]}
+          color={
+            disabled
+              ? Colors.neutral[4]
+              : ["PLAIN", "REDBORDER"].includes(type)
+              ? "black"
+              : "white"
+          }
         >
           {children}
         </Text>
@@ -57,11 +70,9 @@ const AppButton: React.FC<AppButtonProps> = ({
 
 const styles = StyleSheet.create({
   button: {
-    borderRadius: 11,
-    height: 48,
+    borderRadius: 12,
     alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 12,
+    paddingVertical: 8,
     paddingHorizontal: 16,
   },
   plainButton: {
@@ -73,6 +84,14 @@ const styles = StyleSheet.create({
   redButton: {
     backgroundColor: Colors.error,
   },
+  redBorderButton: {
+    backgroundColor: "rgba(255,255,255,0.8)",
+    borderColor: Colors.error,
+    borderWidth: 2,
+  },
+  disabledButton: {
+    backgroundColor: Colors.neutral[1],
+  },
   text: {
     fontWeight: "bold",
   },
@@ -81,9 +100,6 @@ const styles = StyleSheet.create({
   },
   colorText: {
     color: "white",
-  },
-  disabledText: {
-    color: Colors.neutral[4],
   },
 });
 

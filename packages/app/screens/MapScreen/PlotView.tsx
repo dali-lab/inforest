@@ -3,26 +3,33 @@ import { useMemo, useState, useCallback } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { PlottingSheet } from "../../components/PlottingSheet";
 import { PlotDrawer } from "../../components/PlotDrawer";
-import { DrawerStates, MapScreenModes } from "../../constants";
+import {
+  DrawerStates,
+  MapScreenModes,
+  MapScreenZoomLevels,
+} from "../../constants";
 import { formPlotNumber, parsePlotNumber } from "../../constants/plots";
 import useAppSelector from "../../hooks/useAppSelector";
 import { RootState } from "../../redux";
 import Colors from "../../constants/Colors";
+import { ModeSwitcher } from "./ModeSwitcher";
+import { MapOverlay } from "../../components/MapOverlay";
 
 const LOWER_BUTTON_HEIGHT = 64;
 
 interface PlotViewProps {
+  mode: MapScreenModes;
+  switchMode: () => void;
   onExit: () => void;
-  endPlotting: () => void;
 }
 
 const PlotView: React.FC<PlotViewProps> = (props) => {
-  const { onExit, endPlotting } = props;
+  const { mode, switchMode, onExit } = props;
 
   const [drawerState, setDrawerState] = useState<DrawerStates>(
     DrawerStates.Minimized
   );
-  const [_, setDrawerHeight] = useState(0);
+  const [drawerHeight, setDrawerHeight] = useState(0);
 
   const [direction, setDirection] = useState(0);
   const rotate = useCallback(() => {
@@ -57,14 +64,20 @@ const PlotView: React.FC<PlotViewProps> = (props) => {
   return (
     <>
       <View style={styles.map}>
-        <View style={{ ...styles.mapOverlay, top: 32, left: 32 }}>
+        <MapOverlay top={32} left={32}>
           <Ionicons name="ios-arrow-back" size={32} onPress={onExit} />
+        </MapOverlay>
+        <View style={{ position: "absolute", top: 32, right: 32 }}>
+          <ModeSwitcher mode={mode} switchMode={switchMode}></ModeSwitcher>
         </View>
-        <View style={{ ...styles.mapOverlay, top: 32, right: 32 }}>
+        <View
+          style={{ ...styles.mapOverlay, bottom: drawerHeight + 32, right: 32 }}
+        >
           <Ionicons name="ios-refresh" size={32} onPress={rotate} />
         </View>
-        {!!selectedPlot && (
+        {!!selectedPlot ? (
           <PlottingSheet
+            mode={mode}
             plot={selectedPlot}
             plotCensus={selectedPlotCensus}
             stakeNames={(() => {
@@ -90,20 +103,22 @@ const PlotView: React.FC<PlotViewProps> = (props) => {
             })()}
             mapWidth={Dimensions.get("window").width}
             direction={direction}
+            drawerState={drawerState}
             expandDrawer={() => setDrawerState(DrawerStates.Expanded)}
             minimizeDrawer={() => setDrawerState(DrawerStates.Minimized)}
           />
-        )}
+        ) : null}
       </View>
       <PlotDrawer
-        mode={MapScreenModes.Plot}
+        mode={mode}
+        zoom={MapScreenZoomLevels.Plot}
         drawerState={drawerState}
         setDrawerHeight={setDrawerHeight}
         plot={selectedPlot}
         plotCensus={selectedPlotCensus}
-        endPlotting={endPlotting}
         expandDrawer={() => setDrawerState(DrawerStates.Expanded)}
         minimizeDrawer={() => setDrawerState(DrawerStates.Minimized)}
+        stopPlotting={onExit}
       ></PlotDrawer>
     </>
   );

@@ -12,12 +12,14 @@ import {
   TreePhoto,
   TreePhotoPurpose,
   TreeSpecies,
+  TreeSpeciesTypes,
   TreeLabel,
   TreeCensusLabel,
 } from "./tree";
 import { TreeCensus } from "./tree-census";
 import { Forest } from "./forest";
 import { ForestCensus } from "./forest-census";
+import { VerificationCode } from "./verification-code";
 
 export {
   Plot,
@@ -28,6 +30,7 @@ export {
   TreePhoto,
   TreePhotoPurpose,
   TreeSpecies,
+  TreeSpeciesTypes,
   TreeLabel,
   TreeCensusLabel,
   TreeCensus,
@@ -37,4 +40,5 @@ export {
   MembershipRoles,
   Forest,
   ForestCensus,
+  VerificationCode,
 };

@@ -2,6 +2,7 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { Forest } from "@ong-forestry/schema";
 import SERVER_URL from "../../constants/Url";
 import axios from "axios";
+import { UpsertAction } from "..";
 
 const BASE_URL = SERVER_URL + "forests";
 
@@ -9,44 +10,92 @@ type GetForestParams = {
   id: string;
 };
 
-export const getForests = createAsyncThunk("forest/getForests", async () => {
-  return await axios.get<Forest[]>(BASE_URL).then((response) => {
-    return response.data;
-  });
-});
+export const getForests = createAsyncThunk(
+  "forest/getForests",
+  async (_params, { dispatch }) => {
+    dispatch(startForestLoading());
+    return await axios
+      .get<Forest[]>(BASE_URL)
+      .then((response) => {
+        dispatch(stopForestLoading());
+        return response.data;
+      })
+      .catch((e) => {
+        dispatch(stopForestLoading());
+        throw e;
+      });
+  }
+);
 
 export const getForest = createAsyncThunk(
   "forest/getForest",
-  async (params: GetForestParams) => {
+  async (params: GetForestParams, { dispatch }) => {
     return await axios
-      .get<Forest>(`${BASE_URL}?id=${params.id}`)
+      .get<Forest[]>(`${BASE_URL}?id=${params.id}`)
       .then((response) => {
         return response.data;
+      })
+      .catch((e) => {
+        throw e;
       });
   }
 );
 export interface ForestState {
-  currentTeamForests: Forest[];
-  currentForest: Forest | null;
+  all: Record<string, Forest>;
+  indices: {
+    byTeam: Record<string, Set<string>>;
+  };
+  selected: string | undefined;
+  loading: boolean;
 }
 
 const initialState: ForestState = {
-  currentTeamForests: [],
-  currentForest: null,
+  all: {},
+  indices: {
+    byTeam: {},
+  },
+  selected: undefined,
+  loading: false,
+};
+
+const upsertForests = (state: ForestState, action: UpsertAction<Forest>) => {
+  const newForests = action.data;
+  newForests.forEach((newForest) => {
+    state.all[newForest.id] = newForest;
+    if (!(newForest.teamId in state.indices.byTeam))
+      state.indices.byTeam[newForest.teamId] = new Set([]);
+    state.indices.byTeam[newForest.teamId].add(newForest.id);
+  });
+  return state;
 };
 
 export const forestSlice = createSlice({
   name: "forest",
   initialState,
-  reducers: {},
+  reducers: {
+    selectForest: (state, action: { payload: string }) => {
+      state.selected = action.payload;
+      return state;
+    },
+    resetForests: () => initialState,
+    startForestLoading: (state) => ({ ...state, loading: true }),
+    stopForestLoading: (state) => ({ ...state, loading: false }),
+  },
   extraReducers: (builder) => {
     builder.addCase(getForests.fulfilled, (state, action) => {
-      state.currentTeamForests = action.payload;
+      return upsertForests(state, { data: action.payload });
     });
     builder.addCase(getForest.fulfilled, (state, action) => {
-      state.currentForest = action.payload;
+      return upsertForests(state, { data: action.payload });
     });
   },
 });
+
+export const {
+  selectForest,
+  resetForests,
+  startForestLoading,
+  stopForestLoading,
+} = forestSlice.actions;
 
 export default forestSlice.reducer;

@@ -3,6 +3,7 @@ import { Tree } from "@ong-forestry/schema";
 import axios from "axios";
 import uuid from "react-native-uuid";
 import SERVER_URL from "../../constants/Url";
+import { RootState, UpsertAction } from "..";
 
 const BASE_URL = SERVER_URL + "trees";
 
@@ -16,67 +17,135 @@ export const getForestTrees = createAsyncThunk(
   async (params: GetForestTreesParams) => {
     return await axios
       .get<Tree[]>(
-        `${BASE_URL}?forestId=${params.forestId}&limit=${params.limit}`
+        `${BASE_URL}?forestId=${params.forestId}&limit=${params?.limit}`
       )
       .then((response) => {
         // const species = Array.from(new Set(response.data.map((tree)=>tree?.speciesCode||"")))
         // thunkApi.dispatch(getManyTreeSpecies({codes: species}))
         return response.data;
+      })
+      .catch((err) => {
+        console.error(err);
+        return [];
       });
   }
 );
 
 export const createTree = createAsyncThunk(
   "tree/createTree",
-  async (newTree: Omit<Tree, "id" | "plot">, thunkApi) => {
-    thunkApi.dispatch(locallyDraftNewTree(newTree));
+  async (newTree: Partial<Tree>) => {
     // todo handle failure
-    return await axios.post(`${BASE_URL}`, newTree);
+    return await axios
+      .post(`${BASE_URL}`, newTree)
+      .then((response) => response.data)
+      .catch((err) => {
+        alert("Error when creating tree: " + err?.message);
+        throw err;
+      });
   }
 );
 
 export const updateTree = createAsyncThunk(
   "tree/updateTree",
-  async (treeUpdates: Tree, thunkApi) => {
-    thunkApi.dispatch(locallyUpdateTree(treeUpdates));
-    return await axios.patch(`${BASE_URL}?ids=${treeUpdates.id}`, treeUpdates);
+  async (updatedTree: Tree, { getState, dispatch }) => {
+    const oldTree = (getState() as RootState)?.trees.all[updatedTree.id];
+    dispatch(locallyUpdateTree(updatedTree));
+    const { id, ...updates } = updatedTree;
+    return await axios
+      .patch(`${BASE_URL}/${id}`, updates)
+      .then((response) => {
+        dispatch(clearTreeDrafts());
+        return response.data;
+      })
+      .catch((err) => {
+        dispatch(locallyUpdateTree(oldTree));
+        dispatch(clearTreeDrafts());
+        alert("Error while updating tree: " + err?.message);
+        throw err;
+      });
   }
 );
 
-type TreeNumericalIndexItem = {
-  value: number;
-  id: string;
-};
+export const deleteTree = createAsyncThunk(
+  "tree/deleteTree",
+  async (id: string) => {
+    return await axios
+      .delete(`${BASE_URL}/${id}`)
+      .then((response) => response.data);
+  }
+);
 
-type TreeNumericalIndex = TreeNumericalIndexItem[];
+// type TreeNumericalIndexItem = {
+//   value: number;
+//   id: string;
+// };
 
-const treeNumericalIndexComparator = (
-  a: TreeNumericalIndexItem,
-  b: TreeNumericalIndexItem
-) => a.value - b.value;
+// type TreeNumericalIndex = Set<TreeNumericalIndexItem>;
+
+// const treeNumericalIndexComparator = (
+//   a: TreeNumericalIndexItem,
+//   b: TreeNumericalIndexItem
+// ) => a.value - b.value;
 
 export interface TreeState {
   all: Record<string, Tree>;
   indices: {
     byPlots: Record<string, Set<string>>;
-    byLatitude: TreeNumericalIndex;
-    byLongitude: TreeNumericalIndex;
+    // byLatitude: TreeNumericalIndex;
+    // byLongitude: TreeNumericalIndex;
     bySpecies: Record<string, Set<string>>;
   };
   drafts: Set<string>;
-  selected?: string;
+  localDeletions: Set<string>;
+  selected: string | undefined;
 }
 
 const initialState: TreeState = {
   all: {},
   indices: {
     byPlots: {},
-    byLatitude: [],
-    byLongitude: [],
+    // byLatitude: [],
+    // byLongitude: [],
     bySpecies: {},
   },
   drafts: new Set([]),
+  localDeletions: new Set([]),
   selected: undefined,
+};
+
+// takes the state and the action payload(!!) and returns the updated state with the payload's trees added. used for downloading, drafting, and rehydrating
+export const upsertTrees = (state: TreeState, action: UpsertAction<Tree>) => {
+  const newTrees: Tree[] = action.data;
+  newTrees.forEach((newTree) => {
+    if (!newTree?.id) newTree.id = uuid.v4().toString();
+    state.all[newTree.id] = newTree;
+    // add to drafts
+    if (action?.draft) state.drafts.add(newTree.id);
+    // update plots index
+    if (!(newTree.plotId in state.indices.byPlots))
+      state.indices.byPlots[newTree.plotId] = new Set([]);
+    state.indices.byPlots[newTree.plotId].add(newTree.id);
+    if (newTree.speciesCode) {
+      if (!(newTree.speciesCode in state.indices.bySpecies))
+        state.indices.bySpecies[newTree.speciesCode] = new Set([]);
+      state.indices.bySpecies[newTree.speciesCode].add(newTree.id);
+    }
+    if (action?.selectFinal) state.selected = newTree.id;
+  });
+
+  return state;
+};
+
+export const deleteTrees = (state: TreeState, ids: string[]) => {
+  for (const id of ids) {
+    const currTree = state.all[id];
+    state.indices.byPlots[currTree.plotId].delete(id);
+    state.indices.bySpecies[currTree.speciesCode].delete(id);
+    state.drafts.delete(currTree.id);
+    if (state.selected === id) state.selected = undefined;
+    delete state.all[id];
+  }
+  return state;
 };
 
 export const treeSlice = createSlice({
@@ -84,53 +153,18 @@ export const treeSlice = createSlice({
   initialState,
   reducers: {
     locallyDraftNewTree: (state, action) => {
-      const newTree = action.payload;
-      newTree.id = uuid.v4();
-      state.all[newTree.id] = newTree;
-      // add to drafts
-      state.drafts.add(newTree.id);
-      // update plots index
-      if (!(newTree.plotId in state.indices.byPlots)) {
-        state.indices.byPlots[newTree.plotId] = new Set();
-      }
-      state.indices.byPlots[newTree.plotId].add(newTree.id);
-      // update latitude index
-      if (newTree.latitude) {
-        state.indices.byLatitude.push({
-          value: newTree.latitude,
-          id: newTree.id,
-        });
-        state.indices.byLatitude.sort(treeNumericalIndexComparator);
-      }
-      // update longitude index
-      if (newTree.longitude) {
-        state.indices.byLongitude.push({
-          value: newTree.longitude,
-          id: newTree.id,
-        });
-        state.indices.byLongitude.sort(treeNumericalIndexComparator);
-      }
-      state.selected = newTree.id;
-      return state;
+      return upsertTrees(state, {
+        data: [action.payload],
+        draft: true,
+        selectFinal: true,
+      });
     },
-    locallyDeleteTree: (state, action) => {
-      const treeId = action.payload;
-      const plotId = state.all[treeId].plotId;
-      delete state.all[treeId];
-      // remove from drafts
-      state.drafts.delete(treeId);
-      // remove from plots index
-      state.indices.byPlots[plotId]?.delete(treeId);
-      // remove from latitude index
-      state.indices.byLatitude.splice(state.indices.byLatitude.indexOf(treeId));
-      // remove from longitude index
-      state.indices.byLongitude.splice(
-        state.indices.byLongitude.indexOf(treeId)
-      );
-      return state;
+    locallyDeleteTree: (state, action: { payload: string }) => {
+      state.localDeletions.add(action.payload);
+      return deleteTrees(state, [action.payload]);
     },
     locallyUpdateTree: (state, action) => {
-      const { updated } = action.payload;
+      const updated = action.payload;
       state.all[updated.id] = updated;
       return state;
     },
@@ -142,44 +176,37 @@ export const treeSlice = createSlice({
       state.selected = undefined;
       return state;
     },
+    clearTreeDrafts: (state) => {
+      return {
+        ...state,
+        drafts: initialState.drafts,
+        localDeletions: initialState.localDeletions,
+      };
+    },
+    resetTrees: () => initialState,
   },
   extraReducers: (builder) => {
     builder.addCase(getForestTrees.fulfilled, (state, action) => {
-      action.payload.forEach((tree) => {
-        state.all[tree.id] = tree;
-        // initialize plot index key if needed
-        if (!(tree.plotId in state.indices.byPlots)) {
-          state.indices.byPlots[tree.plotId] = new Set();
-        }
-        // add to plots index
-        state.indices.byPlots[tree.plotId].add(tree.id);
-        // add to latitude index
-        if (tree.latitude) {
-          state.indices.byLatitude.push({
-            value: tree.latitude,
-            id: tree.id,
-          });
-        }
-        // add to longitude index
-        if (tree.longitude) {
-          state.indices.byLongitude.push({
-            value: tree.longitude,
-            id: tree.id,
-          });
-        }
-        if (
-          tree.speciesCode &&
-          !(tree.speciesCode in state.indices.bySpecies)
-        ) {
-          state.indices.bySpecies[tree.speciesCode] = new Set();
-        }
-        if (tree.speciesCode)
-          state.indices.bySpecies[tree.speciesCode].add(tree.id);
-      });
-      // sort indices
-      state.indices.byLatitude.sort(treeNumericalIndexComparator);
-      state.indices.byLongitude.sort(treeNumericalIndexComparator);
-      return state;
+      return upsertTrees(state, { data: action.payload });
+    });
+    builder.addCase(
+      createTree.fulfilled,
+      (state, action: { payload: Tree }) => {
+        return upsertTrees(state, {
+          data: [action.payload],
+          selectFinal: true,
+        });
+      }
+    );
+    builder.addCase(
+      updateTree.fulfilled,
+      (state, action: { payload: Tree }) => {
+        return upsertTrees(state, { data: [action.payload] });
+      }
+    );
+    builder.addCase(deleteTree.fulfilled, (state, action) => {
+      if (action.meta.arg === state.selected) state.selected = undefined;
+      return deleteTrees(state, [action.meta.arg]);
     });
   },
 });
@@ -190,6 +217,8 @@ export const {
   locallyUpdateTree,
   selectTree,
   deselectTree,
+  clearTreeDrafts,
+  resetTrees,
 } = treeSlice.actions;
 
 export default treeSlice.reducer;

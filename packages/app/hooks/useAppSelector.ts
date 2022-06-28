@@ -4,9 +4,11 @@ import { TypedUseSelectorHook, useSelector } from "react-redux";
 import type { RootState } from "../redux";
 import { createDraftSafeSelector as createSelector } from "@reduxjs/toolkit";
 import { getPlotCorners } from "../constants/plots";
+import { PersistPartial } from "redux-persist/es/persistReducer";
 
 //This hook allows for the selector hook to use typescript types
-const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
+const useAppSelector: TypedUseSelectorHook<RootState & PersistPartial> =
+  useSelector;
 
 /**
  * Selects trees from store at a designated density level.
@@ -20,7 +22,7 @@ export const useTreesByDensity = createSelector(
   ],
   (trees: RootState["trees"], density = 1.0) => {
     const { all, drafts, selected } = trees;
-    const treeKeys = Object.keys(all);
+    const treeKeys: string[] = Object.keys(all);
     const selectedKeys = [];
     const draftsToAdd = new Set(drafts);
     let missingSelected = !!selected;
@@ -110,6 +112,27 @@ export const usePlotsInRegion = createSelector(
     });
   }
 );
+
+// export const useActivePlotCensuses = createSelector(
+//   [(state: RootState) => state],
+//   (state) => {
+//     const { forest, plotCensuses } = state;
+//     const { selected: selectedForestCensusId } = forest;
+//     const {
+//       all: allPlotCensuses,
+//       indices: { byForestCensuses },
+//     } = plotCensuses;
+//     if (!selectedForestCensusId || !byForestCensuses?.[selectedForestCensusId])
+//       return {};
+//     const index: Record<string, string> = {};
+//     byForestCensuses[selectedForestCensusId].forEach((plotCensusId) => {
+//       const census = allPlotCensuses[plotCensusId];
+//       index[census.plotId] = plotCensusId;
+//     });
+//     console.log(index);
+//     return index;
+//   }
+// );
 
 // export const usePlots = ({ viewingBox }: PlotsSelectorParams) =>
 //   useAppSelector(({ plots }) => {

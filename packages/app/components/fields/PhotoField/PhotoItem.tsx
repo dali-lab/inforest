@@ -15,7 +15,7 @@ import { TreePhoto } from "@ong-forestry/schema";
 
 interface PhotoItemProps {
   item: ListRenderItemInfo<TreePhoto>;
-  removePhoto: (url: string) => void;
+  removePhoto: (id: string) => void;
   options: { label: string; value: string }[];
   setPurpose: (newValue: string) => void;
 }
@@ -36,7 +36,7 @@ const PhotoItem: React.FC<PhotoItemProps> = ({
           borderTopRightRadius: 10,
         }}
         source={{
-          uri: item.fullUrl,
+          uri: item.thumbUrl,
         }}
       />
       <View
@@ -47,7 +47,7 @@ const PhotoItem: React.FC<PhotoItemProps> = ({
         }}
       >
         <FieldController
-          value={item.purposeName}
+          value={item?.purposeName || ""}
           onConfirm={(newValue) => {
             setPurpose(newValue);
           }}
@@ -63,7 +63,7 @@ const PhotoItem: React.FC<PhotoItemProps> = ({
       </View>
       <Pressable
         onPress={() => {
-          removePhoto(item.fullUrl);
+          removePhoto(item.id);
         }}
         style={styles.photoRemove}
       >

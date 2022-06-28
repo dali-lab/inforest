@@ -66,7 +66,7 @@ class TreeCensus
   @BelongsToMany(() => TreeLabel, () => TreeCensusLabel)
   labels: ITreeLabel[];
 
-  @HasMany(() => TreePhoto)
+  @HasMany(() => TreePhoto, { onDelete: "CASCADE" })
   photos: ITreePhoto[];
 
   @Column(DataTypes.BOOLEAN)
@@ -90,6 +90,9 @@ class TreeCensus
 
   @HasOne(() => Tree)
   initTree: ITree;
+
+  @Column(DataTypes.STRING)
+  notes: string;
 }
 
 export default TreeCensus;

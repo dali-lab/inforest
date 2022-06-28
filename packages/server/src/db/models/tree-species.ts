@@ -12,7 +12,7 @@ import {
   Tree as ITree,
   TreeSpecies as ITreeSpecies,
 } from "@ong-forestry/schema";
-import { TreeSpeciesTypes } from "@ong-forestry/schema/src/tree";
+import { TreeSpeciesTypes } from "../../enums";
 
 @Table({
   tableName: "tree_species",

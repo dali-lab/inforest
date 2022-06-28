@@ -32,7 +32,7 @@ class TreeCensusLabel
   @ForeignKey(() => TreeCensus)
   treeCensusId: string;
 
-  @BelongsTo(() => TreeCensus)
+  @BelongsTo(() => TreeCensus, { onDelete: "CASCADE" })
   treeCensus: ITreeCensus;
 
   @Column(DataTypes.STRING)

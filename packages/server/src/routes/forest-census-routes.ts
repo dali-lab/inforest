@@ -1,17 +1,17 @@
-import { ForestCensus } from "@ong-forestry/schema";
 import express from "express";
+import { ForestCensus } from "@ong-forestry/schema";
 import {
   createForestCensus,
   closeForestCensus,
   getForestCensuses,
 } from "services";
-import { requireAuth } from "util/auth";
+import { requireAuth, retoolAuth } from "middleware";
 
 const forestCensusRouter = express.Router();
 
 forestCensusRouter.post<{}, any, ForestCensus>(
   "/",
-  requireAuth,
+  retoolAuth,
   async (req, res) => {
     try {
       const forest = await createForestCensus(req.body);
@@ -40,7 +40,7 @@ forestCensusRouter.get<{}, any, null>("/", requireAuth, async (req, res) => {
 // close a finished forest census
 forestCensusRouter.patch<{}, any, ForestCensus>(
   "/submit",
-  requireAuth,
+  retoolAuth,
   async (req, res) => {
     try {
       await closeForestCensus(parseParams(req.query));

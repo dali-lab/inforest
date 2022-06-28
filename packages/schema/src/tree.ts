@@ -1,4 +1,3 @@
-import { PlotCensus } from "./plot-census";
 import { Plot } from "./plot";
 import { TreeCensus } from "./tree-census";
 
@@ -70,7 +69,7 @@ export interface Tree {
    * The id of the initial tree census
    */
 
-  initCensusId: string;
+  initCensusId: string | null;
 
   /**
    * Date and time when this entry was created.
@@ -201,7 +200,7 @@ export interface TreePhoto {
   /**
    * Name/foreign key of photo's associated purpose
    */
-  purposeName: string;
+  purposeName: string | null;
 
   /**
    * Photo's full associated purpose

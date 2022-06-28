@@ -1,9 +1,13 @@
-import { Tree } from "@ong-forestry/schema";
+import { PlotCensusStatuses, Tree } from "@ong-forestry/schema";
 
 export enum MapScreenModes {
   Explore = "EXPLORE",
   Plot = "PLOT",
-  Select = "SELECT",
+}
+
+export enum MapScreenZoomLevels {
+  Forest = "FOREST",
+  Plot = "PLOT",
 }
 
 export const DEFAULT_DBH = 30;
@@ -36,3 +40,30 @@ export type VisualizationConfigType = {
   numOfSpecies: number;
   satellite: boolean;
 };
+
+export const convertToNaturalLanguage = (
+  value?: PlotCensusStatuses,
+  casing: "ALL_LOWER" | "ALL_UPPER" | "NORMAL" = "NORMAL"
+) => {
+  let result = "";
+  switch (value) {
+    case PlotCensusStatuses.InProgress:
+      result = "In Progress";
+      break;
+    case PlotCensusStatuses.Pending:
+      result = "Pending";
+      break;
+    case PlotCensusStatuses.Approved:
+      result = "Approved";
+      break;
+  }
+  switch (casing) {
+    case "ALL_LOWER":
+      return result.toLowerCase();
+    case "ALL_UPPER":
+      return result.toUpperCase();
+  }
+  return result;
+};
+
+export const BLUR_VIEW_INTENSITY = 40;

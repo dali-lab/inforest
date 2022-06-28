@@ -1,6 +1,5 @@
-import { PlotCensusStatuses, TreeCensus } from "@ong-forestry/schema";
+import { TreeCensus } from "@ong-forestry/schema";
 import TreeCensusModel from "db/models/tree-census";
-import TreeModel from "db/models/tree";
 import { Op } from "sequelize";
 import {
   getPlotCensusAssignments,
@@ -8,25 +7,35 @@ import {
   getPlots,
   getTrees,
 } from "services";
-import { PlotCensus } from "db/models";
+import { PlotCensus, TreeCensusLabel, TreeLabel, TreePhoto } from "db/models";
+import { PlotCensusStatuses } from "../enums";
 
-const validatePlotCensus = async (
-  treeCensus: Omit<TreeCensus, "plotCensusId">
-) => {
+export const bulkUpsertTreeCensuses = async (treeCensuses: TreeCensus[]) => {
+  return await TreeCensusModel.bulkCreate(treeCensuses, {
+    updateOnDuplicate: Object.keys(
+      TreeCensusModel.rawAttributes
+    ) as (keyof TreeCensus)[],
+  });
+};
+
+//TODO: revisit this
+const validateTreeCensus = async (treeCensusData: Partial<TreeCensus>) => {
+  // get all data about whatever was passed about the tree census
+  const treeCensus = (await getTreeCensuses({ id: treeCensusData.id }))[0];
   // find tree being censused -> plot it's on -> active plot census
   const trees = await getTrees({
     ids: [treeCensus.treeId],
   });
-  if (trees.length == 0) {
-    throw new Error("Tree does not exist");
-  }
+  // if (trees.length == 0) {
+  //   throw new Error("Tree does not exist");
+  // }
 
   const plots = await getPlots({
     id: trees[0].plotId,
   });
-  if (plots.length == 0) {
-    throw new Error("Plot does not exist");
-  }
+  // if (plots.length == 0) {
+  //   throw new Error("Plot does not exist");
+  // }
 
   const plotCensuses = await getPlotCensuses({
     plotId: plots[0].id,
@@ -39,49 +48,81 @@ const validatePlotCensus = async (
     throw new Error("There is no active census on this plot");
   }
 
-  // check that user is assigned to this plot census
-  const assignment = await getPlotCensusAssignments({
-    plotCensusId: plotCensuses[0].id,
-    userId: treeCensus.authorId,
-  });
-  if (assignment.length == 0) {
-    throw new Error("You are not assigned to this plot.");
-  }
+  // // check that user is assigned to this plot census
+  // const assignment = await getPlotCensusAssignments({
+  //   plotCensusId: plotCensuses[0].id,
+  //   userId: treeCensus.authorId,
+  // });
+  // if (assignment.length == 0) {
+  //   throw new Error("You are not assigned to this plot.");
+  // }
 
   return plotCensuses[0].id;
 };
 
-export const createTreeCensus = async (
-  treeCensus: Omit<TreeCensus, "plotCensusId">
-) => {
-  const plotCensusId = await validatePlotCensus(treeCensus);
+export const createTreeCensus = async (treeCensus: TreeCensus) => {
+  // const plotCensusId = await validateTreeCensus(treeCensus);
   // ^ throws error if census is not in_progress
 
   // check whether census on this tree in this plot census already exists
   const existingCensuses = await getTreeCensuses({
     treeIds: [treeCensus.treeId],
-    plotCensusId: plotCensusId,
+    plotCensusId: treeCensus.plotCensusId,
   });
   if (existingCensuses.length > 0) {
     throw new Error("This tree has already been censused.");
   }
 
-  return await TreeCensusModel.create({
-    ...treeCensus,
-    plotCensusId,
-  });
+  const newCensus = await TreeCensusModel.create(treeCensus);
+
+  const relatedTree = (
+    await getTrees({
+      id: newCensus.treeId,
+    })
+  )[0];
+  if (relatedTree.initCensusId === null) {
+    relatedTree.initCensusId = newCensus.id;
+    relatedTree.save();
+  }
+  return newCensus;
 };
 
 export interface TreeCensusParams {
+  id?: string;
+  ids?: string[];
+  treeId?: string;
   treeIds?: string[];
   plotCensusId?: string;
+  forestId?: string;
   authorId?: string;
   flagged?: boolean;
+
+  limit?: number;
+  offset?: number;
 }
 
 const constructQuery = (params: TreeCensusParams) => {
-  const { treeIds, plotCensusId, authorId, flagged } = params;
-  const query: any = { where: {} };
+  const {
+    id,
+    ids,
+    treeId,
+    treeIds,
+    plotCensusId,
+    authorId,
+    flagged,
+    limit,
+    offset,
+  } = params;
+  const query: any = { where: {}, returning: true };
+  if (id) {
+    query.where.id = { [Op.eq]: id };
+  }
+  if (ids) {
+    query.where.id = { [Op.in]: ids };
+  }
+  if (treeId) {
+    query.where.treeId = { [Op.eq]: treeId };
+  }
   if (treeIds) {
     query.where.treeId = { [Op.in]: treeIds };
   }
@@ -94,6 +135,12 @@ const constructQuery = (params: TreeCensusParams) => {
   if (flagged) {
     query.where.flagged = { [Op.eq]: flagged };
   }
+  if (limit) {
+    query.limit = limit;
+  }
+  if (offset) {
+    query.offset = offset;
+  }
 
   return query;
 };
@@ -102,28 +149,32 @@ export const getTreeCensuses = async (params: TreeCensusParams) => {
   const query = constructQuery(params);
   return await TreeCensusModel.findAll({
     ...query,
-    // include: [{ model: TreeModel, as: "treeId" }],
     include: [
       {
         model: PlotCensus,
-        through: {
-          attributes: ["status"],
-        },
+        attributes: ["status"],
       },
+      {
+        model: TreePhoto,
+      },
+      { model: TreeLabel },
     ],
   });
 };
 
-export const editTreeCensuses = async (
+export const editTreeCensus = async (
   treeCensus: Omit<TreeCensus, "plotCensusId">,
   params: TreeCensusParams
 ) => {
-  // the author of the census is the person who last updated
-  // frontend should include id of editor in the request body
+  await validateTreeCensus({ ...params, ...treeCensus });
+  const result = (
+    await TreeCensusModel.update(treeCensus, constructQuery(params))
+  )[1][0].get();
 
-  await validatePlotCensus(treeCensus);
-  // ^ throws error if census is not in_progress
+  return result;
+};
 
-  const query = constructQuery(params);
-  return await TreeCensusModel.update(treeCensus, query);
+export const deleteTreeCensuses = async (params: TreeCensusParams) => {
+  const result = await TreeCensusModel.destroy(constructQuery(params));
+  return result;
 };

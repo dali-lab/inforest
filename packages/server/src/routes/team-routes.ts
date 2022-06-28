@@ -1,7 +1,7 @@
-import { Team } from "@ong-forestry/schema";
 import express from "express";
+import { Team } from "@ong-forestry/schema";
 import { createTeam, deleteTeams, editTeams, getTeams } from "services";
-import { requireAuth } from "util/auth";
+import { requireAuth } from "middleware";
 
 const teamRouter = express.Router();
 
@@ -18,8 +18,9 @@ teamRouter.post<{}, any, Team>("/", requireAuth, async (req, res) => {
 const parseParams = (query: any) => ({
   id: query?.id as string,
   name: query?.name as string,
-  limit: parseInt(query.limit as string),
-  offset: parseInt(query.offset as string),
+  userId: query?.userId as string,
+  limit: parseInt(query?.limit as string),
+  offset: parseInt(query?.offset as string),
 });
 
 teamRouter.patch<{}, any, Team>("/", requireAuth, async (req, res) => {

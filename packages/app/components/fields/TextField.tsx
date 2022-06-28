@@ -9,6 +9,7 @@ export type TextFieldProps = CommonFieldProps & {
   prefixComponent?: ReactNode;
   textType: "SHORT_TEXT" | "LONG_TEXT" | "INTEGER" | "DECIMAL";
   suffix?: string;
+  secure?: boolean;
   placeholder?: string;
 } & (
     | {
@@ -27,13 +28,16 @@ const TextField: React.FC<TextFieldProps> = ({
   value = "",
   setValue = () => {},
   textType,
-  suffix,
+  suffix = "",
   disabled,
+  secure = false,
   placeholder,
   wrapperDisabled,
   label,
   editing,
   setEditing = () => {},
+  isModal,
+  noHint,
 }) => {
   const keyboardType = useMemo<KeyboardTypeOptions>(() => {
     let keyboardType: KeyboardTypeOptions = "default";
@@ -60,6 +64,7 @@ const TextField: React.FC<TextFieldProps> = ({
       label={label}
       disabled={wrapperDisabled}
       wrapperStyle={wrapperStyle}
+      noHint={noHint}
     >
       <View
         style={{
@@ -71,11 +76,16 @@ const TextField: React.FC<TextFieldProps> = ({
         {prefixComponent}
         {editing && !disabled ? (
           <TextInput
-            style={{
-              fontFamily: "Open Sans Regular",
-              height: textType === "LONG_TEXT" ? 128 : undefined,
-            }}
+            style={[
+              {
+                width: "100%",
+                fontFamily: "Open Sans Regular",
+                height: textType === "LONG_TEXT" ? 128 : undefined,
+              },
+              isModal && textType != "LONG_TEXT" && { fontSize: 36 },
+            ]}
             focusable={true}
+            secureTextEntry={secure}
             keyboardType={keyboardType}
             onSubmitEditing={(e) => {
               setValue(e.nativeEvent.text);
@@ -84,24 +94,37 @@ const TextField: React.FC<TextFieldProps> = ({
               setValue(e.nativeEvent.text);
             }}
             multiline={textType === "LONG_TEXT"}
-            returnKeyType="done"
+            returnKeyType={textType === "LONG_TEXT" ? "default" : "done"}
             placeholder={placeholder}
+            autoFocus={isModal}
+            autoCapitalize={"none"}
+            autoCorrect={false}
           >
             {value}
           </TextInput>
         ) : (
           <Text
             variant={TextVariants.Body}
-            color={disabled ? Colors.neutral[4] : undefined}
+            color={value && value !== "" ? undefined : Colors.neutral[4]}
             style={{
               flex: 1,
               height: textType === "LONG_TEXT" ? 128 : undefined,
+              fontSize: 14,
             }}
           >
-            {value && value !== "" ? value : placeholder}
+            {value && value !== "" ? value : placeholder || null}
           </Text>
         )}
-        {suffix && <Text style={{ textAlign: "right" }}>{suffix}</Text>}
+        {suffix ? (
+          <Text
+            style={[
+              { textAlign: "right", fontSize: 16 },
+              isModal && textType != "LONG_TEXT" && { fontSize: 36 },
+            ]}
+          >
+            {suffix}
+          </Text>
+        ) : null}
       </View>
     </FieldWrapper>
   );

@@ -1,4 +1,4 @@
-import { PlotCensus } from "plot-census";
+import { PlotCensus } from "./plot-census";
 import { Forest } from "./forest";
 /**
  * Forestry census plot.

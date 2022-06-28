@@ -21,9 +21,9 @@ import {
   TreeCensus as ITreeCensus,
   Plot as IPlot,
   User as IUser,
-  PlotCensusStatuses,
 } from "@ong-forestry/schema";
 import PlotCensusAssignment from "./plot-census-assignment";
+import { PlotCensusStatuses } from "../../enums";
 
 @Table({
   tableName: "plot_census",

@@ -1,8 +1,9 @@
-import { ForestCensus, PlotCensusStatuses } from "@ong-forestry/schema";
+import { ForestCensus } from "@ong-forestry/schema";
 import ForestCensusModel from "db/models/forest-census";
 import { Op } from "sequelize";
 import { getPlotCensuses, getPlots } from "services";
 import { getForests } from "./forest-service";
+import { PlotCensusStatuses } from "../enums";
 
 export const createForestCensus = async (forestCensus: ForestCensus) => {
   // check for active census on this forest
@@ -17,14 +18,14 @@ export const createForestCensus = async (forestCensus: ForestCensus) => {
   return await ForestCensusModel.create(forestCensus);
 };
 
-export interface GetForestCensusesParams {
+export interface ForestCensusParams {
   forestId?: string;
   active?: boolean;
   limit?: number;
   offset?: number;
 }
 
-const constructQuery = (params: GetForestCensusesParams) => {
+const constructQuery = (params: ForestCensusParams) => {
   const { forestId, active, limit, offset } = params;
   const query: any = {
     where: {},
@@ -48,7 +49,7 @@ const constructQuery = (params: GetForestCensusesParams) => {
   return query;
 };
 
-export const getForestCensuses = async (params: GetForestCensusesParams) => {
+export const getForestCensuses = async (params: ForestCensusParams) => {
   const query = constructQuery(params);
   return await ForestCensusModel.findAll(query);
 };

@@ -13,9 +13,57 @@ export enum TextVariants {
   H2 = "H2",
   H3 = "H3",
   Label = "LABEL",
+  SmallLabel = "SMALL_LABEL",
   Body = "BODY",
   Numerical = "NUMERICAL",
 }
+
+export const TextStyles: Record<
+  TextVariants,
+  {
+    fontSize: number;
+    fontFamily: string;
+    fontWeight?: "bold";
+    color: string;
+  }
+> = {
+  [TextVariants.H1]: {
+    fontSize: 32,
+    fontFamily: "Nunito Bold",
+    color: Colors.neutral[8],
+  },
+  [TextVariants.H2]: {
+    fontSize: 24,
+    fontFamily: "Nunito Bold",
+    color: Colors.neutral[8],
+  },
+  [TextVariants.H3]: {
+    fontSize: 20,
+    fontFamily: "Nunito SemiBold",
+    color: Colors.neutral[8],
+  },
+  [TextVariants.Label]: {
+    fontSize: 16,
+    fontFamily: "Nunito SemiBold",
+    color: Colors.neutral[8],
+  },
+  [TextVariants.SmallLabel]: {
+    fontSize: 12,
+    fontFamily: "Nunito SemiBold",
+    color: Colors.neutral[8],
+  },
+  [TextVariants.Body]: {
+    fontSize: 16,
+    fontFamily: "Open Sans Regular",
+    color: Colors.neutral[8],
+  },
+  [TextVariants.Numerical]: {
+    fontSize: 16,
+    fontFamily: "Courier New",
+    color: Colors.neutral[7],
+    fontWeight: "bold",
+  },
+};
 
 export type TextProps = DefaultText["props"] & {
   variant?: TextVariants;
@@ -33,61 +81,23 @@ export function Text({
   ...otherProps
 }: TextProps) {
   const additionalStyling: StyleProp<TextStyle> = {
+    ...(TextStyles[variant] as TextStyle),
     textAlignVertical: "center",
   };
 
-  switch (variant) {
-    case TextVariants.H1:
-      additionalStyling.fontFamily = "Nunito Bold";
-      additionalStyling.fontSize = 32;
-      // additionalStyling.lineHeight = 40;
-      additionalStyling.color = Colors.neutral[8];
-      break;
-    case TextVariants.H2:
-      additionalStyling.fontFamily = "Nunito Bold";
-      additionalStyling.fontSize = 24;
-      // additionalStyling.lineHeight = 32;
-      additionalStyling.color = Colors.neutral[8];
-      break;
-    case TextVariants.H3:
-      additionalStyling.fontFamily = "Nunito SemiBold";
-      additionalStyling.fontSize = 20;
-      // additionalStyling.lineHeight = 24;
-      additionalStyling.color = Colors.neutral[8];
-      break;
-    case TextVariants.Label:
-      additionalStyling.fontFamily = "Nunito SemiBold";
-      additionalStyling.fontSize = 16;
-      // additionalStyling.lineHeight = 24;
-      additionalStyling.color = Colors.neutral[8];
-      break;
-    case TextVariants.Body:
-      additionalStyling.fontFamily = "Open Sans Regular";
-      additionalStyling.fontSize = 16;
-      // additionalStyling.lineHeight = 24;
-      additionalStyling.color = Colors.neutral[7];
-      break;
-    case TextVariants.Numerical:
-      additionalStyling.fontFamily = "Courier New";
-      additionalStyling.fontSize = 16;
-      // additionalStyling.lineHeight = 24;
-      additionalStyling.fontWeight = "bold";
-      additionalStyling.color = Colors.neutral[7];
-      break;
-  }
-
   switch (spacing) {
     case "TIGHT":
-      additionalStyling.lineHeight = additionalStyling.fontSize * 1.33;
+      additionalStyling.lineHeight =
+        (additionalStyling.fontSize as number) * 1.33;
       break;
     case "LOOSE":
-      additionalStyling.lineHeight = additionalStyling.fontSize * 1.5;
+      additionalStyling.lineHeight =
+        (additionalStyling.fontSize as number) * 1.5;
       break;
   }
 
   if (color) {
     additionalStyling.color = color;
   }
-
   return <DefaultText style={[additionalStyling, style]} {...otherProps} />;
 }

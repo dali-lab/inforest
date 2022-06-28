@@ -70,4 +70,9 @@ export interface TreeCensus {
    * Date and time when this entry was last updated.
    */
   updatedAt?: Date;
+
+  /**
+   * Miscellaneous notes taken by user
+   */
+  notes?: string;
 }

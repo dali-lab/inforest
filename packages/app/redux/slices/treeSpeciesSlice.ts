@@ -59,7 +59,9 @@ const initialState: TreeSpeciesState = {
 export const treeSpeciesSlice = createSlice({
   name: "treeSpecies",
   initialState,
-  reducers: {},
+  reducers: {
+    resetTreeSpecies: () => initialState,
+  },
   extraReducers: (builder) => {
     builder.addCase(getTreeSpecies.fulfilled, (state, action) => {
       action.payload.forEach((treeSpecies) => {
@@ -95,5 +97,7 @@ export const treeSpeciesSlice = createSlice({
     });
   },
 });
+
+export const { resetTreeSpecies } = treeSpeciesSlice.actions;
 
 export default treeSpeciesSlice.reducer;

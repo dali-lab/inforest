@@ -1,59 +1,70 @@
-import passport from "passport";
-import { Strategy as localStrategy } from "passport-local";
-import { Strategy as jwtStrategy, ExtractJwt } from "passport-jwt";
-import { createUser, getUsers, isValidPassword } from "services";
-import dotenv from "dotenv";
+import jwt, { JwtPayload } from "jsonwebtoken";
+import { User, VerificationCode } from "@ong-forestry/schema";
+import {
+  getUsers,
+  createVerificationCode,
+  getVerificationCode,
+  editUsers,
+  deleteVerificationCode,
+} from "services";
+import { emailCode } from "../util";
 
-dotenv.config();
+export const createToken = (user: User) => {
+  if (!process.env?.AUTH_SECRET) throw new Error("No secret defined!");
+  const userData = { id: user.id, email: user.email };
+  const token = jwt.sign(
+    { user: userData },
+    process.env.AUTH_SECRET,
+    { expiresIn: "14d" } // two weeks
+  );
 
-const options = {
-  usernameField: "email",
-  passwordField: "password",
+  return token;
 };
 
-passport.use(
-  "signup",
-  new localStrategy(options, async (email, password, done) => {
-    try {
-      const user = await createUser({ email, password });
-      return done(null, user);
-    } catch (e: any) {
-      done(e);
-    }
-  })
-);
+export const decodeToken: (token: string) => string | null = (
+  token: string
+) => {
+  if (!process.env?.AUTH_SECRET) throw new Error("No secret defined!");
+  let userId: string | null = null;
+  jwt.verify(token, process.env.AUTH_SECRET, (err, decoded) => {
+    const { exp, user } = decoded as JwtPayload;
+    if (!exp || !user) return null;
+    if (new Date(exp * 1000) < new Date())
+      throw new Error("Token has expired.");
+    userId = user.id;
+  });
+  return userId;
+};
 
-passport.use(
-  "login",
-  new localStrategy(options, async (email, password, done) => {
-    try {
-      const valid = await isValidPassword(email, password);
-      if (!valid) return done(null, false, { message: "Wrong Password" });
-      const user = (await getUsers({ email }))?.[0];
-      return done(null, user, { message: "Logged in Successfully" });
-    } catch (e: any) {
-      return done(e);
-    }
-  })
-);
+export const sendVerificationCode = async (email: string) => {
+  const verificationCode = await createVerificationCode({ email });
+  emailCode({ email, code: verificationCode.code });
+};
 
-passport.use(
-  new jwtStrategy(
-    {
-      //TODO: replace this
-      secretOrKey: process.env.AUTH_SECRET as string,
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-    },
-    async (token, done) => {
-      try {
-        return done(null, token.user);
-      } catch (e: any) {
-        done(e);
-      }
-    }
-  )
-);
+export const verifyVerificationCode = async (
+  verificationCode: VerificationCode
+) => {
+  // get user
+  const user = await getUsers({ email: verificationCode.email });
+  if (user.length == 0) throw new Error("No user with this email exists.");
+  if (user[0].verified) throw new Error("This user is already verified.");
 
-// export const requireAuth = passport.authenticate("jwt", { session: false });
-// @ts-ignore
-export const requireAuth = (req, res, next) => next();
+  const code = await getVerificationCode({ email: verificationCode.email });
+  if (code == null || verificationCode.code != code.code) {
+    throw new Error("Wrong verification code.");
+  }
+  if (code.expiration.getTime() < new Date().getTime()) {
+    throw new Error("Verification code expired.");
+  }
+
+  // set user verified to true
+  const verifiedUser = await editUsers(
+    { verified: true },
+    { email: verificationCode.email }
+  );
+
+  // delete verification code
+  await deleteVerificationCode({ email: verificationCode.email });
+
+  return verifiedUser[1][0];
+};

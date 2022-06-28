@@ -2,12 +2,6 @@ import { TreePhotoPurpose } from "@ong-forestry/schema";
 import TreePhotoPurposeModel from "db/models/tree-photo-purpose";
 import { Op } from "sequelize";
 
-export const createTreePhotoPurpose = async (
-  treePhotoPurpose: TreePhotoPurpose
-) => {
-  return await TreePhotoPurposeModel.create(treePhotoPurpose);
-};
-
 export interface TreePhotoPurposeParams {
   name?: string;
 
@@ -37,22 +31,7 @@ const constructQuery = (params: TreePhotoPurposeParams) => {
   return query;
 };
 
-export const editTreePhotoPurposes = async (
-  treePhotoPurpose: Partial<TreePhotoPurpose>,
-  params: TreePhotoPurposeParams
-) => {
-  const query = constructQuery(params);
-  return await TreePhotoPurposeModel.update(treePhotoPurpose, query);
-};
-
 export const getTreePhotoPurposes = async (params: TreePhotoPurposeParams) => {
   const query = constructQuery(params);
   return await TreePhotoPurposeModel.findAll(query);
-};
-
-export const deleteTreePhotoPurposes = async (
-  params: TreePhotoPurposeParams
-) => {
-  const query = constructQuery(params);
-  return await TreePhotoPurposeModel.destroy(query);
 };

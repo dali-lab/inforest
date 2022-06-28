@@ -1,21 +1,29 @@
 import React from "react";
 import { StyleSheet, Switch, TextInput, View } from "react-native";
 import { Stack } from "react-native-spacing-system";
-import Modal from "./Modal";
+import Modal from "./AppModal";
 import { VisualizationConfigType } from "../constants";
 import { Text, TextVariants } from "./Themed";
 
 interface VisualizationModalProps {
   config: VisualizationConfigType;
   setConfig: React.Dispatch<React.SetStateAction<VisualizationConfigType>>;
+  visible: boolean;
+  setVisible: () => void;
 }
 
 const VisualizationModal: React.FC<VisualizationModalProps> = ({
   config,
   setConfig,
+  visible,
+  setVisible,
 }) => {
   return (
-    <Modal title="Visualization Settings">
+    <Modal
+      title="Visualization Settings"
+      visible={visible}
+      setVisible={setVisible}
+    >
       <View style={styles.modalContent}>
         <View style={styles.toggleRow}>
           <Text variant={TextVariants.Body}>Satellite</Text>

@@ -1,7 +1,7 @@
 import React, { ReactElement, useEffect, useMemo, useState } from "react";
 import { Keyboard, Pressable, ViewStyle } from "react-native";
 import AppButton from "../AppButton";
-import FieldModal, { ModalSizes } from "./FieldModal";
+import AppModal, { ModalSizes } from "../AppModal";
 
 export interface CommonFieldProps {
   wrapperStyle?: ViewStyle;
@@ -11,6 +11,8 @@ export interface CommonFieldProps {
   setEditing?: (newEditing: boolean) => void;
   setValue?: (newValue: string) => void;
   label: string;
+  isModal?: boolean;
+  noHint?: boolean;
 }
 
 export type FieldControllerProps = {
@@ -21,7 +23,6 @@ export type FieldControllerProps = {
   onConfirm: (newValue: string) => void;
   formComponent: ReactElement;
   modalComponent?: ReactElement;
-  modalTitle?: string;
 };
 
 export const FieldController: React.FC<FieldControllerProps> = ({
@@ -31,7 +32,6 @@ export const FieldController: React.FC<FieldControllerProps> = ({
   formComponent,
   modalComponent,
   value,
-  modalTitle,
 }) => {
   // currValue is the temporary value within the form before it is pushed to the redux store
   const [currValue, setCurrValue] = useState<string>(value);
@@ -64,6 +64,7 @@ export const FieldController: React.FC<FieldControllerProps> = ({
         setEditing,
         value: currValue,
         setValue: setCurrValue,
+        isModal: true,
       }),
     [
       modalComponent,
@@ -79,12 +80,7 @@ export const FieldController: React.FC<FieldControllerProps> = ({
       <Pressable style={[style]} onPress={() => setEditing(true)}>
         {formField}
       </Pressable>
-      <FieldModal
-        visible={editing}
-        setVisible={setEditing}
-        modalSize={modalSize}
-        title={modalTitle}
-      >
+      <AppModal visible={editing} setVisible={setEditing} modalSize={modalSize}>
         {modalField}
         <AppButton
           onPress={() => {
@@ -96,7 +92,7 @@ export const FieldController: React.FC<FieldControllerProps> = ({
         >
           Set
         </AppButton>
-      </FieldModal>
+      </AppModal>
     </>
   );
 };

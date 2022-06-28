@@ -1,6 +1,6 @@
 import express from "express";
-import { requireAuth } from "middleware";
 import { createAssignment } from "services/plot-census-assignment-service";
+import { requireAuth, requireMembership } from "middleware";
 
 const plotCensusAssignmentRouter = express.Router();
 
@@ -11,9 +11,14 @@ plotCensusAssignmentRouter.post<
     plotId: string;
     userId: string;
   }
->("/", requireAuth, async (req, res) => {
+>("/", requireAuth, requireMembership("plotId", "plotId"), async (req, res) => {
   try {
-    const assignment = await createAssignment(req.body);
+    if (req.user == undefined) throw new Error("Not logged in");
+
+    const assignment = await createAssignment({
+      ...req.body,
+      userId: req.user.id ?? "",
+    });
     res.status(201).json(assignment);
   } catch (e: any) {
     console.error(e);

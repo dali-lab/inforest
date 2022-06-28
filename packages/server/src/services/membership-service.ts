@@ -1,13 +1,16 @@
-import { Membership, MembershipRoles } from "@ong-forestry/schema";
+import { Membership } from "@ong-forestry/schema";
 import MembershipModel from "db/models/membership";
 import { Op } from "sequelize";
 import { getUsers, createInactiveAccount } from "services";
+import { emailInvitation } from "../util";
+import { MembershipRoles } from "../enums";
 
 const uuid = require("uuid4");
 
 export const createMembership = async (membership: {
   email: string;
   teamId: string;
+  role: MembershipRoles;
 }) => {
   // check whether user with this email exists
   const users = await getUsers({ email: membership.email });
@@ -17,14 +20,20 @@ export const createMembership = async (membership: {
     users.push(await createInactiveAccount(membership.email));
   }
 
-  return await MembershipModel.create({
+  const newMembership = await MembershipModel.create({
     id: uuid(),
     userId: users[0].id,
     teamId: membership.teamId,
+    role: membership.role,
   });
+
+  // existing user was inactive or new inactive user was created. invite them
+  // if (!users[0].active) await emailInvitation(membership);
+
+  return newMembership;
 };
 
-export interface GetMembershipsParams {
+export interface MembershipParams {
   id?: string;
 
   teamId?: string;
@@ -36,7 +45,7 @@ export interface GetMembershipsParams {
   limit?: number;
 }
 
-const constructQuery = (params: GetMembershipsParams) => {
+const constructQuery = (params: MembershipParams) => {
   const { id, teamId, userId, role, offset, limit } = params;
   const query: any = {
     where: {},
@@ -71,18 +80,18 @@ const constructQuery = (params: GetMembershipsParams) => {
 };
 export const editMemberships = async (
   membership: Partial<Membership>,
-  params: GetMembershipsParams
+  params: MembershipParams
 ) => {
   const query = constructQuery(params);
   return await MembershipModel.update(membership, query);
 };
 
-export const getMemberships = async (params: GetMembershipsParams) => {
+export const getMemberships = async (params: MembershipParams) => {
   const query = constructQuery(params);
   return await MembershipModel.findAll(query);
 };
 
-export const deleteMemberships = async (params: GetMembershipsParams) => {
+export const deleteMemberships = async (params: MembershipParams) => {
   const query = constructQuery(params);
   return await MembershipModel.destroy(query);
 };

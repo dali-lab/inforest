@@ -6,7 +6,12 @@ import { getRandomBytes } from "expo-random";
 import { Plot, PlotCensus } from "@ong-forestry/schema";
 import Colors from "../constants/Colors";
 import { Text, TextVariants } from "./Themed";
-import { DEFAULT_DBH, FOLIAGE_MAGNIFICATION } from "../constants";
+import {
+  DEFAULT_DBH,
+  DrawerStates,
+  FOLIAGE_MAGNIFICATION,
+  MapScreenModes,
+} from "../constants";
 import { TreeMarker } from "./TreeMarker";
 import useAppSelector, {
   useTreesByDensity,
@@ -16,6 +21,7 @@ import {
   deselectTree,
   selectTree,
   locallyDraftNewTree,
+  createTree,
 } from "../redux/slices/treeSlice";
 import useAppDispatch from "../hooks/useAppDispatch";
 import AppButton from "./AppButton";
@@ -23,16 +29,21 @@ import {
   deselectTreeCensus,
   selectTreeCensus,
 } from "../redux/slices/treeCensusSlice";
+import { useIsConnected } from "react-native-offline";
+import { Ionicons } from "@expo/vector-icons";
+import { Queue } from "react-native-spacing-system";
 
 const SMALL_OFFSET = 8;
 const PLOT_SHEET_MARGINS = 36;
 
 interface PlottingSheetProps {
+  mode: MapScreenModes;
   plot: Plot;
   plotCensus: PlotCensus | undefined;
   stakeNames: string[];
   mapWidth: number;
   direction?: number;
+  drawerState: DrawerStates;
   expandDrawer: () => void;
   minimizeDrawer: () => void;
 }
@@ -40,15 +51,21 @@ interface PlottingSheetProps {
 const STAKE_LABEL_HEIGHT = 18 + 8;
 const STAKE_LABEL_WIDTH = 36 + 16;
 
+const MIN_DOT_SIZE = 16;
+
 export const PlottingSheet: React.FC<PlottingSheetProps> = ({
+  mode,
   plot,
-  plotCensus,
   stakeNames,
   mapWidth,
   direction = 0,
+  drawerState,
   expandDrawer,
   minimizeDrawer,
 }) => {
+  // const isConnected = false;
+  const isConnected = useIsConnected();
+
   const sheetSize =
     mapWidth - (STAKE_LABEL_WIDTH + 2 * SMALL_OFFSET + PLOT_SHEET_MARGINS) * 2;
   const [markerPos, setMarkerPos] = useState<{
@@ -99,7 +116,7 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
     indices: { byTreeActive },
   } = useAppSelector((state) => state.treeCensuses);
   const selectedTree = useMemo(
-    () => (selectedTreeId && all[selectedTreeId]) || undefined,
+    () => (selectedTreeId ? all[selectedTreeId] : undefined),
     [all, selectedTreeId]
   );
   const trees = useTreesInPlots(
@@ -110,16 +127,16 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
     new Set([plot.id])
   );
   const {
-    indices: { byPlotCensuses },
+    indices: { byPlotCensus },
   } = useAppSelector((state) => state.treeCensuses);
   const inProgressCensuses = useMemo(
-    () => Object.keys(byPlotCensuses),
-    [byPlotCensuses]
+    () => Object.keys(byPlotCensus),
+    [byPlotCensus]
   );
 
   const animatedPlotRotationAngle = useMemo(
     () => new Animated.Value(direction),
-    []
+    [direction]
   );
 
   useEffect(() => {
@@ -135,6 +152,45 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
       outputRange: ["0deg", "360deg"],
     });
   }, [animatedPlotRotationAngle]);
+
+  const plotNewTree = useCallback(async () => {
+    if (!markerPos) return;
+    const { easting, northing, zoneNum, zoneLetter } = utm.fromLatLon(
+      plot.latitude,
+      plot.longitude
+    );
+    const { adjustedX: x, adjustedY: y } = markerPos;
+    const plotX = markerLocToMeters(sheetSize - y, "HORIZONTAL");
+    const plotY = markerLocToMeters(x, "VERTICAL");
+    const { latitude, longitude } = utm.toLatLon(
+      easting + markerLocToMeters(sheetSize - y, "HORIZONTAL"),
+      northing - markerLocToMeters(x, "VERTICAL"),
+      zoneNum,
+      zoneLetter
+    );
+    const tag = getRandomBytes(2).join("").substring(0, 5);
+    const newTree = {
+      tag,
+      plotId: plot.id,
+      plotX,
+      plotY,
+      latitude,
+      longitude,
+    };
+    isConnected
+      ? await dispatch(createTree(newTree))
+      : dispatch(locallyDraftNewTree(newTree));
+    setMarkerPos(undefined);
+  }, [
+    dispatch,
+    isConnected,
+    markerLocToMeters,
+    markerPos,
+    plot.id,
+    plot.latitude,
+    plot.longitude,
+    sheetSize,
+  ]);
 
   return (
     <Pressable
@@ -225,7 +281,7 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
       </>
 
       {/* markers */}
-      {!!markerPos && (
+      {mode === MapScreenModes.Plot && !!markerPos && (
         <>
           <View
             style={{
@@ -236,30 +292,7 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
           >
             <AppButton
               onPress={() => {
-                const { easting, northing, zoneNum, zoneLetter } =
-                  utm.fromLatLon(plot.latitude, plot.longitude);
-
-                const { adjustedX: x, adjustedY: y } = markerPos;
-                const plotX = markerLocToMeters(sheetSize - y, "HORIZONTAL");
-                const plotY = markerLocToMeters(x, "VERTICAL");
-                const { latitude, longitude } = utm.toLatLon(
-                  easting + markerLocToMeters(sheetSize - y, "HORIZONTAL"),
-                  northing - markerLocToMeters(x, "VERTICAL"),
-                  zoneNum,
-                  zoneLetter
-                );
-                const tag = getRandomBytes(2).join("").substring(0, 5);
-                const newTree = {
-                  tag,
-                  plotId: plot.id,
-                  plotX,
-                  plotY,
-                  latitude,
-                  longitude,
-                };
-                dispatch(locallyDraftNewTree(newTree));
-                setMarkerPos(undefined);
-                expandDrawer();
+                plotNewTree();
               }}
             >
               Plot tree
@@ -309,6 +342,28 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
         </>
       )}
 
+      {selectedTree && drawerState !== DrawerStates.Expanded && (
+        <Pressable
+          style={{
+            position: "absolute",
+            top: sheetSize - selectedTree.plotX * (sheetSize / plot.width) - 2,
+            left: selectedTree.plotY * (sheetSize / plot.length) - 2,
+            backgroundColor: "white",
+            zIndex: 1,
+            padding: 12,
+            borderRadius: 12,
+            flexDirection: "row",
+            alignItems: "center",
+          }}
+          onPress={() => {
+            expandDrawer();
+          }}
+        >
+          <Text variant={TextVariants.Label}>Tree #{selectedTree.tag}</Text>
+          <Queue size={8}></Queue>
+          <Ionicons name="ios-pencil" size={16}></Ionicons>
+        </Pressable>
+      )}
       <Animated.View
         style={{
           position: "absolute",
@@ -329,14 +384,16 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
               const isCensusing = tree.id in inProgressCensuses;
               const { plotX, plotY } = tree;
               if (!!plotX && !!plotY) {
-                const treePixelSize =
+                const treePixelSize = Math.max(
                   (tree.censuses?.[0]?.dbh ?? DEFAULT_DBH) *
-                  0.01 *
-                  (sheetSize /
-                    Math.sqrt(
-                      Math.pow(plot.length, 2) + Math.pow(plot.width, 2)
-                    )) *
-                  FOLIAGE_MAGNIFICATION;
+                    0.01 *
+                    (sheetSize /
+                      Math.sqrt(
+                        Math.pow(plot.length, 2) + Math.pow(plot.width, 2)
+                      )) *
+                    FOLIAGE_MAGNIFICATION,
+                  MIN_DOT_SIZE
+                );
                 return (
                   <Pressable
                     key={tree.id}
@@ -353,7 +410,12 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
                       setMarkerPos(undefined);
                       minimizeDrawer();
                       dispatch(selectTree(tree.id));
-                      dispatch(selectTreeCensus(byTreeActive[tree.id]));
+
+                      if (byTreeActive[tree.id]) {
+                        dispatch(selectTreeCensus(byTreeActive[tree.id]));
+                      } else {
+                        // createCensus();
+                      }
                     }}
                   >
                     <TreeMarker

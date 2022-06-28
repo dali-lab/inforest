@@ -1,83 +1,126 @@
-import React, { useCallback, useEffect, useMemo } from "react";
-import { Animated, Dimensions, StyleSheet, View } from "react-native";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  Animated,
+  Dimensions,
+  StyleSheet,
+  TextInput,
+  View,
+} from "react-native";
 import { Queue, Stack } from "react-native-spacing-system";
 import { BlurView } from "expo-blur";
-import dateformat from "dateformat";
-import { Forest, Plot, PlotCensus, TreeCensus } from "@ong-forestry/schema";
+import {
+  Plot,
+  PlotCensus,
+  PlotCensusStatuses,
+  Tree,
+  TreeCensus,
+} from "@ong-forestry/schema";
 import { Ionicons } from "@expo/vector-icons";
-import { MapScreenModes, DrawerStates } from "../../constants";
+
+import {
+  MapScreenModes,
+  DrawerStates,
+  BLUR_VIEW_INTENSITY,
+  MapScreenZoomLevels,
+} from "../../constants";
 import useAppSelector from "../../hooks/useAppSelector";
 import {
   locallyDeleteTree,
   deselectTree,
-  createTree,
+  updateTree,
+  locallyUpdateTree,
+  deleteTree,
 } from "../../redux/slices/treeSlice";
 import AppButton from "../AppButton";
-import { Text, TextVariants } from "../Themed";
+import { Text, TextStyles, TextVariants } from "../Themed";
 import useAppDispatch from "../../hooks/useAppDispatch";
 import DataEntryForm from "./DataEntryForm";
 import FlagIcon from "../../assets/icons/flag-icon.svg";
+import Colors from "../../constants/Colors";
+
 import {
   createTreeCensus,
+  deleteTreeCensus,
   deselectTreeCensus,
-  locallyDraftNewTreeCensus,
+  locallyCreateTreeCensus,
+  locallyDeleteTreeCensus,
   locallyUpdateTreeCensus,
+  updateTreeCensus,
 } from "../../redux/slices/treeCensusSlice";
-import { createPlotCensus } from "../../redux/slices/plotCensusSlice";
+import { useIsConnected } from "react-native-offline";
+import { AUTHOR_ID } from "../../constants/dev";
+import ConfirmationModal from "../ConfirmationModal";
+import {
+  deselectPlotCensus,
+  submitPlotCensus,
+} from "../../redux/slices/plotCensusSlice";
+import { deselectPlot } from "../../redux/slices/plotSlice";
+
+const SearchBar = () => {
+  return (
+    <View
+      style={{
+        flexDirection: "row",
+        width: "100%",
+        backgroundColor: "white",
+        borderRadius: 12,
+        paddingVertical: 6,
+        paddingHorizontal: 12,
+      }}
+    >
+      <Ionicons name="ios-search" size={24}></Ionicons>
+      <Queue size={6}></Queue>
+      <TextInput
+        style={{
+          ...TextStyles[TextVariants.Body],
+        }}
+        returnKeyType="search"
+        placeholder="Search for trees"
+      ></TextInput>
+    </View>
+  );
+};
 
 const blankTreeCensus: Omit<
   TreeCensus,
-  "id" | "treeId" | "plotCensusId" | "authorId"
+  "id" | "treeId" | "plotCensusId" | "authorId" | "dbh"
 > = {
-  dbh: 0,
   labels: [],
   photos: [],
   flagged: false,
 };
 
 type PlotDrawerProps = {
+  mode: MapScreenModes;
+  zoom: MapScreenZoomLevels;
   drawerState: DrawerStates;
   plot?: Plot;
   plotCensus: PlotCensus | undefined;
-  forest?: Forest;
   expandDrawer: () => void;
   minimizeDrawer: () => void;
-} & (
-  | {
-      mode: MapScreenModes.Select | MapScreenModes.Explore;
-      beginPlotting: () => void;
-      endPlotting?: undefined;
-      setDrawerHeight: (height: number) => void;
-    }
-  | {
-      mode: MapScreenModes.Plot;
-      beginPlotting?: undefined;
-      endPlotting: () => void;
-      setDrawerHeight?: (height: number) => void;
-    }
-);
+  setDrawerHeight?: (height: number) => void;
+  stopPlotting?: () => void;
+};
 
 export const PlotDrawer: React.FC<PlotDrawerProps> = ({
   mode,
+  zoom,
   drawerState,
   plot,
   plotCensus,
-  setDrawerHeight,
-  beginPlotting,
-  expandDrawer,
   minimizeDrawer,
+  setDrawerHeight,
+  stopPlotting,
 }) => {
-  useEffect(() => {
-    return function cleanup() {
-      setDrawerHeight && setDrawerHeight(0);
-    };
-  }, [setDrawerHeight]);
   const dispatch = useAppDispatch();
   const {
-    all,
+    all: allTrees,
     selected: selectedTreeId,
     indices: { byPlots },
   } = useAppSelector((state) => state.trees);
+  const { all: allForests, selected: selectedForestId } = useAppSelector(
+    (state) => state.forest
+  );
   const {
     all: allTreeCensuses,
     selected: selectedTreeCensusId,
@@ -86,8 +129,8 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
   const { all: allForestCensuses, selected: selectedForestCensusId } =
     useAppSelector((state) => state.forestCensuses);
   const selectedTree = useMemo(
-    () => (selectedTreeId ? all[selectedTreeId] : undefined),
-    [all, selectedTreeId]
+    () => (selectedTreeId ? allTrees[selectedTreeId] : undefined),
+    [allTrees, selectedTreeId]
   );
   const selectedTreeCensus = useMemo(
     () =>
@@ -95,12 +138,23 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
       undefined,
     [selectedTreeCensusId, allTreeCensuses]
   );
+
+  const selectedForest = useMemo(
+    () => (selectedForestId && allForests?.[selectedForestId]) || undefined,
+    [allForests, selectedForestId]
+  );
+
+  useEffect(() => {}, [selectedTreeCensusId]);
   const selectedForestCensus = useMemo(
     () =>
       (selectedForestCensusId && allForestCensuses?.[selectedForestCensusId]) ||
       undefined,
     [selectedForestCensusId, allForestCensuses]
   );
+
+  const isConnected = useIsConnected();
+  const [deleteModalOpen, setDeleteModalOpen] = useState<boolean>(false);
+  const [submitModalOpen, setSubmitModalOpen] = useState<boolean>(false);
 
   const setStyle = useCallback(() => {
     switch (drawerState) {
@@ -113,145 +167,177 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
     }
   }, [drawerState]);
 
-  const computePlotLastUpdatedDate = useCallback(
-    (plotId: string) => {
-      const plotTrees = byPlots[plotId];
-      let latestCensus: Date | undefined;
-      for (const treeTag of plotTrees) {
-        const { updatedAt } = all[treeTag];
-        if (updatedAt && (!latestCensus || updatedAt > latestCensus)) {
-          latestCensus = updatedAt;
+  // const computePlotLastUpdatedDate = useCallback(
+  //   (plotId: string) => {
+  //     const plotTrees = byPlots?.[plotId];
+  //     let latestCensus: Date | undefined;
+  //     plotTrees instanceof Set &&
+  //       plotTrees.forEach((treeId) => {
+  //         const { updatedAt } = allTrees[treeId];
+  //         if (updatedAt && (!latestCensus || updatedAt > latestCensus)) {
+  //           latestCensus = updatedAt;
+  //         }
+  //       });
+  //     return latestCensus;
+  //   },
+  //   [byPlots, allTrees]
+  // );
+
+  const editTree = useCallback(
+    (updatedFields: Partial<Tree>) => {
+      if (selectedTree) {
+        try {
+          const updated: Tree = { ...selectedTree, ...updatedFields };
+          isConnected
+            ? dispatch(updateTree(updated))
+            : dispatch(locallyUpdateTree(updated));
+        } catch (err: any) {
+          alert(err?.message || "An unknown error occurred.");
         }
       }
-      return latestCensus;
     },
-    [byPlots, all]
+    [dispatch, selectedTree, isConnected]
   );
 
-  const startCensus = useCallback(() => {
-    if (plot && selectedForestCensus) {
-      dispatch(createPlotCensus(plot.id));
-      // dispatch(deselectPlotCensus());
-    }
-  }, [dispatch, selectedForestCensus, plot]);
-
-  const toggleFlagged = useCallback(() => {
-    if (selectedTreeCensus?.id) {
-      dispatch(
-        locallyUpdateTreeCensus({
-          updated: {
+  const editTreeCensus = useCallback(
+    async (updatedFields: Partial<TreeCensus>) => {
+      if (selectedTreeCensus?.id) {
+        try {
+          const updated: TreeCensus = {
             ...selectedTreeCensus,
-            flagged: !selectedTreeCensus?.flagged,
-          },
-        })
-      );
-    }
-  }, [dispatch, selectedTreeCensus]);
-
-  useEffect(() => {
-    if (
-      selectedTree?.plotId &&
-      selectedTree?.id &&
-      plotCensus?.id &&
-      !byTreeActive[selectedTree.id]
-    ) {
-      try {
-        dispatch(
-          locallyDraftNewTreeCensus({
-            newCensus: {
-              ...blankTreeCensus,
-              treeId: selectedTree?.id,
-              plotCensusId: plotCensus.id,
-            },
-          })
-        );
-      } catch (err: any) {
-        alert(err?.message || "An unknown error occurred.");
+            ...updatedFields,
+          };
+          isConnected
+            ? dispatch(updateTreeCensus(updated))
+            : dispatch(locallyUpdateTreeCensus(updated));
+        } catch (err: any) {
+          alert(err?.message || "An unknown error occurred.");
+        }
       }
-    }
-  }, [selectedTree, plotCensus, dispatch, byTreeActive]);
+    },
+    [dispatch, selectedTreeCensus, isConnected]
+  );
 
+  const deleteCensus = useCallback(async () => {
+    if (!selectedTreeCensus || !selectedTree) return;
+    await dispatch(
+      isConnected
+        ? deleteTreeCensus(selectedTreeCensus.id)
+        : locallyDeleteTreeCensus(selectedTreeCensus.id)
+    );
+    if (selectedTree?.initCensusId === selectedTreeCensus.id)
+      await dispatch(
+        isConnected
+          ? deleteTree(selectedTree.id)
+          : locallyDeleteTree(selectedTree.id)
+      );
+  }, [isConnected, selectedTree, selectedTreeCensus, dispatch]);
+
+  const toggleFlagged = useCallback(async () => {
+    if (selectedTreeCensus?.id) {
+      editTreeCensus({ flagged: !selectedTreeCensus.flagged });
+    }
+  }, [selectedTreeCensus, editTreeCensus]);
+
+  const addNewCensus = useCallback(async () => {
+    if (
+      !(
+        selectedTree?.plotId &&
+        selectedTree?.id &&
+        plotCensus?.id &&
+        !byTreeActive?.[selectedTree.id]
+      )
+    )
+      return;
+    const newCensus: Partial<TreeCensus> = {
+      ...blankTreeCensus,
+      treeId: selectedTree?.id,
+      plotCensusId: plotCensus.id,
+      authorId: AUTHOR_ID,
+    };
+    if (isConnected) {
+      await dispatch(createTreeCensus(newCensus));
+    } else {
+      const { payload } = dispatch(locallyCreateTreeCensus(newCensus));
+      if (payload?.id) newCensus.id = payload.id;
+    }
+    // if (!selectedTree?.initCensus) editTree({ initCensusId: newCensus.id });
+  }, [selectedTree, plotCensus, dispatch, isConnected, byTreeActive, editTree]);
+  useEffect(() => {
+    addNewCensus();
+  }, [addNewCensus]);
   if (drawerState === DrawerStates.Closed) {
     return null;
   }
 
-  return (
-    <Animated.View
-      style={{ ...styles.container, ...setStyle() }}
-      onLayout={(e) => {
-        setDrawerHeight && setDrawerHeight(e.nativeEvent.layout.height);
-      }}
-    >
-      <BlurView style={styles.blurContainer} intensity={40}>
-        {mode === MapScreenModes.Select && !!plot && (
-          <View style={styles.header}>
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <Text variant={TextVariants.H2}>Plot #{plot.number}</Text>
-              <Queue size={36}></Queue>
-              <>
-                {(() => {
-                  const lastUpdated = computePlotLastUpdatedDate(plot.id);
-                  return (
-                    <Text variant={TextVariants.Body}>
-                      {lastUpdated
-                        ? `Last censused on ${dateformat(
-                            lastUpdated,
-                            "mmm dS, yyyy"
-                          )}`
-                        : "Never censused"}
-                    </Text>
-                  );
-                })()}
-              </>
-            </View>
-            {drawerState === "MINIMIZED" &&
-              (plotCensus ? (
-                <AppButton onPress={beginPlotting}>Add Trees</AppButton>
-              ) : (
-                <AppButton onPress={startCensus}>Begin Censusing</AppButton>
-              ))}
-          </View>
-        )}
-        {mode === MapScreenModes.Explore && (
-          <View style={[styles.header]}>
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <Text variant={TextVariants.H2}>O-Farm</Text>
-              <Queue size={36}></Queue>
-              <Text variant={TextVariants.Body}>Select any plot to begin</Text>
-            </View>
-          </View>
-        )}
-        {mode === MapScreenModes.Plot && plot && (
-          <>
-            <View style={styles.header}>
-              {drawerState === "MINIMIZED" && !selectedTree && (
-                <View style={{ flexDirection: "row", alignItems: "center" }}>
-                  <Text variant={TextVariants.H2}>Plot #{plot.number}</Text>
-                  <Queue size={36}></Queue>
-                  <Text variant={TextVariants.Body}>
-                    Tap anywhere to plot a new tree
-                  </Text>
-                </View>
-              )}
-              {drawerState === "MINIMIZED" && !!selectedTree && (
-                <>
-                  <View style={{ flexDirection: "row", alignItems: "center" }}>
-                    <Text variant={TextVariants.H2}>
-                      Tree #{selectedTree.tag}
-                    </Text>
+  return selectedForest ? (
+    <>
+      <Animated.View
+        style={{ ...styles.container, ...setStyle() }}
+        onLayout={(e) => {
+          setDrawerHeight && setDrawerHeight(e.nativeEvent.layout.height);
+        }}
+      >
+        <BlurView style={styles.blurContainer} intensity={BLUR_VIEW_INTENSITY}>
+          {zoom === MapScreenZoomLevels.Forest && (
+            <View style={{}}>
+              <View style={{ flexDirection: "row", alignItems: "center" }}>
+                <Text variant={TextVariants.H2}>{selectedForest?.name}</Text>
+                {mode === MapScreenModes.Plot && (
+                  <>
                     <Queue size={36}></Queue>
                     <Text variant={TextVariants.Body}>
-                      Last census on{" "}
-                      {dateformat(
-                        selectedTree.updatedAt,
-                        'mmm dS, yyyy "at" h:MM TT'
-                      )}
+                      {selectedForestCensus?.name || "No project selected"}
                     </Text>
+                  </>
+                )}
+              </View>
+              <Stack size={24}></Stack>
+              <SearchBar></SearchBar>
+            </View>
+          )}
+          {zoom === MapScreenZoomLevels.Plot && !!plot && (
+            <>
+              {drawerState === "MINIMIZED" && (
+                <View style={{}}>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <View
+                      style={{ flexDirection: "row", alignItems: "center" }}
+                    >
+                      <Text variant={TextVariants.H2}>Plot #{plot.number}</Text>
+                      {mode === MapScreenModes.Plot && (
+                        <>
+                          <Queue size={36}></Queue>
+                          <Text variant={TextVariants.Body}>
+                            Tap anywhere to plot a new tree
+                          </Text>
+                        </>
+                      )}
+                    </View>
+                    <AppButton
+                      onPress={() => {
+                        isConnected
+                          ? setSubmitModalOpen(true)
+                          : alert(
+                              "You must be online to submit a plot for review."
+                            );
+                      }}
+                      disabled={
+                        plotCensus?.status !== PlotCensusStatuses.InProgress
+                      }
+                    >
+                      Submit for review
+                    </AppButton>
                   </View>
-                  <AppButton onPress={expandDrawer}>
-                    {selectedTreeCensus ? "Edit Census" : "Add Census"}
-                  </AppButton>
-                </>
+                  <Stack size={24}></Stack>
+                  <SearchBar></SearchBar>
+                </View>
               )}
               {drawerState === "EXPANDED" && !!selectedTree && plot && (
                 <View
@@ -272,6 +358,15 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
                     </Text>
                   </View>
                   <AppButton
+                    style={{ marginLeft: 12 }}
+                    type="REDBORDER"
+                    onPress={() => {
+                      setDeleteModalOpen(true);
+                    }}
+                  >
+                    Delete Census
+                  </AppButton>
+                  <AppButton
                     style={{ marginHorizontal: 12 }}
                     onPress={toggleFlagged}
                     type={selectedTreeCensus?.flagged ? "RED" : "PLAIN"}
@@ -291,40 +386,64 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
                   <Ionicons name="close" size={24} onPress={minimizeDrawer} />
                 </View>
               )}
-            </View>
-
-            {drawerState === "EXPANDED" && !!selectedTree && (
-              <>
-                <Stack size={24}></Stack>
-                <View>
-                  {plotCensus && (
-                    <DataEntryForm
-                      selectedTree={selectedTree}
-                      selectedTreeCensus={selectedTreeCensus}
-                      cancel={() => {
-                        dispatch(locallyDeleteTree(selectedTree.id));
-                        dispatch(deselectTreeCensus());
-                        dispatch(deselectTree());
-                        minimizeDrawer();
-                      }}
-                      finish={(newTreeCensus) => {
-                        dispatch(createTree(selectedTree));
-                        dispatch(createTreeCensus(selectedTreeCensus));
-                        console.log("selectedTree", selectedTree);
-                        console.log("newTreeCensus", newTreeCensus);
-                        minimizeDrawer();
-                      }}
-                      style={{ flex: 1 }}
-                    />
+              {drawerState === "EXPANDED" && !!selectedTree && (
+                <>
+                  {!!selectedTreeCensus && (
+                    <>
+                      <Stack size={24}></Stack>
+                      <DataEntryForm
+                        selectedTree={selectedTree}
+                        selectedTreeCensus={selectedTreeCensus}
+                        editTree={editTree}
+                        editTreeCensus={editTreeCensus}
+                        cancel={() => {
+                          dispatch(locallyDeleteTree(selectedTree.id));
+                          dispatch(deselectTreeCensus());
+                          dispatch(deselectTree());
+                          minimizeDrawer();
+                        }}
+                        finish={() => {
+                          minimizeDrawer();
+                        }}
+                        style={{ flex: 1 }}
+                      />
+                    </>
                   )}
-                </View>
-              </>
-            )}
-          </>
-        )}
-      </BlurView>
-    </Animated.View>
-  );
+                </>
+              )}
+            </>
+          )}
+        </BlurView>
+      </Animated.View>
+
+      <ConfirmationModal
+        title="Delete Census"
+        prompt="Are you sure you would like to delete this census?"
+        visible={deleteModalOpen}
+        setVisible={setDeleteModalOpen}
+        onConfirm={async () => {
+          await deleteCensus();
+          setDeleteModalOpen(false);
+        }}
+      />
+      <ConfirmationModal
+        title="Submit Plot for Review"
+        prompt="Are you sure you would like to submit this plot? You will not be able to edit it after submitting."
+        visible={submitModalOpen}
+        setVisible={setSubmitModalOpen}
+        onConfirm={async () => {
+          if (!plot?.id) {
+            alert("Error: no plot submitted for submitting");
+            return;
+          }
+          await dispatch(submitPlotCensus(plot.id));
+          setSubmitModalOpen(false);
+          alert("Plot successfully submitted!");
+          stopPlotting && stopPlotting();
+        }}
+      />
+    </>
+  ) : null;
 };
 
 export default PlotDrawer;
@@ -335,7 +454,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     zIndex: 2,
     width: Dimensions.get("window").width,
-    backgroundColor: "rgba(255, 255, 255, 0.4)",
+    backgroundColor: Colors.blurViewBackground,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     overflow: "hidden",

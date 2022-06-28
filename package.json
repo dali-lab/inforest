@@ -8,6 +8,9 @@
   "workspaces": [
     "packages/*"
   ],
+  "engines": {
+    "node": ">=12 <=16"
+  },
   "scripts": {
     "lint": "prettier --check **/*",
     "lint:fix": "prettier --write **/*"

@@ -55,6 +55,9 @@ export interface PlotCensus {
    * Tree censuses taken during this plot census
    */
   treeCensuses?: TreeCensus[];
+
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 /**

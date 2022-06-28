@@ -2,10 +2,6 @@ import { TreeLabel } from "@ong-forestry/schema";
 import TreeLabelModel from "db/models/tree-label";
 import { Op } from "sequelize";
 
-export const createTreeLabel = async (treeLabel: TreeLabel) => {
-  return await TreeLabelModel.create(treeLabel);
-};
-
 export interface TreeLabelParams {
   code?: string;
 
@@ -34,20 +30,7 @@ const constructQuery = (params: TreeLabelParams) => {
   return query;
 };
 
-export const editTreeLabels = async (
-  treeLabel: Partial<TreeLabel>,
-  params: TreeLabelParams
-) => {
-  const query = constructQuery(params);
-  return await TreeLabelModel.update(treeLabel, query);
-};
-
 export const getTreeLabels = async (params: TreeLabelParams) => {
   const query = constructQuery(params);
   return await TreeLabelModel.findAll(query);
-};
-
-export const deleteTreeLabels = async (params: TreeLabelParams) => {
-  const query = constructQuery(params);
-  return await TreeLabelModel.destroy(query);
 };

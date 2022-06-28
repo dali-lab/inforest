@@ -1,8 +1,7 @@
 import React, { ReactNode, useMemo } from "react";
 import { Modal, Pressable, StyleSheet, View } from "react-native";
+import { ModalSizes } from "../AppModal";
 import { Text, TextVariants } from "../Themed";
-
-export type ModalSizes = "small" | "medium" | "large";
 
 interface FieldModalProps {
   modalSize?: ModalSizes;

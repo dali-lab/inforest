@@ -9,6 +9,12 @@ export default {
     normal: "#A7DBAA",
     dark: "#69CD6F",
   },
+  status: {
+    problem: "#DBB7A7",
+    ongoing: "#DADBA7",
+    waiting: "#A7D5DB",
+    done: "#A7DBB6",
+  },
   neutral: {
     1: "#E2E7EC",
     2: "#D6DDE4",
@@ -19,6 +25,7 @@ export default {
     7: "#424B59",
     8: "#2A2F38",
   },
+  blurViewBackground: "rgba(255, 255, 255, 0.5)",
   error: "#FF4D3D",
   highlight: "#FFD700",
 };

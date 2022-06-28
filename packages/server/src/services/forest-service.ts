@@ -6,7 +6,7 @@ export const createForest = async (forest: Forest) => {
   return await ForestModel.create(forest);
 };
 
-export interface GetForestsParams {
+export interface ForestParams {
   id?: string;
   name?: string;
 
@@ -16,7 +16,7 @@ export interface GetForestsParams {
   offset?: number;
 }
 
-const constructQuery = (params: GetForestsParams) => {
+const constructQuery = (params: ForestParams) => {
   const { id, name, teamId, limit, offset } = params;
   const query: any = {
     where: {},
@@ -47,18 +47,13 @@ const constructQuery = (params: GetForestsParams) => {
 
 export const editForests = async (
   forest: Partial<Forest>,
-  params: GetForestsParams
+  params: ForestParams
 ) => {
   const query = constructQuery(params);
   return await ForestModel.update(forest, query);
 };
 
-export const getForests = async (params: GetForestsParams) => {
+export const getForests = async (params: ForestParams) => {
   const query = constructQuery(params);
   return await ForestModel.findAll(query);
-};
-
-export const deleteForests = async (params: GetForestsParams) => {
-  const query = constructQuery(params);
-  return await ForestModel.destroy(query);
 };
