@@ -21,7 +21,6 @@ import useAppDispatch from "../../hooks/useAppDispatch";
 import PlotDrawer from "../../components/PlotDrawer";
 
 import { deselectTree, selectTree } from "../../redux/slices/treeSlice";
-import { selectForestCensus } from "../../redux/slices/forestCensusSlice";
 import { getPlotCorners } from "../../constants/plots";
 import VisualizationModal from "../../components/VisualizationModal";
 import SearchModal from "../../components/SearchModal";
@@ -50,7 +49,6 @@ import { selectPlot, deselectPlot } from "../../redux/slices/plotSlice";
 import {
   createPlotCensus,
   deselectPlotCensus,
-  getForestCensusPlotCensuses,
   selectPlotCensus,
 } from "../../redux/slices/plotCensusSlice";
 import { deselectTreeCensus } from "../../redux/slices/treeCensusSlice";
@@ -135,8 +133,9 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
     longitude,
     selected: selectedPlotId,
   } = useAppSelector((state: RootState) => state.plots);
-  const { all: allForestCensuses, selected: selectedForestCensusId } =
-    useAppSelector((state: RootState) => state.forestCensuses);
+  const { selected: selectedForestCensusId } = useAppSelector(
+    (state: RootState) => state.forestCensuses
+  );
   const {
     all: allPlotCensuses,
     selected: selectedPlotCensusId,

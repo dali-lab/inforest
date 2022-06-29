@@ -10,7 +10,6 @@ import {
 } from "../../constants";
 import { formPlotNumber, parsePlotNumber } from "../../constants/plots";
 import useAppSelector from "../../hooks/useAppSelector";
-import { RootState } from "../../redux";
 import Colors from "../../constants/Colors";
 import { ModeSwitcher } from "./ModeSwitcher";
 import { MapOverlay } from "../../components/MapOverlay";
@@ -87,7 +86,7 @@ const PlotView: React.FC<PlotViewProps> = (props) => {
         >
           <Ionicons name="ios-refresh" size={32} onPress={rotate} />
         </View>
-        {!!selectedPlot ? (
+        {selectedPlot ? (
           <PlottingSheet
             mode={mode}
             plot={selectedPlot}

@@ -29,7 +29,6 @@ import {
   deselectTree,
   updateTree,
   locallyUpdateTree,
-  deleteTree,
 } from "../../redux/slices/treeSlice";
 import AppButton from "../AppButton";
 import { Text, TextStyles, TextVariants } from "../Themed";

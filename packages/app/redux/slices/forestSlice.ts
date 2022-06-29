@@ -29,7 +29,7 @@ export const getForests = createAsyncThunk(
 
 export const getForest = createAsyncThunk(
   "forest/getForest",
-  async (params: GetForestParams, { dispatch }) => {
+  async (params: GetForestParams) => {
     return await axios
       .get<Forest[]>(`${BASE_URL}?id=${params.id}`)
       .then((response) => {

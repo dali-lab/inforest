@@ -146,7 +146,14 @@ export const HomeScreen = () => {
         );
       }
     }
-  }, [isConnected, rehydrated, selectedForestId, token, loadCensusData]);
+  }, [
+    isConnected,
+    rehydrated,
+    selectedForestId,
+    token,
+    loadCensusData,
+    censusLoaded,
+  ]);
 
   if (!selectedForestId) {
     return (

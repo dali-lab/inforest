@@ -378,7 +378,6 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
           {trees
             .filter((tree) => tree.plotId === plot.id)
             .map((tree) => {
-              const isDraft = drafts.has(tree.id);
               const isCensusing = inProgressCensuses.includes(tree.id);
               const { plotX, plotY } = tree;
               if (!!plotX && !!plotY) {

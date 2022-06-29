@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from "react";
-import { ActivityIndicator, Dimensions, StyleSheet, View } from "react-native";
+import { Dimensions, StyleSheet, View } from "react-native";
 import { MapScreenModes, MapScreenZoomLevels } from "../../constants";
 
 import useAppDispatch from "../../hooks/useAppDispatch";
@@ -14,7 +14,7 @@ import { deselectTreeCensus } from "../../redux/slices/treeCensusSlice";
 import Colors from "../../constants/Colors";
 import { selectPlotCensus } from "../../redux/slices/plotCensusSlice";
 import { useIsConnected } from "react-native-offline";
-import { Text, TextVariants } from "../../components/Themed";
+import { Text } from "../../components/Themed";
 import LoadingOverlay from "../../components/LoadingOverlay";
 
 export default function MapScreen() {
@@ -70,8 +70,6 @@ export default function MapScreen() {
       setZoomLevel(MapScreenZoomLevels.Plot);
       dispatch(selectPlot(plot.id));
       dispatch(selectPlotCensus(plotCensusesByActivePlot[plot.id]));
-      if (plot.id in plotCensusesByActivePlot) {
-      }
     },
     [setZoomLevel, dispatch, plotCensusesByActivePlot]
   );
