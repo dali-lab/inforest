@@ -12,8 +12,15 @@ import { formPlotNumber, parsePlotNumber } from "../../constants/plots";
 import useAppSelector from "../../hooks/useAppSelector";
 import { RootState } from "../../redux";
 import Colors from "../../constants/Colors";
+import useAppDispatch from "../../hooks/useAppDispatch";
 import { ModeSwitcher } from "./ModeSwitcher";
 import { MapOverlay } from "../../components/MapOverlay";
+import VisualizationModal from "../../components/VisualizationModal";
+import SearchModal from "../../components/SearchModal";
+import {
+  VisualizationConfigType,
+} from "../../constants";
+import { deselectTree, selectTree } from "../../redux/slices/treeSlice";
 
 const LOWER_BUTTON_HEIGHT = 64;
 
@@ -36,6 +43,7 @@ const PlotView: React.FC<PlotViewProps> = (props) => {
     setDirection((direction + 1) % 4);
   }, [direction]);
 
+  const dispatch = useAppDispatch();
   const reduxState = useAppSelector((state: RootState) => state);
   const { all: allPlotCensuses, selected: selectedPlotCensusId } =
     reduxState.plotCensuses;
@@ -61,6 +69,16 @@ const PlotView: React.FC<PlotViewProps> = (props) => {
     [selectedPlotCensusId, allPlotCensuses]
   );
 
+  const [searchModalOpen, setSearchModalOpen] = useState(false);
+  const NUM_OF_SPECIES = 8;
+  const [visualizationConfig, setVisualizationConfig] =
+    useState<VisualizationConfigType>({
+      modalOpen: false,
+      colorBySpecies: false,
+      numOfSpecies: NUM_OF_SPECIES,
+      satellite: false,
+  });
+  
   return (
     <>
       <View style={styles.map}>
@@ -71,9 +89,24 @@ const PlotView: React.FC<PlotViewProps> = (props) => {
           <ModeSwitcher mode={mode} switchMode={switchMode}></ModeSwitcher>
         </View>
         <View
+          style={{ ...styles.mapOverlay, bottom: drawerHeight + 32, left: 32 }}
+        >
+          <Ionicons 
+            name="ios-search" 
+            size={32} 
+            onPress={() => {
+              setSearchModalOpen(true);
+            }} 
+          />
+        </View>
+        <View
           style={{ ...styles.mapOverlay, bottom: drawerHeight + 32, right: 32 }}
         >
-          <Ionicons name="ios-refresh" size={32} onPress={rotate} />
+          <Ionicons 
+            name="ios-refresh" 
+            size={32} 
+            onPress={rotate} 
+          />
         </View>
         {!!selectedPlot ? (
           <PlottingSheet
@@ -120,6 +153,31 @@ const PlotView: React.FC<PlotViewProps> = (props) => {
         minimizeDrawer={() => setDrawerState(DrawerStates.Minimized)}
         stopPlotting={onExit}
       ></PlotDrawer>
+      <View style={{ position: "absolute" }}>
+        <VisualizationModal
+          config={visualizationConfig}
+          setConfig={setVisualizationConfig}
+          visible={visualizationConfig.modalOpen}
+          setVisible={() => {
+            setVisualizationConfig((prev) => ({
+              ...prev,
+              modalOpen: !prev.modalOpen,
+            }));
+          }}
+        />
+        {
+          <SearchModal
+            open={searchModalOpen}
+            onExit={() => {
+              setSearchModalOpen(false);
+            }}
+            onSubmit={(searchValue: string) => {
+              setSearchModalOpen(false);
+              // findTree(searchValue);
+            }}
+          />
+        }
+      </View>
     </>
   );
 };

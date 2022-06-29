@@ -184,7 +184,9 @@ export const HomeScreen = () => {
         padding: 64,
         alignItems: "stretch",
         height: windowHeight,
+        flexGrow: 1,
       }}
+      contentInset={{bottom: 100}}
     >
       <View
         style={{
@@ -216,7 +218,9 @@ export const HomeScreen = () => {
         </View>
       </View>
       <Stack size={12}></Stack>
-      <View style={{ flexDirection: "row" }}>
+      <View style={{ 
+        flexDirection: "row",
+      }}>
         <RNPickerSelect
           itemKey="id"
           value={selectedForestId}
@@ -331,6 +335,7 @@ export const HomeScreen = () => {
           height: 512,
           overflow: "hidden",
           borderRadius: 12,
+          marginBottom: 64,
         }}
       >
         <View
@@ -377,7 +382,7 @@ export const HomeScreen = () => {
             switch (plotCensuses.status) {
               case PlotCensusStatuses.InProgress:
                 statusColor = Colors.status.ongoing;
-                actionButtonText = "Plot";
+                actionButtonText = "Plot  ";
                 break;
               case PlotCensusStatuses.Pending:
                 statusColor = Colors.status.waiting;
@@ -428,11 +433,15 @@ export const HomeScreen = () => {
                       paddingHorizontal: 8,
                       borderRadius: 12,
                       backgroundColor: statusColor,
+                      minWidth: 100,
                     }}
                   >
                     <Text
                       variant={TextVariants.SmallLabel}
                       color={Colors.neutral[8]}
+                      style={{
+                        textAlign: "center",
+                      }}
                     >
                       {convertToNaturalLanguage(
                         plotCensuses.status,

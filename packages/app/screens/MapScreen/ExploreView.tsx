@@ -251,7 +251,17 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
 
   const findTree = useCallback(
     (treeTag: string) => {
-      const tree = allTrees[treeTag];
+      // const tree = allTrees[treeTag]; // PROBLEM: key for allTrees is random UUID, not tag
+      // const tree = allTrees.filter((t) => t.tag === treeTag);
+      let tree = null;
+      for (const index in Object.keys(allTrees)) {
+        const tag = Object.values(allTrees)[index].tag;
+        if (tag === treeTag) {
+          tree =  Object.values(allTrees)[index];
+          break;
+        }
+      }
+
       if (tree) {
         dispatch(selectTree(tree.id));
         const plot = tree.plotId;
