@@ -11,10 +11,12 @@ import { titled_logo } from "../../assets/images";
 import DividerLine from "../../components/DividerLine";
 import LoadingOverlay from "../../components/LoadingOverlay";
 import useAppSelector from "../../hooks/useAppSelector";
+import { useIsConnected } from "react-native-offline";
 
 const LoginScreen: React.FC = () => {
   const dispatch = useAppDispatch();
   const navigation = useNavigation<AuthStackParamList>();
+  const isConnected = useIsConnected();
 
   const { loading } = useAppSelector((state) => state.user);
 
@@ -25,7 +27,8 @@ const LoginScreen: React.FC = () => {
 
   const handleSubmit = useCallback(async () => {
     try {
-      await dispatch(login(state));
+      if (!isConnected) alert("You must be online to login!");
+      else await dispatch(login(state));
     } catch (err: any) {
       alert(err?.message || "An unknown error occured.");
     }

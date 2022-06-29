@@ -13,14 +13,13 @@ import useAppSelector from "../../hooks/useAppSelector";
 import { deselectTreeCensus } from "../../redux/slices/treeCensusSlice";
 import Colors from "../../constants/Colors";
 import { selectPlotCensus } from "../../redux/slices/plotCensusSlice";
-import { useIsConnected } from "react-native-offline";
-import { Text } from "../../components/Themed";
 import LoadingOverlay from "../../components/LoadingOverlay";
+import OfflineBar from "../../components/OfflineBar";
+import { useIsConnected } from "react-native-offline";
 
 export default function MapScreen() {
   const route = useRoute<RouteProp<CensusStackParamList, "map">>();
   const dispatch = useAppDispatch();
-
   const isConnected = useIsConnected();
 
   const [zoomLevel, setZoomLevel] = useState<MapScreenZoomLevels>(
@@ -84,14 +83,6 @@ export default function MapScreen() {
       {loadingTasks.size > 0 && (
         <LoadingOverlay>{loadingTasks.values().next().value}</LoadingOverlay>
       )}
-      {!isConnected && (
-        <View style={styles.offlineBar}>
-          <Text style={styles.offlineText}>
-            You are currently offline. Your changes will be saved once you
-            reconnect.
-          </Text>
-        </View>
-      )}
       <View style={styles.container}>
         {zoomLevel === "FOREST" && (
           <ForestView
@@ -115,22 +106,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     width: Dimensions.get("window").width,
     height: Dimensions.get("window").height,
-  },
-  offlineBar: {
-    backgroundColor: Colors.error,
-    height: 24,
-    width: "100%",
-    top: 0,
-    position: "absolute",
-    zIndex: 1,
-  },
-  offlineText: {
-    width: "100%",
-    textAlign: "center",
-    fontSize: 12,
-    marginTop: 2,
-    color: "white",
-    position: "absolute",
   },
   loadingOverlay: {
     position: "absolute",

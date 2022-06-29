@@ -10,11 +10,13 @@ import { titled_logo } from "../../assets/images";
 import { Text, TextVariants } from "../../components/Themed";
 import LoadingOverlay from "../../components/LoadingOverlay";
 import useAppSelector from "../../hooks/useAppSelector";
+import { useIsConnected } from "react-native-offline";
 
 const SignupScreen: React.FC = () => {
   const dispatch = useAppDispatch();
   const headerHeight = useHeaderHeight();
   const navigation = useNavigation();
+  const isConnected = useIsConnected();
 
   const { loading } = useAppSelector((state) => state.user);
 
@@ -35,6 +37,10 @@ const SignupScreen: React.FC = () => {
 
   const handleSubmit = useCallback(async () => {
     try {
+      if (!isConnected) {
+        alert("You must be online to sign up!");
+        return;
+      }
       if (newUser.email != newUser.confirmEmail) {
         alert("Your emails do not match");
         throw new Error("Emails do not match");

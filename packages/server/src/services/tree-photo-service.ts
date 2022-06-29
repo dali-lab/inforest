@@ -8,7 +8,10 @@ export const bulkInsertTreePhotos = async (
   treePhotos: (TreePhoto & { buffer?: string })[]
 ) => {
   treePhotos.map(async (photo) => {
-    if (!photo?.buffer) throw new Error("An uploaded image has no buffer!");
+    if (!photo?.buffer) {
+      console.error("An uploaded image has no buffer!");
+      return;
+    }
     const resizedPhoto = await resizeImage(Buffer.from(photo.buffer, "base64"));
     photo.fullUrl = await uploadImage(resizedPhoto.full);
     photo.thumbUrl = await uploadImage(resizedPhoto.thumb);
@@ -24,7 +27,10 @@ export const bulkInsertTreePhotos = async (
 export const createTreePhoto = async (
   photo: TreePhoto & { buffer?: string }
 ) => {
-  if (!photo?.buffer) throw new Error("An uploaded image has no buffer!");
+  if (!photo?.buffer) {
+    console.error("An uploaded image has no buffer!");
+    return;
+  }
   const resizedPhoto = await resizeImage(Buffer.from(photo.buffer, "base64"));
   photo.fullUrl = await uploadImage(resizedPhoto.full);
   photo.thumbUrl = await uploadImage(resizedPhoto.thumb);

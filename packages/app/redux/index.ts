@@ -28,13 +28,19 @@ import {
   TreePhotoPurposeState,
   TreeCensusLabelState,
 } from "./slices";
-import { createTransform, persistReducer, persistStore } from "redux-persist";
+import {
+  createTransform,
+  persistReducer,
+  persistStore,
+  getStoredState,
+} from "redux-persist";
 import hardSet from "redux-persist/lib/stateReconciler/hardSet";
 import ExpoFileSystemStorage from "redux-persist-expo-filesystem";
 import { enableMapSet } from "immer";
 import { isArray, isObject } from "lodash";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { SyncState } from "./slices/syncSlice";
+import { isEmpty } from "lodash";
 
 enableMapSet();
 
@@ -121,7 +127,7 @@ const IndicesTransform = createTransform(
           outboundState.indices[index]
         ) as [string, string | Set<string>][]) {
           if (value && (isArray(value) || isObject(value))) {
-            indices[index][key] = new Set(value);
+            indices[index][key] = isEmpty(value) ? new Set([]) : new Set(value);
           } else indices[index][key] = value;
         }
       }
@@ -135,7 +141,6 @@ const SelectedTransformer = createTransform(
   (inboundState: RootState[keyof RootState]) => {
     if ("selected" in inboundState)
       return { ...inboundState, selected: undefined };
-    if ("loading" in inboundState) return { ...inboundState, loading: false };
     return inboundState;
   },
   (outboundState) => outboundState,
@@ -162,6 +167,8 @@ const persistConfig = {
   blacklist: ["sync"],
   debug: true,
 };
+
+// console.log(getStoredState(persistConfig));
 
 const persistedReducer = persistReducer<RootState, AnyAction>(
   persistConfig,

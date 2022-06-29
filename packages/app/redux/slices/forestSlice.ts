@@ -29,13 +29,16 @@ export const getForests = createAsyncThunk(
 
 export const getForest = createAsyncThunk(
   "forest/getForest",
-  async (params: GetForestParams) => {
+  async (params: GetForestParams, { dispatch }) => {
+    dispatch(startForestLoading());
     return await axios
       .get<Forest[]>(`${BASE_URL}?id=${params.id}`)
       .then((response) => {
+        dispatch(stopForestLoading());
         return response.data;
       })
       .catch((e) => {
+        dispatch(stopForestLoading());
         throw e;
       });
   }
