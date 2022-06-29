@@ -107,11 +107,9 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
   );
 
   const dispatch = useAppDispatch();
-  const {
-    all,
-    drafts,
-    selected: selectedTreeId,
-  } = useAppSelector((state) => state.trees);
+  const { all, selected: selectedTreeId } = useAppSelector(
+    (state) => state.trees
+  );
   const {
     all: allTreeCensuses,
     selected: selectedTreeCensusId,

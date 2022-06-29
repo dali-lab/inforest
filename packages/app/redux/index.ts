@@ -33,6 +33,7 @@ import hardSet from "redux-persist/lib/stateReconciler/hardSet";
 import ExpoFileSystemStorage from "redux-persist-expo-filesystem";
 import { enableMapSet } from "immer";
 import { isArray, isObject } from "lodash";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { SyncState } from "./slices/syncSlice";
 
 enableMapSet();
@@ -75,7 +76,7 @@ const reducers = {
 const rootReducer = combineReducers<RootState>(reducers);
 
 const SurfaceSetTransform = createTransform(
-  (inboundState: any) => {
+  (inboundState: any, key) => {
     if ("drafts" in inboundState) {
       return { ...inboundState, drafts: Array.from(inboundState.drafts) };
     }
@@ -119,7 +120,7 @@ const IndicesTransform = createTransform(
         for (const [key, value] of Object.entries(
           outboundState.indices[index]
         ) as [string, string | Set<string>][]) {
-          if (isArray(value) || isObject(value)) {
+          if (value && (isArray(value) || isObject(value))) {
             indices[index][key] = new Set(value);
           } else indices[index][key] = value;
         }
@@ -127,9 +128,9 @@ const IndicesTransform = createTransform(
       return { ...outboundState, indices };
     }
     return outboundState;
-  }
+  },
+  { whitelist: Object.keys(reducers) }
 );
-
 // This transformer deselects any selected trees, plots, etc so they aren't selected upon re-opening app
 const SelectedTransformer = createTransform(
   (inboundState: RootState[keyof RootState]) => {
@@ -138,7 +139,10 @@ const SelectedTransformer = createTransform(
     if ("loading" in inboundState) return { ...inboundState, loading: false };
     return inboundState;
   },
-  (outboundState) => outboundState
+  (outboundState) => {
+    return outboundState;
+  },
+  { whitelist: Object.keys(reducers) }
 );
 
 const persistConfig = {
@@ -147,6 +151,7 @@ const persistConfig = {
   stateReconciler: hardSet,
   transforms: [SurfaceSetTransform, IndicesTransform, SelectedTransformer],
   blacklist: ["sync"],
+  debug: true,
 };
 
 const persistedReducer = persistReducer<RootState, AnyAction>(
