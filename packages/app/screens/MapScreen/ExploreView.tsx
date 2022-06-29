@@ -328,8 +328,6 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
     allTreeCensuses,
   ]);
 
-  console.log(selectedForestCensusId);
-
   const plotIdColorMap = useCallback(
     (id: string) => {
       if (plotCensusesByActivePlot?.[id]) {
