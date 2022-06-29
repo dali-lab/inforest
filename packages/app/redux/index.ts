@@ -128,8 +128,7 @@ const IndicesTransform = createTransform(
       return { ...outboundState, indices };
     }
     return outboundState;
-  },
-  { whitelist: Object.keys(reducers) }
+  }
 );
 // This transformer deselects any selected trees, plots, etc so they aren't selected upon re-opening app
 const SelectedTransformer = createTransform(
@@ -139,17 +138,27 @@ const SelectedTransformer = createTransform(
     if ("loading" in inboundState) return { ...inboundState, loading: false };
     return inboundState;
   },
-  (outboundState) => {
-    return outboundState;
-  },
-  { whitelist: Object.keys(reducers) }
+  (outboundState) => outboundState,
+  { blacklist: ["forest, forestCensuses"] }
+);
+
+const LoadingTransformer = createTransform(
+  (inboundState: RootState[keyof RootState]) => {
+    if ("loading" in inboundState) return { ...inboundState, loading: false };
+    return inboundState;
+  }
 );
 
 const persistConfig = {
   key: "root",
   storage: ExpoFileSystemStorage,
   stateReconciler: hardSet,
-  transforms: [SurfaceSetTransform, IndicesTransform, SelectedTransformer],
+  transforms: [
+    SurfaceSetTransform,
+    IndicesTransform,
+    SelectedTransformer,
+    LoadingTransformer,
+  ],
   blacklist: ["sync"],
   debug: true,
 };
