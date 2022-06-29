@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -64,37 +64,51 @@ export const HomeScreen = () => {
 
   const dispatch = useAppDispatch();
 
+  const [userFetched, setUserFetched] = useState<boolean>(false);
+  const [censusRefreshed, setCensusRefreshed] = useState<boolean>(false);
+  const [censusLoaded, setCensusLoaded] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (!isConnected) {
+      setUserFetched(false);
+      setCensusRefreshed(false);
+      setCensusLoaded(false);
+    }
+  }, [isConnected]);
+
   const fetchUserData = useCallback(async () => {
     if (!(isConnected && rehydrated && token && currentUser?.id)) return;
     await dispatch(getUserByToken(token));
     await dispatch(getTeams(currentUser.id));
-  }, [isConnected, rehydrated, token, currentUser, dispatch]);
+    setUserFetched(true);
+  }, [isConnected, rehydrated, token, currentUser]);
 
   const refreshCensusData = useCallback(async () => {
     if (!(isConnected && rehydrated && token && currentTeamId)) return;
     await dispatch(uploadCensusData());
     dispatch(resetData());
     await dispatch(getForests(currentTeamId));
-  }, [isConnected, rehydrated, token, currentTeamId, dispatch]);
+    setCensusRefreshed(true);
+  }, [isConnected, rehydrated, token, currentTeamId]);
 
   useEffect(() => {
     try {
-      fetchUserData();
+      if (!userFetched) fetchUserData();
     } catch (err) {
       alert(
         "Unable to load user data. If your connection is reliable, this is likely due to a server error."
       );
     }
-  }, [fetchUserData]);
+  }, [fetchUserData, userFetched]);
   useEffect(() => {
     try {
-      refreshCensusData();
+      if (!censusRefreshed) refreshCensusData();
     } catch (err) {
       alert(
         "Unable to load census data. If your connection is reliable, this is likely due to a server error."
       );
     }
-  }, [refreshCensusData]);
+  }, [refreshCensusData, censusRefreshed]);
   const {
     all: allForests,
     selected: selectedForestId,
@@ -105,6 +119,7 @@ export const HomeScreen = () => {
   const loadCensusData = useCallback(async () => {
     if (!(isConnected && rehydrated && token && selectedForestId)) return;
     await dispatch(loadForestData(selectedForestId));
+    setCensusLoaded(true);
   }, [dispatch, isConnected, rehydrated, token, selectedForestId]);
   const { selected: selectedForestCensus, all: allForestCensuses } =
     useAppSelector((state: RootState) => state.forestCensuses);
@@ -124,7 +139,7 @@ export const HomeScreen = () => {
   useEffect(() => {
     if (isConnected && rehydrated && selectedForestId && token) {
       try {
-        loadCensusData();
+        if (!censusLoaded) loadCensusData();
       } catch (err) {
         alert(
           "Unable to load data. If your connection is reliable, this is likely due to a server error."

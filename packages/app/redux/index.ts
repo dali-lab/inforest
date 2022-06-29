@@ -110,7 +110,6 @@ const IndicesTransform = createTransform(
       }
       return { ...inboundState, indices };
     }
-    console.log("inbound", key, inboundState);
     return inboundState;
   },
   (outboundState: any, key) => {
@@ -128,8 +127,6 @@ const IndicesTransform = createTransform(
       }
       return { ...outboundState, indices };
     }
-    console.log("outbound", key, outboundState);
-
     return outboundState;
   }
 );
@@ -139,6 +136,7 @@ const SelectedTransformer = createTransform(
   (inboundState: RootState[keyof RootState]) => {
     if ("selected" in inboundState)
       return { ...inboundState, selected: undefined };
+    if ("loading" in inboundState) return { ...inboundState, loading: false };
     return inboundState;
   }
 );
