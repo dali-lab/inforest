@@ -94,7 +94,7 @@ passport.use(
 passport.use(
   "apikey",
   new HeaderAPIKeyStrategy(
-    { header: "Authorization", prefix: "Api-key" },
+    { header: "Authorization", prefix: "Api-key " },
     false,
     (apiKey, done) => {
       console.log(
@@ -105,7 +105,7 @@ passport.use(
         apiKey === process.env.RETOOL_API_KEY
       );
       if (apiKey === process.env.RETOOL_API_KEY) return done(null, {});
-      // else return done(new Error("Invalid API key."));
+      else return done(new Error("Invalid API key."));
     }
   )
 );
