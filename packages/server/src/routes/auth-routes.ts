@@ -47,7 +47,7 @@ authRouter.delete<{}, any, User>(
   "/logout",
   requireAuth,
   async (req, res, next) => {
-    await req.logout(); // only works with sessions?
+    // await req.logout(); // only works with sessions?
     res.status(200).json({});
   }
 );
