@@ -86,10 +86,8 @@ const PlotView: React.FC<PlotViewProps> = (props) => {
           "A tree with that tag could not be found. Please try a different tag and try again."
         );
       }
-      console.log(2);
-      console.log(selectedPlot);
     },
-    [allTrees, byTag, selectedPlot, selectedPlotId, dispatch]
+    [allTrees, byTag, selectedPlotId, dispatch]
   );
   
   const [searchModalOpen, setSearchModalOpen] = useState(false);
