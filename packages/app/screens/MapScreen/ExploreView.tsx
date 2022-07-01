@@ -122,7 +122,7 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
   const {
     all: allTrees,
     selected: selectedTreeId,
-    indices: { byPlots },
+    indices: { byPlots, byTag },
   } = useAppSelector((state: RootState) => state.trees);
   const {
     all: allTreeCensuses,
@@ -251,16 +251,7 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
 
   const findTree = useCallback(
     (treeTag: string) => {
-      // const tree = allTrees[treeTag]; // PROBLEM: key for allTrees is random UUID, not tag
-      // const tree = allTrees.filter((t) => t.tag === treeTag);
-      let tree = null;
-      for (const index in Object.keys(allTrees)) {
-        const tag = Object.values(allTrees)[index].tag;
-        if (tag === treeTag) {
-          tree =  Object.values(allTrees)[index];
-          break;
-        }
-      }
+      const tree = allTrees[byTag[treeTag]];
 
       if (tree) {
         dispatch(selectTree(tree.id));
@@ -291,7 +282,7 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
         );
       }
     },
-    [allPlots, allTrees, dispatch, selectPlotAndCensus]
+    [allPlots, allTrees, byTag, dispatch, selectPlotAndCensus]
   );
 
   const treeNodes = useMemo(() => {

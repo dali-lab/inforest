@@ -1,4 +1,4 @@
-import { Dimensions, View, StyleSheet } from "react-native";
+import { Dimensions, View, StyleSheet, Button } from "react-native";
 import { useMemo, useState, useCallback } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { PlottingSheet } from "../../components/PlottingSheet";
@@ -20,6 +20,7 @@ import SearchModal from "../../components/SearchModal";
 import {
   VisualizationConfigType,
 } from "../../constants";
+import { useNavigation } from "@react-navigation/native";
 import { deselectTree, selectTree } from "../../redux/slices/treeSlice";
 
 const LOWER_BUTTON_HEIGHT = 64;
@@ -44,6 +45,8 @@ const PlotView: React.FC<PlotViewProps> = (props) => {
   }, [direction]);
 
   const dispatch = useAppDispatch();
+  const navigate = useNavigation();
+
   const reduxState = useAppSelector((state: RootState) => state);
   const { all: allPlotCensuses, selected: selectedPlotCensusId } =
     reduxState.plotCensuses;
@@ -69,6 +72,29 @@ const PlotView: React.FC<PlotViewProps> = (props) => {
     [selectedPlotCensusId, allPlotCensuses]
   );
 
+  const {
+    all: allTrees,
+    selected: selectedTreeId,
+    indices: { byPlots, byTag },
+  } = useAppSelector((state: RootState) => state.trees);
+  
+  const findTree = useCallback(
+    (treeTag: string) => {
+      const tree = allTrees[byTag[treeTag]];
+
+      if (tree && tree.plotId === selectedPlotId) {
+        dispatch(selectTree(tree.id));
+      } else {
+        alert(
+          "A tree with that tag could not be found. Please try a different tag and try again."
+        );
+      }
+      console.log(2);
+      console.log(selectedPlot);
+    },
+    [allTrees, byTag, selectedPlot, selectedPlotId, dispatch]
+  );
+  
   const [searchModalOpen, setSearchModalOpen] = useState(false);
   const NUM_OF_SPECIES = 8;
   const [visualizationConfig, setVisualizationConfig] =
@@ -173,7 +199,7 @@ const PlotView: React.FC<PlotViewProps> = (props) => {
             }}
             onSubmit={(searchValue: string) => {
               setSearchModalOpen(false);
-              // findTree(searchValue);
+              findTree(searchValue);
             }}
           />
         }

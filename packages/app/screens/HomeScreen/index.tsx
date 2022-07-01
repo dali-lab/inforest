@@ -382,7 +382,7 @@ export const HomeScreen = () => {
             switch (plotCensuses.status) {
               case PlotCensusStatuses.InProgress:
                 statusColor = Colors.status.ongoing;
-                actionButtonText = "Plot  ";
+                actionButtonText = "Plot";
                 break;
               case PlotCensusStatuses.Pending:
                 statusColor = Colors.status.waiting;
@@ -450,7 +450,11 @@ export const HomeScreen = () => {
                     </Text>
                   </View>
                 </View>
-                <View>
+                <View
+                  style={{
+                    minWidth: 100,
+                  }}
+                >
                   <AppButton
                     // @ts-ignore
                     onPress={() => {
