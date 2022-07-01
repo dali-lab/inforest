@@ -172,6 +172,12 @@ export const syncSlice = createSlice({
       clearTreeCensusDrafts();
       clearTreePhotoDrafts();
     });
+    //TEMPORARY
+    builder.addCase(uploadCensusData.rejected, () => {
+      clearTreeDrafts();
+      clearTreeCensusDrafts();
+      clearTreePhotoDrafts();
+    });
   },
 });
 

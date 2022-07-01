@@ -235,6 +235,17 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
   }, [selectedTreeCensus, editTreeCensus]);
 
   const addNewCensus = useCallback(async () => {
+    // if (selectedTree)
+    //   alert(
+    //     selectedTree?.plotId ||
+    //       "none" + selectedTree?.id ||
+    //       "none" + plotCensus?.id ||
+    //       ("none" + selectedTree?.id &&
+    //         //@ts-ignore
+    //         !byTreeActive?.[selectedTree.id]) ||
+    //       "none"
+    //   );
+
     if (
       !(
         selectedTree?.plotId &&
