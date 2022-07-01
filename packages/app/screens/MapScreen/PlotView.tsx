@@ -1,4 +1,4 @@
-import { Dimensions, View, StyleSheet, Button } from "react-native";
+import { Dimensions, View, StyleSheet } from "react-native";
 import { useMemo, useState, useCallback } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { PlottingSheet } from "../../components/PlottingSheet";
@@ -20,8 +20,7 @@ import SearchModal from "../../components/SearchModal";
 import {
   VisualizationConfigType,
 } from "../../constants";
-import { useNavigation } from "@react-navigation/native";
-import { deselectTree, selectTree } from "../../redux/slices/treeSlice";
+import { selectTree } from "../../redux/slices/treeSlice";
 
 const LOWER_BUTTON_HEIGHT = 64;
 
@@ -45,7 +44,6 @@ const PlotView: React.FC<PlotViewProps> = (props) => {
   }, [direction]);
 
   const dispatch = useAppDispatch();
-  const navigate = useNavigation();
 
   const reduxState = useAppSelector((state: RootState) => state);
   const { all: allPlotCensuses, selected: selectedPlotCensusId } =
@@ -74,8 +72,7 @@ const PlotView: React.FC<PlotViewProps> = (props) => {
 
   const {
     all: allTrees,
-    selected: selectedTreeId,
-    indices: { byPlots, byTag },
+    indices: { byTag },
   } = useAppSelector((state: RootState) => state.trees);
   
   const findTree = useCallback(
