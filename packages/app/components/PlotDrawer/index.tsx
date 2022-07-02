@@ -29,7 +29,6 @@ import {
   deselectTree,
   updateTree,
   locallyUpdateTree,
-  deleteTree,
 } from "../../redux/slices/treeSlice";
 import AppButton from "../AppButton";
 import { Text, TextStyles, TextVariants } from "../Themed";
@@ -50,12 +49,7 @@ import {
 import { useIsConnected } from "react-native-offline";
 import { AUTHOR_ID } from "../../constants/dev";
 import ConfirmationModal from "../ConfirmationModal";
-import {
-  deselectPlotCensus,
-  submitPlotCensus,
-} from "../../redux/slices/plotCensusSlice";
-import { deselectPlot } from "../../redux/slices/plotSlice";
-
+import { submitPlotCensus } from "../../redux/slices/plotCensusSlice";
 const SearchBar = () => {
   return (
     <View
@@ -225,12 +219,13 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
         ? deleteTreeCensus(selectedTreeCensus.id)
         : locallyDeleteTreeCensus(selectedTreeCensus.id)
     );
-    if (selectedTree?.initCensusId === selectedTreeCensus.id)
-      await dispatch(
-        isConnected
-          ? deleteTree(selectedTree.id)
-          : locallyDeleteTree(selectedTree.id)
-      );
+    dispatch(deselectTree());
+    // if (selectedTree?.initCensusId === selectedTreeCensus.id)
+    //   await dispatch(
+    //     isConnected
+    //       ? deleteTree(selectedTree.id)
+    //       : locallyDeleteTree(selectedTree.id)
+    //   );
   }, [isConnected, selectedTree, selectedTreeCensus, dispatch]);
 
   const toggleFlagged = useCallback(async () => {
@@ -240,6 +235,17 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
   }, [selectedTreeCensus, editTreeCensus]);
 
   const addNewCensus = useCallback(async () => {
+    // if (selectedTree)
+    //   alert(
+    //     selectedTree?.plotId ||
+    //       "none" + selectedTree?.id ||
+    //       "none" + plotCensus?.id ||
+    //       ("none" + selectedTree?.id &&
+    //         //@ts-ignore
+    //         !byTreeActive?.[selectedTree.id]) ||
+    //       "none"
+    //   );
+
     if (
       !(
         selectedTree?.plotId &&
@@ -262,7 +268,7 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
       if (payload?.id) newCensus.id = payload.id;
     }
     // if (!selectedTree?.initCensus) editTree({ initCensusId: newCensus.id });
-  }, [selectedTree, plotCensus, dispatch, isConnected, byTreeActive, editTree]);
+  }, [selectedTree, plotCensus, dispatch, isConnected, byTreeActive]);
   useEffect(() => {
     addNewCensus();
   }, [addNewCensus]);

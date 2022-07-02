@@ -28,12 +28,19 @@ import {
   TreePhotoPurposeState,
   TreeCensusLabelState,
 } from "./slices";
-import { createTransform, persistReducer, persistStore } from "redux-persist";
+import {
+  createTransform,
+  persistReducer,
+  persistStore,
+  getStoredState,
+} from "redux-persist";
 import hardSet from "redux-persist/lib/stateReconciler/hardSet";
 import ExpoFileSystemStorage from "redux-persist-expo-filesystem";
 import { enableMapSet } from "immer";
 import { isArray, isObject } from "lodash";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { SyncState } from "./slices/syncSlice";
+import { isEmpty } from "lodash";
 
 enableMapSet();
 
@@ -75,7 +82,7 @@ const reducers = {
 const rootReducer = combineReducers<RootState>(reducers);
 
 const SurfaceSetTransform = createTransform(
-  (inboundState: any) => {
+  (inboundState: any, key) => {
     if ("drafts" in inboundState) {
       return { ...inboundState, drafts: Array.from(inboundState.drafts) };
     }
@@ -119,23 +126,30 @@ const IndicesTransform = createTransform(
         for (const [key, value] of Object.entries(
           outboundState.indices[index]
         ) as [string, string | Set<string>][]) {
-          if (isArray(value) || isObject(value)) {
-            indices[index][key] = new Set(value);
+          if (value && (isArray(value) || isObject(value))) {
+            indices[index][key] = isEmpty(value) ? new Set([]) : new Set(value);
           } else indices[index][key] = value;
         }
       }
       return { ...outboundState, indices };
     }
-
     return outboundState;
   }
 );
-
 // This transformer deselects any selected trees, plots, etc so they aren't selected upon re-opening app
 const SelectedTransformer = createTransform(
   (inboundState: RootState[keyof RootState]) => {
     if ("selected" in inboundState)
       return { ...inboundState, selected: undefined };
+    return inboundState;
+  },
+  (outboundState) => outboundState,
+  { blacklist: ["forest, forestCensuses"] }
+);
+
+const LoadingTransformer = createTransform(
+  (inboundState: RootState[keyof RootState]) => {
+    if ("loading" in inboundState) return { ...inboundState, loading: false };
     return inboundState;
   }
 );
@@ -144,8 +158,14 @@ const persistConfig = {
   key: "root",
   storage: ExpoFileSystemStorage,
   stateReconciler: hardSet,
-  transforms: [SurfaceSetTransform, IndicesTransform, SelectedTransformer],
+  transforms: [
+    SurfaceSetTransform,
+    IndicesTransform,
+    SelectedTransformer,
+    LoadingTransformer,
+  ],
   blacklist: ["sync"],
+  debug: true,
 };
 
 const persistedReducer = persistReducer<RootState, AnyAction>(

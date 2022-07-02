@@ -10,10 +10,10 @@ import {
 } from "../../constants";
 import { formPlotNumber, parsePlotNumber } from "../../constants/plots";
 import useAppSelector from "../../hooks/useAppSelector";
-import { RootState } from "../../redux";
 import Colors from "../../constants/Colors";
 import { ModeSwitcher } from "./ModeSwitcher";
 import { MapOverlay } from "../../components/MapOverlay";
+import LoadingOverlay from "../../components/LoadingOverlay";
 
 const LOWER_BUTTON_HEIGHT = 64;
 
@@ -36,15 +36,26 @@ const PlotView: React.FC<PlotViewProps> = (props) => {
     setDirection((direction + 1) % 4);
   }, [direction]);
 
-  const reduxState = useAppSelector((state: RootState) => state);
-  const { all: allPlotCensuses, selected: selectedPlotCensusId } =
-    reduxState.plotCensuses;
+  const {
+    all: allPlotCensuses,
+    selected: selectedPlotCensusId,
+    loading: plotCensusLoading,
+  } = useAppSelector((state) => state.plotCensuses);
   const {
     all: allPlots,
     selected: selectedPlotId,
     indices: { byNumber },
-  } = reduxState.plots;
-
+  } = useAppSelector((state) => state.plots);
+  const { loading: treeLoading } = useAppSelector((state) => state.trees);
+  const { loading: treeCensusLoading } = useAppSelector(
+    (state) => state.treeCensuses
+  );
+  const { loading: treePhotoLoading } = useAppSelector(
+    (state) => state.treePhotos
+  );
+  const { loading: treeCensusLabelLoading } = useAppSelector(
+    (state) => state.treeCensusLabels
+  );
   const selectedPlot = useMemo(
     () =>
       (selectedPlotId &&
@@ -75,7 +86,7 @@ const PlotView: React.FC<PlotViewProps> = (props) => {
         >
           <Ionicons name="ios-refresh" size={32} onPress={rotate} />
         </View>
-        {!!selectedPlot ? (
+        {selectedPlot ? (
           <PlottingSheet
             mode={mode}
             plot={selectedPlot}
@@ -85,17 +96,23 @@ const PlotView: React.FC<PlotViewProps> = (props) => {
               const stakeNames = [];
               stakeNames.push(selectedPlot.number);
               if (formPlotNumber(i + 1, j) in byNumber) {
-                stakeNames.push(byNumber[formPlotNumber(i + 1, j)].number);
+                stakeNames.push(
+                  allPlots[byNumber[formPlotNumber(i + 1, j)]].number
+                );
               } else {
                 stakeNames.push("No stake");
               }
               if (formPlotNumber(i + 1, j + 1) in byNumber) {
-                stakeNames.push(byNumber[formPlotNumber(i + 1, j + 1)].number);
+                stakeNames.push(
+                  allPlots[byNumber[formPlotNumber(i + 1, j + 1)]].number
+                );
               } else {
                 stakeNames.push("No stake");
               }
               if (formPlotNumber(i, j + 1) in byNumber) {
-                stakeNames.push(byNumber[formPlotNumber(i, j + 1)].number);
+                stakeNames.push(
+                  allPlots[byNumber[formPlotNumber(i, j + 1)]].number
+                );
               } else {
                 stakeNames.push("No stake");
               }
@@ -120,6 +137,15 @@ const PlotView: React.FC<PlotViewProps> = (props) => {
         minimizeDrawer={() => setDrawerState(DrawerStates.Minimized)}
         stopPlotting={onExit}
       ></PlotDrawer>
+      {treeLoading && <LoadingOverlay>Creating Tree</LoadingOverlay>}
+      {treeCensusLoading && (
+        <LoadingOverlay>Creating Tree Census</LoadingOverlay>
+      )}
+      {plotCensusLoading && <LoadingOverlay>Reloading Plot</LoadingOverlay>}
+      {treePhotoLoading && <LoadingOverlay>Uploading Photo</LoadingOverlay>}
+      {treeCensusLabelLoading && (
+        <LoadingOverlay>Uploading Label</LoadingOverlay>
+      )}
     </>
   );
 };

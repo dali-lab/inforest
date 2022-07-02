@@ -11,10 +11,12 @@ type GetForestCensusParams = {
 
 export const getForestCensus = createAsyncThunk(
   "forestCensus/getForestCensus",
-  async (params: GetForestCensusParams) => {
+  async (params: GetForestCensusParams, { dispatch }) => {
+    dispatch(startForestCensusLoading());
     return await axios
       .get<ForestCensus>(`${BASE_URL}?id=${params.id}`)
       .then((response) => {
+        dispatch(stopForestCensusLoading());
         return response.data;
       });
   }
@@ -26,10 +28,12 @@ type GetForestForestCensusParams = {
 
 export const getForestForestCensuses = createAsyncThunk(
   "forestCensus/getForestForestCensuses",
-  async (params: GetForestForestCensusParams) => {
+  async (params: GetForestForestCensusParams, { dispatch }) => {
+    dispatch(startForestCensusLoading());
     return await axios
       .get<ForestCensus[]>(`${BASE_URL}?forestId=${params.forestId}`)
       .then((response) => {
+        dispatch(stopForestCensusLoading());
         return response.data;
       });
   }
@@ -41,6 +45,7 @@ export interface ForestCensusState {
   indices: {
     byForests: Record<string, Set<string>>;
   };
+  loading: boolean;
 }
 
 const initialState: ForestCensusState = {
@@ -49,6 +54,7 @@ const initialState: ForestCensusState = {
   indices: {
     byForests: {},
   },
+  loading: false,
 };
 
 export const forestCensusSlice = createSlice({
@@ -73,6 +79,8 @@ export const forestCensusSlice = createSlice({
       return state;
     },
     resetForestCensuses: () => initialState,
+    startForestCensusLoading: (state) => ({ ...state, loading: true }),
+    stopForestCensusLoading: (state) => ({ ...state, loading: false }),
   },
   extraReducers: (builder) => {
     builder.addCase(getForestCensus.fulfilled, (state, action) => {
@@ -93,7 +101,12 @@ export const forestCensusSlice = createSlice({
   },
 });
 
-export const { selectForestCensus, deselectForestCensus, resetForestCensuses } =
-  forestCensusSlice.actions;
+export const {
+  selectForestCensus,
+  deselectForestCensus,
+  resetForestCensuses,
+  startForestCensusLoading,
+  stopForestCensusLoading,
+} = forestCensusSlice.actions;
 
 export default forestCensusSlice.reducer;

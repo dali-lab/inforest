@@ -34,7 +34,7 @@ authRouter.post<{}, any, User>("/login", (req, res, next) => {
 
       const token = createToken(user);
 
-      req.login(user, (err: any) => {});
+      // req.login(user, (err: any) => {});
       res.status(201).json({ user, token });
     } catch (e: any) {
       console.error(e);
@@ -47,7 +47,7 @@ authRouter.delete<{}, any, User>(
   "/logout",
   requireAuth,
   async (req, res, next) => {
-    await req.logout(); // only works with sessions?
+    // await req.logout(); // only works with sessions?
     res.status(200).json({});
   }
 );

@@ -3,50 +3,52 @@
 module.exports = {
   async up(queryInterface, Sequelize) {
     const transaction = await queryInterface.sequelize.transaction();
-
     try {
+      await queryInterface.removeConstraint("trees", "trees_initCensusId_fkey");
       await queryInterface.changeColumn(
-        "tree_photos",
-        "purposeName",
+        "trees",
+        "initCensusId",
         {
-          type: Sequelize.STRING,
+          type: Sequelize.UUID,
           allowNull: true,
+          references: {
+            model: "tree_census",
+            key: "id",
+          },
+          onDelete: "SET NULL",
         },
         { transaction }
       );
       await transaction.commit();
-    } catch (err) {
-      console.error(err);
+    } catch (e) {
+      console.error(e);
       await transaction.rollback();
-      throw err;
+      throw e;
     }
   },
 
   async down(queryInterface, Sequelize) {
     const transaction = await queryInterface.sequelize.transaction();
     try {
-      await queryInterface.sequelize.query(
-        `UPDATE tree_photos SET "purposeName" = 'FULL' WHERE "purposeName" IS NULL`,
-        { transaction }
-      );
+      await queryInterface.removeConstraint("trees", "trees_initCensusId_fkey");
       await queryInterface.changeColumn(
-        "tree_photos",
-        "purposeName",
+        "trees",
+        "initCensusId",
         {
-          type: Sequelize.STRING,
-          allowNull: false,
+          type: Sequelize.UUID,
+          allowNull: true,
           references: {
-            model: "tree_photo_purposes",
-            key: "name",
+            model: "tree_census",
+            key: "id",
           },
         },
         { transaction }
       );
       await transaction.commit();
-    } catch (err) {
-      console.error(err);
+    } catch (e) {
+      console.error(e);
       await transaction.rollback();
-      throw err;
+      throw e;
     }
   },
 };

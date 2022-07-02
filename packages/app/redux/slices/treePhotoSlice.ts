@@ -14,6 +14,7 @@ export interface TreePhotoState {
   };
   drafts: Set<string>;
   localDeletions: Set<string>;
+  loading: boolean;
 }
 
 const initialState: TreePhotoState = {
@@ -23,17 +24,24 @@ const initialState: TreePhotoState = {
   },
   drafts: new Set([]),
   localDeletions: new Set([]),
+  loading: false,
 };
 
 export const createTreePhoto = createAsyncThunk(
   "treePhoto/createTreePhoto",
-  async (newPhoto: Omit<TreePhoto, "id"> & { buffer: string }) => {
+  async (
+    newPhoto: Omit<TreePhoto, "id"> & { buffer: string },
+    { dispatch }
+  ) => {
+    dispatch(startTreePhotoLoading());
     return await axios
       .post(BASE_URL, newPhoto)
       .then((response) => {
+        dispatch(stopTreePhotoLoading());
         return response.data;
       })
       .catch((err) => {
+        dispatch(stopTreePhotoLoading());
         alert("Error while uploading tree photo: " + err?.message);
         throw err;
       });
@@ -125,6 +133,8 @@ export const treePhotoSlice = createSlice({
       };
     },
     resetTreePhotos: () => initialState,
+    startTreePhotoLoading: (state) => ({ ...state, loading: true }),
+    stopTreePhotoLoading: (state) => ({ ...state, loading: false }),
   },
   extraReducers: (builder) => {
     builder.addCase(
@@ -152,6 +162,8 @@ export const {
   locallyUpdateTreePhoto,
   clearTreePhotoDrafts,
   resetTreePhotos,
+  startTreePhotoLoading,
+  stopTreePhotoLoading,
 } = treePhotoSlice.actions;
 
 export default treePhotoSlice.reducer;

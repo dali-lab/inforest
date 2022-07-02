@@ -21,7 +21,6 @@ import useAppDispatch from "../../hooks/useAppDispatch";
 import PlotDrawer from "../../components/PlotDrawer";
 
 import { deselectTree, selectTree } from "../../redux/slices/treeSlice";
-import { selectForestCensus } from "../../redux/slices/forestCensusSlice";
 import { getPlotCorners } from "../../constants/plots";
 import VisualizationModal from "../../components/VisualizationModal";
 import SearchModal from "../../components/SearchModal";
@@ -50,7 +49,6 @@ import { selectPlot, deselectPlot } from "../../redux/slices/plotSlice";
 import {
   createPlotCensus,
   deselectPlotCensus,
-  getForestCensusPlotCensuses,
   selectPlotCensus,
 } from "../../redux/slices/plotCensusSlice";
 import { deselectTreeCensus } from "../../redux/slices/treeCensusSlice";
@@ -127,6 +125,7 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
   const {
     all: allTreeCensuses,
     indices: { byTreeActive },
+    selected: selectedTreeCensusId,
   } = useAppSelector((state: RootState) => state.treeCensuses);
   const {
     all: allPlots,
@@ -134,8 +133,9 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
     longitude,
     selected: selectedPlotId,
   } = useAppSelector((state: RootState) => state.plots);
-  const { all: allForestCensuses, selected: selectedForestCensusId } =
-    useAppSelector((state: RootState) => state.forestCensuses);
+  const { selected: selectedForestCensusId } = useAppSelector(
+    (state: RootState) => state.forestCensuses
+  );
   const {
     all: allPlotCensuses,
     selected: selectedPlotCensusId,
@@ -182,16 +182,6 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
       undefined,
     [selectedPlotCensusId, allPlotCensuses]
   );
-
-  useEffect(() => {
-    for (const census of Object.values(allForestCensuses)) {
-      if (census.active) {
-        dispatch(selectForestCensus(census.id));
-        dispatch(getForestCensusPlotCensuses({ forestCensusId: census.id }));
-        break;
-      }
-    }
-  }, [allForestCensuses, dispatch]);
 
   const plotArray = useMemo(() => Object.values(allPlots), [allPlots]);
   const plots = usePlotsInRegion(plotArray, regionSnapshot);
@@ -465,8 +455,8 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
         onPress={(e) => {
           if (confirmationModalOpen) return;
           closeVisualizationModal();
-          dispatch(deselectTree());
-          dispatch(deselectTreeCensus());
+          if (selectedTreeId) dispatch(deselectTree());
+          if (selectedTreeCensusId) dispatch(deselectTreeCensus());
           if (!!e.nativeEvent.coordinate && !!selectedPlot) {
             if (
               !geolib.isPointInPolygon(
@@ -575,7 +565,6 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
                 fillColor={plotIdColorMap(plot.id)}
                 tappable={true}
                 onPress={() => {
-                  deselectPlotAndCensus();
                   plot?.id && selectPlotAndCensus(plot.id);
                 }}
               />

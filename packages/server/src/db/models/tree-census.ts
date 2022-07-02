@@ -88,7 +88,7 @@ class TreeCensus
   @BelongsTo(() => PlotCensus)
   plotCensus: IPlotCensus;
 
-  @HasOne(() => Tree)
+  @HasOne(() => Tree, { onDelete: "SET NULL" })
   initTree: ITree;
 
   @Column(DataTypes.STRING)
