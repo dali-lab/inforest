@@ -16,11 +16,13 @@ type LoginResponse = { token: string; user: User };
 
 export const login = createAsyncThunk(
   "user/login",
-  async (credentials: AuthParams) => {
-    // const { dispatch } = thunkApi;
+  async (credentials: AuthParams, { dispatch }) => {
+    dispatch(startUserLoading());
     return await axios
       .post<LoginResponse>(`${BASE_URL}login`, credentials)
       .then((response) => {
+        dispatch(stopUserLoading());
+
         if (response.status == 403) {
           // forbidden - not verified
           return {
@@ -31,10 +33,12 @@ export const login = createAsyncThunk(
         return { ...response.data };
       })
       .catch((error) => {
+        dispatch(stopUserLoading());
         alert(
           "Unable to log in, please ensure your email and password are correct."
         );
         console.error("Error when logging in", error);
+        throw error;
       });
   }
 );
@@ -42,15 +46,18 @@ export const login = createAsyncThunk(
 // might not need to be a thunk but it might end up calling login() or something
 export const signUp = createAsyncThunk(
   "user/signUp",
-  async (credentials: AuthParams) => {
+  async (credentials: AuthParams, { dispatch }) => {
+    dispatch(startUserLoading());
     return await axios
       .post(`${BASE_URL}signup`, credentials)
       .then((response) => {
         alert("Sign up successful! Use your account information to sign in.");
+        dispatch(stopUserLoading());
         return response.data;
       })
       .catch((error) => {
         console.error("Error when signing up", error);
+        dispatch(stopUserLoading());
         return false;
       });
   }

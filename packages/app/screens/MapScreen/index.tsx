@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from "react";
-import { ActivityIndicator, Dimensions, StyleSheet, View } from "react-native";
+import { Dimensions, StyleSheet, View } from "react-native";
 import { MapScreenModes, MapScreenZoomLevels } from "../../constants";
 
 import useAppDispatch from "../../hooks/useAppDispatch";
@@ -13,13 +13,13 @@ import useAppSelector from "../../hooks/useAppSelector";
 import { deselectTreeCensus } from "../../redux/slices/treeCensusSlice";
 import Colors from "../../constants/Colors";
 import { selectPlotCensus } from "../../redux/slices/plotCensusSlice";
+import LoadingOverlay from "../../components/LoadingOverlay";
+import OfflineBar from "../../components/OfflineBar";
 import { useIsConnected } from "react-native-offline";
-import { Text, TextVariants } from "../../components/Themed";
 
 export default function MapScreen() {
   const route = useRoute<RouteProp<CensusStackParamList, "map">>();
   const dispatch = useAppDispatch();
-
   const isConnected = useIsConnected();
 
   const [zoomLevel, setZoomLevel] = useState<MapScreenZoomLevels>(
@@ -69,8 +69,6 @@ export default function MapScreen() {
       setZoomLevel(MapScreenZoomLevels.Plot);
       dispatch(selectPlot(plot.id));
       dispatch(selectPlotCensus(plotCensusesByActivePlot[plot.id]));
-      if (plot.id in plotCensusesByActivePlot) {
-      }
     },
     [setZoomLevel, dispatch, plotCensusesByActivePlot]
   );
@@ -83,24 +81,7 @@ export default function MapScreen() {
   return (
     <>
       {loadingTasks.size > 0 && (
-        <View style={styles.loadingOverlay}>
-          <Text variant={TextVariants.H3} color="white">
-            {loadingTasks.keys().next().value}
-          </Text>
-          <ActivityIndicator
-            style={{ marginTop: 16 }}
-            size="large"
-            color="white"
-          />
-        </View>
-      )}
-      {!isConnected && (
-        <View style={styles.offlineBar}>
-          <Text style={styles.offlineText}>
-            You are currently offline. Your changes will be saved once you
-            reconnect.
-          </Text>
-        </View>
+        <LoadingOverlay>{loadingTasks.values().next().value}</LoadingOverlay>
       )}
       <View style={styles.container}>
         {zoomLevel === "FOREST" && (
@@ -125,22 +106,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     width: Dimensions.get("window").width,
     height: Dimensions.get("window").height,
-  },
-  offlineBar: {
-    backgroundColor: Colors.error,
-    height: 24,
-    width: "100%",
-    top: 0,
-    position: "absolute",
-    zIndex: 1,
-  },
-  offlineText: {
-    width: "100%",
-    textAlign: "center",
-    fontSize: 12,
-    marginTop: 2,
-    color: "white",
-    position: "absolute",
   },
   loadingOverlay: {
     position: "absolute",

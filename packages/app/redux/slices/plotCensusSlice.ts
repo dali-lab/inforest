@@ -42,13 +42,16 @@ export const createPlotCensus = createAsyncThunk(
 
 export const submitPlotCensus = createAsyncThunk(
   "plotCensus/submitPlotCensus",
-  async (plotId: string) => {
+  async (plotId: string, { dispatch }) => {
+    dispatch(startPlotCensusLoading());
     return await axios
       .patch(`${BASE_URL}/submit/${plotId}`)
       .then((response) => {
+        dispatch(stopPlotCensusLoading());
         return response.data;
       })
       .catch((err) => {
+        dispatch(stopPlotCensusLoading());
         alert("Error: could not submit plot census");
         throw err;
       });
@@ -62,6 +65,7 @@ export interface PlotCensusState {
     byForestCensuses: Record<string, Set<string>>;
     byPlots: Record<string, Set<string>>;
   };
+  loading: boolean;
 }
 
 const initialState: PlotCensusState = {
@@ -71,6 +75,7 @@ const initialState: PlotCensusState = {
     byForestCensuses: {},
     byPlots: {},
   },
+  loading: false,
 };
 
 const upsertPlotCensuses = (
@@ -105,6 +110,8 @@ export const plotCensusSlice = createSlice({
       return state;
     },
     resetPlotCensuses: () => initialState,
+    startPlotCensusLoading: (state) => ({ ...state, loading: true }),
+    stopPlotCensusLoading: (state) => ({ ...state, loading: false }),
   },
   extraReducers: (builder) => {
     builder.addCase(getPlotCensuses.fulfilled, (state, action) => {
@@ -131,7 +138,12 @@ export const plotCensusSlice = createSlice({
   },
 });
 
-export const { selectPlotCensus, deselectPlotCensus, resetPlotCensuses } =
-  plotCensusSlice.actions;
+export const {
+  selectPlotCensus,
+  deselectPlotCensus,
+  resetPlotCensuses,
+  startPlotCensusLoading,
+  stopPlotCensusLoading,
+} = plotCensusSlice.actions;
 
 export default plotCensusSlice.reducer;

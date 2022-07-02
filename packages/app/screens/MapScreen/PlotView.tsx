@@ -10,17 +10,15 @@ import {
 } from "../../constants";
 import { formPlotNumber, parsePlotNumber } from "../../constants/plots";
 import useAppSelector from "../../hooks/useAppSelector";
-import { RootState } from "../../redux";
 import Colors from "../../constants/Colors";
 import useAppDispatch from "../../hooks/useAppDispatch";
 import { ModeSwitcher } from "./ModeSwitcher";
 import { MapOverlay } from "../../components/MapOverlay";
-import VisualizationModal from "../../components/VisualizationModal";
-import SearchModal from "../../components/SearchModal";
 import {
   VisualizationConfigType,
 } from "../../constants";
 import { selectTree } from "../../redux/slices/treeSlice";
+import LoadingOverlay from "../../components/LoadingOverlay";
 
 const LOWER_BUTTON_HEIGHT = 64;
 
@@ -45,15 +43,27 @@ const PlotView: React.FC<PlotViewProps> = (props) => {
 
   const dispatch = useAppDispatch();
 
-  const reduxState = useAppSelector((state: RootState) => state);
-  const { all: allPlotCensuses, selected: selectedPlotCensusId } =
-    reduxState.plotCensuses;
+  const {
+    all: allPlotCensuses,
+    selected: selectedPlotCensusId,
+    loading: plotCensusLoading,
+  } = useAppSelector((state) => state.plotCensuses);
+
   const {
     all: allPlots,
     selected: selectedPlotId,
     indices: { byNumber },
-  } = reduxState.plots;
-
+  } = useAppSelector((state) => state.plots);
+  const { loading: treeLoading } = useAppSelector((state) => state.trees);
+  const { loading: treeCensusLoading } = useAppSelector(
+    (state) => state.treeCensuses
+  );
+  const { loading: treePhotoLoading } = useAppSelector(
+    (state) => state.treePhotos
+  );
+  const { loading: treeCensusLabelLoading } = useAppSelector(
+    (state) => state.treeCensusLabels
+  );
   const selectedPlot = useMemo(
     () =>
       (selectedPlotId &&
@@ -73,7 +83,7 @@ const PlotView: React.FC<PlotViewProps> = (props) => {
   const {
     all: allTrees,
     indices: { byTag },
-  } = useAppSelector((state: RootState) => state.trees);
+  } = useAppSelector((state) => state.trees);
   
   const findTree = useCallback(
     (treeTag: string) => {
@@ -129,7 +139,7 @@ const PlotView: React.FC<PlotViewProps> = (props) => {
             onPress={rotate} 
           />
         </View>
-        {!!selectedPlot ? (
+        {selectedPlot ? (
           <PlottingSheet
             mode={mode}
             plot={selectedPlot}
@@ -139,17 +149,23 @@ const PlotView: React.FC<PlotViewProps> = (props) => {
               const stakeNames = [];
               stakeNames.push(selectedPlot.number);
               if (formPlotNumber(i + 1, j) in byNumber) {
-                stakeNames.push(byNumber[formPlotNumber(i + 1, j)].number);
+                stakeNames.push(
+                  allPlots[byNumber[formPlotNumber(i + 1, j)]].number
+                );
               } else {
                 stakeNames.push("No stake");
               }
               if (formPlotNumber(i + 1, j + 1) in byNumber) {
-                stakeNames.push(byNumber[formPlotNumber(i + 1, j + 1)].number);
+                stakeNames.push(
+                  allPlots[byNumber[formPlotNumber(i + 1, j + 1)]].number
+                );
               } else {
                 stakeNames.push("No stake");
               }
               if (formPlotNumber(i, j + 1) in byNumber) {
-                stakeNames.push(byNumber[formPlotNumber(i, j + 1)].number);
+                stakeNames.push(
+                  allPlots[byNumber[formPlotNumber(i, j + 1)]].number
+                );
               } else {
                 stakeNames.push("No stake");
               }
@@ -174,31 +190,15 @@ const PlotView: React.FC<PlotViewProps> = (props) => {
         minimizeDrawer={() => setDrawerState(DrawerStates.Minimized)}
         stopPlotting={onExit}
       ></PlotDrawer>
-      <View style={{ position: "absolute" }}>
-        <VisualizationModal
-          config={visualizationConfig}
-          setConfig={setVisualizationConfig}
-          visible={visualizationConfig.modalOpen}
-          setVisible={() => {
-            setVisualizationConfig((prev) => ({
-              ...prev,
-              modalOpen: !prev.modalOpen,
-            }));
-          }}
-        />
-        {
-          <SearchModal
-            open={searchModalOpen}
-            onExit={() => {
-              setSearchModalOpen(false);
-            }}
-            onSubmit={(searchValue: string) => {
-              setSearchModalOpen(false);
-              findTree(searchValue);
-            }}
-          />
-        }
-      </View>
+      {treeLoading && <LoadingOverlay>Creating Tree</LoadingOverlay>}
+      {treeCensusLoading && (
+        <LoadingOverlay>Creating Tree Census</LoadingOverlay>
+      )}
+      {plotCensusLoading && <LoadingOverlay>Reloading Plot</LoadingOverlay>}
+      {treePhotoLoading && <LoadingOverlay>Uploading Photo</LoadingOverlay>}
+      {treeCensusLabelLoading && (
+        <LoadingOverlay>Uploading Label</LoadingOverlay>
+      )}
     </>
   );
 };

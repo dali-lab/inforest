@@ -31,7 +31,7 @@ export interface PlotState {
   latitude: PlotNumericalIndex;
   longitude: PlotNumericalIndex;
   indices: {
-    byNumber: Record<string, Plot>;
+    byNumber: Record<string, string>;
   };
 }
 
@@ -73,7 +73,7 @@ export const plotSlice = createSlice({
           value: plot.longitude,
           plotId: plot.id,
         });
-        state.indices.byNumber[plot.number] = plot;
+        state.indices.byNumber[plot.number] = plot.id;
       });
       // sort indices
       state.latitude.sort(({ value: a }, { value: b }) => a - b);

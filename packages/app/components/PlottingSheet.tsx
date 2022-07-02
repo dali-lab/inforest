@@ -107,12 +107,12 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
   );
 
   const dispatch = useAppDispatch();
+  const { all, selected: selectedTreeId } = useAppSelector(
+    (state) => state.trees
+  );
   const {
-    all,
-    drafts,
-    selected: selectedTreeId,
-  } = useAppSelector((state) => state.trees);
-  const {
+    all: allTreeCensuses,
+    selected: selectedTreeCensusId,
     indices: { byTreeActive },
   } = useAppSelector((state) => state.treeCensuses);
   const selectedTree = useMemo(
@@ -126,13 +126,9 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
     ),
     new Set([plot.id])
   );
-  const {
-    indices: { byPlotCensus },
-  } = useAppSelector((state) => state.treeCensuses);
-  const inProgressCensuses = useMemo(
-    () => Object.keys(byPlotCensus),
-    [byPlotCensus]
-  );
+  const inProgressCensuses = useMemo(() => {
+    return Object.keys(byTreeActive);
+  }, [byTreeActive]);
 
   const animatedPlotRotationAngle = useMemo(
     () => new Animated.Value(direction),
@@ -196,21 +192,21 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
     <Pressable
       style={{ ...styles.container, width: sheetSize, height: sheetSize }}
       onTouchMove={(e) => {
-        dispatch(deselectTree());
-        dispatch(deselectTreeCensus());
+        if (selectedTreeId) dispatch(deselectTree());
+        if (selectedTreeCensusId) dispatch(deselectTreeCensus());
 
         const { locationX, locationY } = e.nativeEvent;
         const { x, y } = transformXY(locationX, locationY);
 
         if (0 > x || x > sheetSize || 0 > y || y > sheetSize) {
-          dispatch(deselectTree());
+          if (selectedTreeId) dispatch(deselectTree());
         } else {
           setMarkerPos({ x, y, adjustedX: locationX, adjustedY: locationY });
         }
       }}
       onPress={() => {
-        dispatch(deselectTree());
-        dispatch(deselectTreeCensus());
+        if (selectedTreeId) dispatch(deselectTree());
+        if (selectedTreeCensusId) dispatch(deselectTreeCensus());
       }}
       onPressIn={() => {
         setMarkerPos(undefined);
@@ -380,8 +376,7 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
           {trees
             .filter((tree) => tree.plotId === plot.id)
             .map((tree) => {
-              const isDraft = drafts.has(tree.id);
-              const isCensusing = tree.id in inProgressCensuses;
+              const isCensusing = inProgressCensuses.includes(tree.id);
               const { plotX, plotY } = tree;
               if (!!plotX && !!plotY) {
                 const treePixelSize = Math.max(
@@ -419,13 +414,13 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
                     }}
                   >
                     <TreeMarker
-                      color={
-                        isDraft
-                          ? Colors.primary.normal
-                          : isCensusing
-                          ? "yellow"
-                          : Colors.primary.light
+                      borderColor={
+                        isCensusing &&
+                        allTreeCensuses[byTreeActive[tree.id]].flagged
+                          ? Colors.error
+                          : undefined
                       }
+                      color={isCensusing ? "#52CC52" : "#FF5C5C"}
                       size={treePixelSize}
                       selected={selectedTree?.id === tree.id}
                     />

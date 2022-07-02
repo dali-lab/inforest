@@ -9,11 +9,16 @@ const BASE_URL = SERVER_URL + "trees/censuses/labels";
 
 export const createTreeCensusLabel = createAsyncThunk(
   "treeCensusLabel/createTreeCensusLabel",
-  async (newCensusLabel: Omit<TreeCensusLabel, "id">) => {
+  async (newCensusLabel: Omit<TreeCensusLabel, "id">, { dispatch }) => {
+    dispatch(startTreeCensusLabelLoading());
     return await axios
       .post(BASE_URL, newCensusLabel)
-      .then((response) => response.data)
+      .then((response) => {
+        dispatch(stopTreeCensusLabelLoading());
+        return response.data;
+      })
       .catch((err) => {
+        dispatch(stopTreeCensusLabelLoading());
         alert("Error while adding label: " + err?.message);
         throw err;
       });
@@ -36,6 +41,7 @@ export interface TreeCensusLabelState {
   };
   drafts: Set<string>;
   localDeletions: Set<string>;
+  loading: boolean;
 }
 
 const initialState: TreeCensusLabelState = {
@@ -45,6 +51,7 @@ const initialState: TreeCensusLabelState = {
   },
   drafts: new Set([]),
   localDeletions: new Set([]),
+  loading: false,
 };
 
 export const upsertTreeCensusLabels = (
@@ -103,6 +110,8 @@ export const treeCensusLabelSlice = createSlice({
       };
     },
     resetTreeCensusLabels: () => initialState,
+    startTreeCensusLabelLoading: (state) => ({ ...state, loading: true }),
+    stopTreeCensusLabelLoading: (state) => ({ ...state, loading: false }),
   },
   extraReducers: (builder) => {
     builder.addCase(
@@ -123,6 +132,8 @@ export const {
   locallyDeleteTreeCensusLabel,
   clearTreeCensusLabelDrafts,
   resetTreeCensusLabels,
+  startTreeCensusLabelLoading,
+  stopTreeCensusLabelLoading,
 } = treeCensusLabelSlice.actions;
 
 export default treeCensusLabelSlice.reducer;

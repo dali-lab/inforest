@@ -12,10 +12,10 @@ type GetForestParams = {
 
 export const getForests = createAsyncThunk(
   "forest/getForests",
-  async (_params, { dispatch }) => {
+  async (teamId: string, { dispatch }) => {
     dispatch(startForestLoading());
     return await axios
-      .get<Forest[]>(BASE_URL)
+      .get<Forest[]>(BASE_URL + `?teamId=${teamId}`)
       .then((response) => {
         dispatch(stopForestLoading());
         return response.data;
@@ -30,12 +30,15 @@ export const getForests = createAsyncThunk(
 export const getForest = createAsyncThunk(
   "forest/getForest",
   async (params: GetForestParams, { dispatch }) => {
+    dispatch(startForestLoading());
     return await axios
       .get<Forest[]>(`${BASE_URL}?id=${params.id}`)
       .then((response) => {
+        dispatch(stopForestLoading());
         return response.data;
       })
       .catch((e) => {
+        dispatch(stopForestLoading());
         throw e;
       });
   }
@@ -65,6 +68,7 @@ const upsertForests = (state: ForestState, action: UpsertAction<Forest>) => {
     if (!(newForest.teamId in state.indices.byTeam))
       state.indices.byTeam[newForest.teamId] = new Set([]);
     state.indices.byTeam[newForest.teamId].add(newForest.id);
+    if (action.selectFinal) state.selected = newForest.id;
   });
   return state;
 };
@@ -83,7 +87,7 @@ export const forestSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder.addCase(getForests.fulfilled, (state, action) => {
-      return upsertForests(state, { data: action.payload });
+      return upsertForests(state, { data: action.payload, selectFinal: true });
     });
     builder.addCase(getForest.fulfilled, (state, action) => {
       return upsertForests(state, { data: action.payload });
