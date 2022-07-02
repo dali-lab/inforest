@@ -168,8 +168,6 @@ const persistConfig = {
   debug: true,
 };
 
-// console.log(getStoredState(persistConfig));
-
 const persistedReducer = persistReducer<RootState, AnyAction>(
   persistConfig,
   rootReducer
