@@ -213,13 +213,11 @@ export const treeCensusSlice = createSlice({
       state.selected = undefined;
       return state;
     },
-    clearTreeCensusDrafts: (state) => {
-      return {
-        ...state,
-        drafts: initialState.drafts,
-        localDeletions: initialState.localDeletions,
-      };
-    },
+    clearTreeCensusDrafts: (state) => ({
+      ...state,
+      drafts: initialState.drafts,
+      localDeletions: initialState.localDeletions,
+    }),
     resetTreeCensuses: () => initialState,
     startTreeCensusLoading: (state) => ({ ...state, loading: true }),
     stopTreeCensusLoading: (state) => ({ ...state, loading: false }),

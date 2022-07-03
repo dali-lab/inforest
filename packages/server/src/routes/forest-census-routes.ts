@@ -24,7 +24,7 @@ forestCensusRouter.post<{}, any, ForestCensus>(
 );
 
 const parseParams = (query: any) => ({
-  forestId: query.forestId as string,
+  id: query.id as string,
 });
 
 forestCensusRouter.get<{}, any, null>("/", requireAuth, async (req, res) => {

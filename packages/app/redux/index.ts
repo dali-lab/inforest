@@ -28,17 +28,11 @@ import {
   TreePhotoPurposeState,
   TreeCensusLabelState,
 } from "./slices";
-import {
-  createTransform,
-  persistReducer,
-  persistStore,
-  getStoredState,
-} from "redux-persist";
+import { createTransform, persistReducer, persistStore } from "redux-persist";
 import hardSet from "redux-persist/lib/stateReconciler/hardSet";
 import ExpoFileSystemStorage from "redux-persist-expo-filesystem";
 import { enableMapSet } from "immer";
 import { isArray, isObject } from "lodash";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { SyncState } from "./slices/syncSlice";
 import { isEmpty } from "lodash";
 

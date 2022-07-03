@@ -19,6 +19,7 @@ export const createForestCensus = async (forestCensus: ForestCensus) => {
 };
 
 export interface ForestCensusParams {
+  id?: string;
   forestId?: string;
   active?: boolean;
   limit?: number;
@@ -26,10 +27,13 @@ export interface ForestCensusParams {
 }
 
 const constructQuery = (params: ForestCensusParams) => {
-  const { forestId, active, limit, offset } = params;
+  const { id, forestId, active, limit, offset } = params;
   const query: any = {
     where: {},
   };
+  if (id) {
+    query.where.id = { [Op.eq]: id };
+  }
   if (forestId) {
     query.where.forestId = {
       [Op.eq]: forestId,
@@ -54,22 +58,16 @@ export const getForestCensuses = async (params: ForestCensusParams) => {
   return await ForestCensusModel.findAll(query);
 };
 
-export const closeForestCensus = async (
-  params: Pick<ForestCensus, "forestId">
-) => {
-  const { forestId } = params;
+export const closeForestCensus = async (params: Pick<ForestCensus, "id">) => {
+  const { id } = params;
 
-  if (forestId == null) {
-    throw new Error("You must specify a forest.");
-  }
-  const forest = await getForests({ id: forestId });
-  if (forest.length == 0) {
-    throw new Error("This forest does not exist.");
+  if (id == null) {
+    throw new Error("You must specify a forest census.");
   }
 
   // find active forest census
   const activeCensuses = await getForestCensuses({
-    forestId,
+    id,
     active: true,
   });
   if (activeCensuses.length > 1) {
@@ -81,7 +79,7 @@ export const closeForestCensus = async (
 
   // ensure all plots in this forest have approved plot censuses
   // select all plots in the forest
-  const plots = await getPlots({ forestId });
+  const plots = await getPlots({ forestId: activeCensuses[0].forestId });
 
   // select approved plot censuses in this forest census for each plot
   const plotPlotCensuses = await Promise.all(

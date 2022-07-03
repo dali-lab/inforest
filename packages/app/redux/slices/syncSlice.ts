@@ -28,7 +28,10 @@ import {
   resetTreePhotoPurposes,
 } from "./treePhotoPurposeSlice";
 import { getAllTreeSpecies, resetTreeSpecies } from "./treeSpeciesSlice";
-import { resetTreeCensusLabels } from "./treeCensusLabelSlice";
+import {
+  clearTreeCensusLabelDrafts,
+  resetTreeCensusLabels,
+} from "./treeCensusLabelSlice";
 
 const BASE_URL = SERVER_URL + "sync";
 
@@ -83,6 +86,12 @@ export const uploadCensusData = createAsyncThunk(
     treeCensusLabelDrafts.forEach((censusLabelId) => {
       treeCensusLabels.push(allTreeCensusLabels[censusLabelId]);
     });
+    console.log(
+      treeDrafts,
+      treeCensusDrafts,
+      treePhotoDrafts,
+      treeCensusLabelDrafts
+    );
     return await axios
       .post(BASE_URL, {
         upserted: { trees, treeCensuses, treePhotos, treeCensusLabels },
@@ -95,10 +104,19 @@ export const uploadCensusData = createAsyncThunk(
       })
       .then(async (response) => {
         dispatch(stopLoading(loadMessage));
+        dispatch(clearTreeDrafts());
+        dispatch(clearTreeCensusDrafts());
+        dispatch(clearTreePhotoDrafts());
+        dispatch(clearTreeCensusLabelDrafts());
         return response.data;
       })
       .catch((err: any) => {
         dispatch(stopLoading(loadMessage));
+        dispatch(clearTreeDrafts());
+        dispatch(clearTreeCensusDrafts());
+        dispatch(clearTreePhotoDrafts());
+        dispatch(clearTreeCensusLabelDrafts());
+
         alert(
           "An error occurred while syncing your data: " +
             err?.message +
@@ -165,19 +183,6 @@ export const syncSlice = createSlice({
       state.loadingTasks.delete(action.payload);
       return state;
     },
-  },
-  extraReducers: (builder) => {
-    builder.addCase(uploadCensusData.fulfilled, () => {
-      clearTreeDrafts();
-      clearTreeCensusDrafts();
-      clearTreePhotoDrafts();
-    });
-    //TEMPORARY
-    builder.addCase(uploadCensusData.rejected, () => {
-      clearTreeDrafts();
-      clearTreeCensusDrafts();
-      clearTreePhotoDrafts();
-    });
   },
 });
 
