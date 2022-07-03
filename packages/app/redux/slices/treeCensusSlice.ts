@@ -120,6 +120,15 @@ export const deleteTreeCensus = createAsyncThunk(
   }
 );
 
+// This is a thunk to enable calling dispatching
+export const locallyDeleteTreeCensus = createAsyncThunk(
+  "treeCensus/locallyDeleteTreeCensus",
+  async (id: string, { dispatch }) => {
+    dispatch(deselectTree());
+    return id;
+  }
+);
+
 // takes the state and the action payload(!!) and returns the updated state with the payload's censuses added. used for downloading, drafting, and rehydrating
 export const upsertTreeCensuses = (
   state: TreeCensusState,
@@ -196,10 +205,6 @@ export const treeCensusSlice = createSlice({
         selectFinal: true,
       });
     },
-    locallyDeleteTreeCensus: (state, action: { payload: string }) => {
-      state.localDeletions.add(action.payload);
-      return deleteTreeCensuses(state, [action.payload]);
-    },
     locallyUpdateTreeCensus: (state, action) => {
       const updated = action.payload;
       state.all[updated.id] = updated;
@@ -252,13 +257,15 @@ export const treeCensusSlice = createSlice({
       if (action.meta.arg === state.selected) state.selected = undefined;
       return deleteTreeCensuses(state, [action.meta.arg]);
     });
+    builder.addCase(locallyDeleteTreeCensus.fulfilled, (state, action) => {
+      return deleteTreeCensuses(state, [action.payload]);
+    });
   },
 });
 
 export const {
   addTreeCensuses,
   locallyCreateTreeCensus,
-  locallyDeleteTreeCensus,
   locallyUpdateTreeCensus,
   selectTreeCensus,
   deselectTreeCensus,

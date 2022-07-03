@@ -47,7 +47,6 @@ import {
   updateTreeCensus,
 } from "../../redux/slices/treeCensusSlice";
 import { useIsConnected } from "react-native-offline";
-import { AUTHOR_ID } from "../../constants/dev";
 import ConfirmationModal from "../ConfirmationModal";
 import { submitPlotCensus } from "../../redux/slices/plotCensusSlice";
 const SearchBar = () => {
@@ -107,6 +106,7 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
   stopPlotting,
 }) => {
   const dispatch = useAppDispatch();
+  const { currentUser } = useAppSelector((state) => state.user);
   const {
     all: allTrees,
     selected: selectedTreeId,
@@ -251,15 +251,17 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
         selectedTree?.plotId &&
         selectedTree?.id &&
         plotCensus?.id &&
-        !byTreeActive?.[selectedTree.id]
+        !byTreeActive?.[selectedTree.id] &&
+        currentUser
       )
     )
       return;
+    console.log("new census on tree", selectedTree);
     const newCensus: Partial<TreeCensus> = {
       ...blankTreeCensus,
       treeId: selectedTree?.id,
       plotCensusId: plotCensus.id,
-      authorId: AUTHOR_ID,
+      authorId: currentUser.id,
     };
     if (isConnected) {
       await dispatch(createTreeCensus(newCensus));

@@ -86,12 +86,6 @@ export const uploadCensusData = createAsyncThunk(
     treeCensusLabelDrafts.forEach((censusLabelId) => {
       treeCensusLabels.push(allTreeCensusLabels[censusLabelId]);
     });
-    console.log(
-      treeDrafts,
-      treeCensusDrafts,
-      treePhotoDrafts,
-      treeCensusLabelDrafts
-    );
     return await axios
       .post(BASE_URL, {
         upserted: { trees, treeCensuses, treePhotos, treeCensusLabels },

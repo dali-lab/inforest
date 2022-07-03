@@ -28,7 +28,12 @@ import {
   TreePhotoPurposeState,
   TreeCensusLabelState,
 } from "./slices";
-import { createTransform, persistReducer, persistStore } from "redux-persist";
+import {
+  createTransform,
+  persistReducer,
+  persistStore,
+  getStoredState,
+} from "redux-persist";
 import hardSet from "redux-persist/lib/stateReconciler/hardSet";
 import ExpoFileSystemStorage from "redux-persist-expo-filesystem";
 import { enableMapSet } from "immer";
@@ -77,16 +82,26 @@ const rootReducer = combineReducers<RootState>(reducers);
 
 const SurfaceSetTransform = createTransform(
   (inboundState: any, key) => {
-    if ("drafts" in inboundState) {
-      return { ...inboundState, drafts: Array.from(inboundState.drafts) };
-    }
-    return inboundState;
+    return {
+      ...inboundState,
+      ...("drafts" in inboundState
+        ? { drafts: Array.from(inboundState.drafts) }
+        : {}),
+      ...("localDeletions" in inboundState
+        ? { localDeletions: Array.from(inboundState.localDeletions) }
+        : {}),
+    };
   },
   (outboundState: RootState[keyof RootState]) => {
-    if ("drafts" in outboundState) {
-      return { ...outboundState, drafts: new Set(outboundState.drafts) };
-    }
-    return outboundState;
+    return {
+      ...outboundState,
+      ...("drafts" in outboundState
+        ? { drafts: new Set(outboundState.drafts) }
+        : {}),
+      ...("localDeletions" in outboundState
+        ? { localDeletions: new Set(outboundState.localDeletions) }
+        : {}),
+    };
   },
   { whitelist: ["trees", "treeCensuses", "treePhotos", "treeCensusLabels"] }
 );
@@ -161,6 +176,8 @@ const persistConfig = {
   blacklist: ["sync"],
   debug: true,
 };
+
+console.log(getStoredState(persistConfig));
 
 const persistedReducer = persistReducer<RootState, AnyAction>(
   persistConfig,
