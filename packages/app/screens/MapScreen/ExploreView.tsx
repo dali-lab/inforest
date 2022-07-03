@@ -240,14 +240,14 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
   }, [setVisualizationConfig]);
 
   const findTree = useCallback(
-    (treeTag: string) => {
+    async (treeTag: string) => {
       const tree = allTrees[byTag[treeTag]];
 
       if (tree) {
         dispatch(selectTree(tree.id));
         const plot = tree.plotId;
         if (plot) {
-          selectPlotAndCensus(plot);
+          await selectPlotAndCensus(plot);
           const { easting, northing, zoneNum, zoneLetter } = utm.fromLatLon(
             allPlots[plot].latitude,
             allPlots[plot].longitude
@@ -453,7 +453,7 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
             setRegionSnapshot(region);
           }
         }}
-        onPress={(e) => {
+        onPress={async (e) => {
           if (confirmationModalOpen) return;
           closeVisualizationModal();
           if (selectedTreeId) dispatch(deselectTree());
@@ -465,7 +465,7 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
                 getPlotCorners(selectedPlot)
               )
             ) {
-              deselectPlotAndCensus();
+              await deselectPlotAndCensus();
             }
           }
         }}
@@ -549,7 +549,7 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
               strokeColor="rgba(255, 255, 255, 0.6)"
               fillColor="rgba(255, 255, 255, 0.6)"
               tappable={true}
-              onPress={deselectPlotAndCensus}
+              onPress={async () => deselectPlotAndCensus}
             />
           </>
         )}
@@ -565,8 +565,8 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
                 strokeColor="rgba(255, 255, 255, 0.6)"
                 fillColor={plotIdColorMap(plot.id)}
                 tappable={true}
-                onPress={() => {
-                  plot?.id && selectPlotAndCensus(plot.id);
+                onPress={async () => {
+                  plot?.id && await selectPlotAndCensus(plot.id);
                 }}
               />
             );

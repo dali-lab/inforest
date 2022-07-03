@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from "react";
-import { Dimensions, StyleSheet, View } from "react-native";
+import { Dimensions, StyleSheet, View, Text } from "react-native";
 import { MapScreenModes, MapScreenZoomLevels } from "../../constants";
 
 import useAppDispatch from "../../hooks/useAppDispatch";
@@ -81,7 +81,7 @@ export default function MapScreen() {
   return (
     <>
       {loadingTasks.size > 0 && (
-        <LoadingOverlay>{loadingTasks.values().next().value}</LoadingOverlay>
+        <LoadingOverlay isBackArrow={true}>{loadingTasks.values().next().value}</LoadingOverlay>
       )}
       <View style={styles.container}>
         {zoomLevel === "FOREST" && (
