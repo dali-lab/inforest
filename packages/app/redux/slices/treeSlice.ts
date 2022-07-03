@@ -99,6 +99,7 @@ export interface TreeState {
     // byLatitude: TreeNumericalIndex;
     // byLongitude: TreeNumericalIndex;
     bySpecies: Record<string, Set<string>>;
+    byTag: Record<string, string>;
   };
   drafts: Set<string>;
   localDeletions: Set<string>;
@@ -113,6 +114,7 @@ const initialState: TreeState = {
     // byLatitude: [],
     // byLongitude: [],
     bySpecies: {},
+    byTag: {},
   },
   drafts: new Set([]),
   localDeletions: new Set([]),
@@ -136,6 +138,9 @@ export const upsertTrees = (state: TreeState, action: UpsertAction<Tree>) => {
       if (!(newTree.speciesCode in state.indices.bySpecies))
         state.indices.bySpecies[newTree.speciesCode] = new Set([]);
       state.indices.bySpecies[newTree.speciesCode].add(newTree.id);
+    }
+    if (newTree.tag) {
+      state.indices.byTag[newTree.tag] = newTree.id;
     }
     if (action?.selectFinal) state.selected = newTree.id;
   });

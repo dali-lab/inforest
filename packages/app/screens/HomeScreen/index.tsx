@@ -207,7 +207,9 @@ export const HomeScreen = () => {
           padding: 64,
           alignItems: "stretch",
           height: windowHeight,
+          flexGrow: 1,
         }}
+        contentInset={{bottom: 100}}
       >
         <View
           style={{
@@ -456,11 +458,15 @@ export const HomeScreen = () => {
                         paddingHorizontal: 8,
                         borderRadius: 12,
                         backgroundColor: statusColor,
+                        minWidth: 100,
                       }}
                     >
                       <Text
                         variant={TextVariants.SmallLabel}
                         color={Colors.neutral[8]}
+                        style={{
+                          textAlign: "center"
+                        }}
                       >
                         {convertToNaturalLanguage(
                           plotCensuses.status,
@@ -469,7 +475,11 @@ export const HomeScreen = () => {
                       </Text>
                     </View>
                   </View>
-                  <View>
+                  <View
+                    style={{
+                      minWidth: 100,
+                    }}
+                  >
                     <AppButton
                       // @ts-ignore
                       onPress={() => {

@@ -50,6 +50,8 @@ import { useIsConnected } from "react-native-offline";
 import { AUTHOR_ID } from "../../constants/dev";
 import ConfirmationModal from "../ConfirmationModal";
 import { submitPlotCensus } from "../../redux/slices/plotCensusSlice";
+
+// Unused component
 const SearchBar = () => {
   return (
     <View
@@ -299,7 +301,6 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
                 )}
               </View>
               <Stack size={24}></Stack>
-              <SearchBar></SearchBar>
             </View>
           )}
           {zoom === MapScreenZoomLevels.Plot && !!plot && (
@@ -342,7 +343,6 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
                     </AppButton>
                   </View>
                   <Stack size={24}></Stack>
-                  <SearchBar></SearchBar>
                 </View>
               )}
               {drawerState === "EXPANDED" && !!selectedTree && plot && (

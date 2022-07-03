@@ -11,8 +11,13 @@ import {
 import { formPlotNumber, parsePlotNumber } from "../../constants/plots";
 import useAppSelector from "../../hooks/useAppSelector";
 import Colors from "../../constants/Colors";
+import useAppDispatch from "../../hooks/useAppDispatch";
 import { ModeSwitcher } from "./ModeSwitcher";
 import { MapOverlay } from "../../components/MapOverlay";
+import {
+  VisualizationConfigType,
+} from "../../constants";
+import { selectTree } from "../../redux/slices/treeSlice";
 import LoadingOverlay from "../../components/LoadingOverlay";
 
 const LOWER_BUTTON_HEIGHT = 64;
@@ -36,11 +41,14 @@ const PlotView: React.FC<PlotViewProps> = (props) => {
     setDirection((direction + 1) % 4);
   }, [direction]);
 
+  const dispatch = useAppDispatch();
+
   const {
     all: allPlotCensuses,
     selected: selectedPlotCensusId,
     loading: plotCensusLoading,
   } = useAppSelector((state) => state.plotCensuses);
+
   const {
     all: allPlots,
     selected: selectedPlotId,
@@ -72,6 +80,36 @@ const PlotView: React.FC<PlotViewProps> = (props) => {
     [selectedPlotCensusId, allPlotCensuses]
   );
 
+  const {
+    all: allTrees,
+    indices: { byTag },
+  } = useAppSelector((state) => state.trees);
+  
+  const findTree = useCallback(
+    (treeTag: string) => {
+      const tree = allTrees[byTag[treeTag]];
+
+      if (tree && tree.plotId === selectedPlotId) {
+        dispatch(selectTree(tree.id));
+      } else {
+        alert(
+          "A tree with that tag could not be found. Please try a different tag and try again."
+        );
+      }
+    },
+    [allTrees, byTag, selectedPlotId, dispatch]
+  );
+  
+  const [searchModalOpen, setSearchModalOpen] = useState(false);
+  const NUM_OF_SPECIES = 8;
+  const [visualizationConfig, setVisualizationConfig] =
+    useState<VisualizationConfigType>({
+      modalOpen: false,
+      colorBySpecies: false,
+      numOfSpecies: NUM_OF_SPECIES,
+      satellite: false,
+  });
+  
   return (
     <>
       <View style={styles.map}>
@@ -82,9 +120,24 @@ const PlotView: React.FC<PlotViewProps> = (props) => {
           <ModeSwitcher mode={mode} switchMode={switchMode}></ModeSwitcher>
         </View>
         <View
+          style={{ ...styles.mapOverlay, bottom: drawerHeight + 32, left: 32 }}
+        >
+          <Ionicons 
+            name="ios-search" 
+            size={32} 
+            onPress={() => {
+              setSearchModalOpen(true);
+            }} 
+          />
+        </View>
+        <View
           style={{ ...styles.mapOverlay, bottom: drawerHeight + 32, right: 32 }}
         >
-          <Ionicons name="ios-refresh" size={32} onPress={rotate} />
+          <Ionicons 
+            name="ios-refresh" 
+            size={32} 
+            onPress={rotate} 
+          />
         </View>
         {selectedPlot ? (
           <PlottingSheet
