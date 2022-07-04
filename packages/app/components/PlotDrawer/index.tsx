@@ -256,7 +256,6 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
       )
     )
       return;
-    console.log("new census on tree", selectedTree);
     const newCensus: Partial<TreeCensus> = {
       ...blankTreeCensus,
       treeId: selectedTree?.id,
@@ -266,11 +265,16 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
     if (isConnected) {
       await dispatch(createTreeCensus(newCensus));
     } else {
-      const { payload } = dispatch(locallyCreateTreeCensus(newCensus));
-      if (payload?.id) newCensus.id = payload.id;
+      dispatch(locallyCreateTreeCensus(newCensus));
     }
-    // if (!selectedTree?.initCensus) editTree({ initCensusId: newCensus.id });
-  }, [selectedTree, plotCensus, dispatch, isConnected, byTreeActive]);
+  }, [
+    selectedTree,
+    plotCensus,
+    dispatch,
+    isConnected,
+    byTreeActive,
+    currentUser,
+  ]);
   useEffect(() => {
     addNewCensus();
   }, [addNewCensus]);
@@ -396,7 +400,7 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
               )}
               {drawerState === "EXPANDED" && !!selectedTree && (
                 <>
-                  {!!selectedTreeCensus && (
+                  {selectedTreeCensus && (
                     <>
                       <Stack size={24}></Stack>
                       <DataEntryForm

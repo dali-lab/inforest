@@ -6,7 +6,6 @@ import Colors from "../constants/Colors";
 
 const OfflineBar: FC = () => {
   const isConnected = useIsConnected();
-  console.log(isConnected);
   return !isConnected ? (
     <View style={styles.offlineBar}>
       <Text style={styles.offlineText}>

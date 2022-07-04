@@ -127,6 +127,7 @@ export const HomeScreen = () => {
     selected: selectedForestCensus,
     all: allForestCensuses,
     loading: forestCensusLoading,
+    indices: { byForests },
   } = useAppSelector((state: RootState) => state.forestCensuses);
   const { all: allPlots } = useAppSelector((state: RootState) => state.plots);
   const { all: allPlotCensus } = useAppSelector(
@@ -150,6 +151,12 @@ export const HomeScreen = () => {
       );
     }
   }, [loadCensusData, censusLoaded]);
+
+  useEffect(() => {
+    if (availableForests.length > 0 && !selectedForestId) {
+      dispatch(selectForest(availableForests[0].id));
+    }
+  }, [availableForests]);
 
   if (availableForests.length === 0) {
     return (
@@ -252,7 +259,7 @@ export const HomeScreen = () => {
               label: name,
               value: id,
             }))}
-            placeholder={{ label: "Select a forest...", value: undefined }}
+            placeholder={{ label: "Loading forests...", value: undefined }}
             style={{
               inputIOS: {
                 ...TextStyles[TextVariants.H3],
@@ -285,7 +292,12 @@ export const HomeScreen = () => {
               label: name,
               value: id,
             }))}
-            placeholder={{ label: "Select a project...", value: undefined }}
+            placeholder={{
+              label: forestCensusLoading
+                ? "Loading projects..."
+                : "Select a project",
+              value: undefined,
+            }}
             style={{
               inputIOS: {
                 ...TextStyles[TextVariants.H3],

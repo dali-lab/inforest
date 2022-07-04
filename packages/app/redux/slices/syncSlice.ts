@@ -114,7 +114,7 @@ export const uploadCensusData = createAsyncThunk(
         alert(
           "An error occurred while syncing your data: " +
             err?.message +
-            ". Ensure your connection is reliable and try again."
+            ". Once new data is loaded check your tree censuses and re-census any missing entries."
         );
         throw err;
       });

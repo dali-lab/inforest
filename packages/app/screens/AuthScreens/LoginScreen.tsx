@@ -32,7 +32,7 @@ const LoginScreen: React.FC = () => {
     } catch (err: any) {
       alert(err?.message || "An unknown error occured.");
     }
-  }, [state, dispatch]);
+  }, [state, dispatch, isConnected]);
 
   return (
     <>
