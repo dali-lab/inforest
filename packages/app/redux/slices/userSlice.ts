@@ -1,6 +1,5 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { User } from "@ong-forestry/schema";
-import { persistStore, purgeStoredState } from "redux-persist";
 import SERVER_URL from "../../constants/Url";
 import axios from "axios";
 import { persistConfig } from "..";
@@ -157,7 +156,6 @@ export const userSlice = createSlice({
       return state;
     },
     logout: () => {
-      purgeStoredState(persistConfig);
       return initialState;
     },
     startUserLoading: (state) => ({ ...state, loading: true }),

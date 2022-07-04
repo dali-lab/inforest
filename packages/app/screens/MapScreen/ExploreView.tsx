@@ -566,7 +566,7 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
                 fillColor={plotIdColorMap(plot.id)}
                 tappable={true}
                 onPress={async () => {
-                  plot?.id && await selectPlotAndCensus(plot.id);
+                  plot?.id && (await selectPlotAndCensus(plot.id));
                 }}
               />
             );

@@ -27,18 +27,18 @@ export const createPlotCensus = async (plotId: string) => {
     throw new Error("This plot does not exist.");
   }
 
-  // check for existing ongoing censuses
-  const existingCensuses = await getPlotCensuses({
-    plotId,
-    statuses: [PlotCensusStatuses.InProgress, PlotCensusStatuses.Pending],
-  });
-  if (existingCensuses.length > 1) {
-    throw new Error("Error: more than one open census on this plot");
-  }
+  // // check for existing ongoing censuses
+  // const existingCensuses = await getPlotCensuses({
+  //   plotId,
+  //   statuses: [PlotCensusStatuses.InProgress, PlotCensusStatuses.Pending],
+  // });
+  // if (existingCensuses.length > 1) {
+  //   throw new Error("Error: more than one open census on this plot");
+  // }
 
-  if (existingCensuses.length == 1) {
-    throw new CensusExistsError(existingCensuses[0]);
-  }
+  // if (existingCensuses.length == 1) {
+  //   throw new CensusExistsError(existingCensuses[0]);
+  // }
 
   // find in-progress forest census on forest containing this plot
   const forestCensus = await getForestCensuses({
