@@ -4,11 +4,35 @@ import AppButton from "../components/AppButton";
 import { Text, TextVariants } from "../components/Themed";
 import useAppDispatch from "../hooks/useAppDispatch";
 import { logout } from "../redux/slices/userSlice";
+import { useNavigation } from "@react-navigation/native";
+import { MapOverlay } from "../components/MapOverlay";
+import { Ionicons } from "@expo/vector-icons";
 
 const ProfileScreen: FC = () => {
   const dispatch = useAppDispatch();
+  const navigate = useNavigation();
+
   return (
     <View style={styles.container}>
+      <View
+        style={{
+          position: "absolute",
+          top: 32,
+          left: 32,
+          borderRadius: 16,
+          width: 64,
+          height: 64,
+          overflow: "hidden",
+        }}
+      >
+        <Ionicons
+          name="ios-arrow-back"
+          size={32}
+          onPress={() => {
+            navigate.goBack();
+          }}
+        />
+      </View>
       <Text variant={TextVariants.H2} style={{ marginBottom: 16 }}>
         Your Profile
       </Text>

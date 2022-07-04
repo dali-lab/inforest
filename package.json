@@ -9,7 +9,7 @@
     "packages/*"
   ],
   "engines": {
-    "node": ">=12 <=16"
+    "node": ">=12 <=17"
   },
   "scripts": {
     "lint": "prettier --check **/*",
