@@ -134,12 +134,12 @@ export const upsertTrees = (state: TreeState, action: UpsertAction<Tree>) => {
     if (!(newTree.plotId in state.indices.byPlots))
       state.indices.byPlots[newTree.plotId] = new Set([]);
     state.indices.byPlots[newTree.plotId].add(newTree.id);
-    if (newTree.speciesCode) {
+    if (newTree?.speciesCode) {
       if (!(newTree.speciesCode in state.indices.bySpecies))
         state.indices.bySpecies[newTree.speciesCode] = new Set([]);
       state.indices.bySpecies[newTree.speciesCode].add(newTree.id);
     }
-    if (newTree.tag) {
+    if (newTree?.tag) {
       state.indices.byTag[newTree.tag] = newTree.id;
     }
     if (action?.selectFinal) state.selected = newTree.id;

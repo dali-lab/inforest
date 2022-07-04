@@ -163,7 +163,7 @@ const LoadingTransformer = createTransform(
   }
 );
 
-const persistConfig = {
+export const persistConfig = {
   key: "root",
   storage: ExpoFileSystemStorage,
   stateReconciler: hardSet,

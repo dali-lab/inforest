@@ -1,7 +1,7 @@
-import { ForestCensus } from "@ong-forestry/schema";
+import { ForestCensus, Plot } from "@ong-forestry/schema";
 import ForestCensusModel from "db/models/forest-census";
 import { Op } from "sequelize";
-import { getPlotCensuses, getPlots } from "services";
+import { createPlotCensus, getPlotCensuses, getPlots } from "services";
 import { getForests } from "./forest-service";
 import { PlotCensusStatuses } from "../enums";
 
@@ -15,7 +15,17 @@ export const createForestCensus = async (forestCensus: ForestCensus) => {
     throw new Error("An active forest census already exists on this forest.");
   }
 
-  return await ForestCensusModel.create(forestCensus);
+  const forestPlots: Plot[] = await getPlots({
+    forestId: forestCensus.forestId,
+  });
+
+  const newCensus = await ForestCensusModel.create(forestCensus);
+
+  for (const plot of forestPlots) {
+    await createPlotCensus(plot.id);
+  }
+
+  return newCensus;
 };
 
 export interface ForestCensusParams {
