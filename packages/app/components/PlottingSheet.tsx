@@ -113,8 +113,11 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
   const {
     all: allTreeCensuses,
     selected: selectedTreeCensusId,
-    indices: { byTreeActive },
+    indices: { byTreeActive, byPlotCensus },
   } = useAppSelector((state) => state.treeCensuses);
+  const { selected: selectedPlotCensusId } = useAppSelector(
+    (state) => state.plotCensuses
+  );
   const selectedTree = useMemo(
     () => (selectedTreeId ? all[selectedTreeId] : undefined),
     [all, selectedTreeId]
@@ -376,7 +379,12 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
           {trees
             .filter((tree) => tree.plotId === plot.id)
             .map((tree) => {
-              const isCensusing = inProgressCensuses.includes(tree.id);
+              const isCensusing =
+                inProgressCensuses.includes(tree.id) &&
+                selectedPlotCensusId &&
+                byPlotCensus?.[selectedPlotCensusId]?.has(
+                  byTreeActive[tree.id]
+                );
               const { plotX, plotY } = tree;
               if (!!plotX && !!plotY) {
                 const treePixelSize = Math.max(
@@ -406,7 +414,7 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
                       minimizeDrawer();
                       dispatch(selectTree(tree.id));
 
-                      if (byTreeActive[tree.id]) {
+                      if (isCensusing) {
                         dispatch(selectTreeCensus(byTreeActive[tree.id]));
                       } else {
                         // createCensus();

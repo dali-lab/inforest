@@ -120,7 +120,7 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
   const {
     all: allTreeCensuses,
     selected: selectedTreeCensusId,
-    indices: { byTreeActive },
+    indices: { byTreeActive, byPlotCensus },
   } = useAppSelector((state) => state.treeCensuses);
   const { all: allForestCensuses, selected: selectedForestCensusId } =
     useAppSelector((state) => state.forestCensuses);
@@ -236,6 +236,10 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
     }
   }, [selectedTreeCensus, editTreeCensus]);
 
+  const inProgressCensuses = useMemo(() => {
+    return Object.keys(byTreeActive);
+  }, [byTreeActive]);
+
   const addNewCensus = useCallback(async () => {
     // if (selectedTree)
     //   alert(
@@ -253,7 +257,10 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
         selectedTree?.plotId &&
         selectedTree?.id &&
         plotCensus?.id &&
-        !byTreeActive?.[selectedTree.id] &&
+        !(
+          inProgressCensuses.includes(selectedTree.id) &&
+          byPlotCensus?.[plotCensus.id]?.has(byTreeActive[selectedTree.id])
+        ) &&
         currentUser
       )
     )

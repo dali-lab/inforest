@@ -144,7 +144,7 @@ export const upsertTrees = (state: TreeState, action: UpsertAction<Tree>) => {
         state.indices.byTag[newTree.tag] = newTree.id;
       }
     } catch (e) {
-      console.error(e);
+      // console.error(e);
     }
     if (action?.selectFinal) state.selected = newTree.id;
   });
