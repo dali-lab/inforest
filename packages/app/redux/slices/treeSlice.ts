@@ -139,9 +139,9 @@ export const upsertTrees = (state: TreeState, action: UpsertAction<Tree>) => {
         state.indices.bySpecies[newTree.speciesCode] = new Set([]);
       state.indices.bySpecies[newTree.speciesCode].add(newTree.id);
     }
-    if (newTree?.tag) {
-      state.indices.byTag[newTree.tag] = newTree.id;
-    }
+    // if (newTree?.tag) {
+    //   state.indices.byTag[newTree.tag] = newTree.id;
+    // }
     if (action?.selectFinal) state.selected = newTree.id;
   });
 

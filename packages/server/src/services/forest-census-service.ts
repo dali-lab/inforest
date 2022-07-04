@@ -89,27 +89,27 @@ export const closeForestCensus = async (params: Pick<ForestCensus, "id">) => {
 
   // ensure all plots in this forest have approved plot censuses
   // select all plots in the forest
-  const plots = await getPlots({ forestId: activeCensuses[0].forestId });
+  // const plots = await getPlots({ forestId: activeCensuses[0].forestId });
 
-  // select approved plot censuses in this forest census for each plot
-  const plotPlotCensuses = await Promise.all(
-    plots.map((plot) => {
-      return getPlotCensuses({
-        plotId: plot.id,
-        forestCensusId: activeCensuses[0].id,
-        statuses: [PlotCensusStatuses.Approved],
-      });
-    })
-  );
+  // // select approved plot censuses in this forest census for each plot
+  // const plotPlotCensuses = await Promise.all(
+  //   plots.map((plot) => {
+  //     return getPlotCensuses({
+  //       plotId: plot.id,
+  //       forestCensusId: activeCensuses[0].id,
+  //       statuses: [PlotCensusStatuses.Approved],
+  //     });
+  //   })
+  // );
 
-  // for each plot ensure length of plot censuses is >0
-  plotPlotCensuses.map((plotCensuses) => {
-    if (plotCensuses.length == 0) {
-      throw new Error(
-        "All plots must be censused and approved before forest census can be closed"
-      );
-    }
-  });
+  // // for each plot ensure length of plot censuses is >0
+  // plotPlotCensuses.map((plotCensuses) => {
+  //   if (plotCensuses.length == 0) {
+  //     throw new Error(
+  //       "All plots must be censused and approved before forest census can be closed"
+  //     );
+  //   }
+  // });
 
   return await ForestCensusModel.update(
     { active: false },
