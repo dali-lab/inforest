@@ -185,6 +185,7 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
 
   const plotArray = useMemo(() => Object.values(allPlots), [allPlots]);
   const plots = usePlotsInRegion(plotArray, regionSnapshot);
+  const numTrees = useMemo(() => Object.keys(allTrees).length, [allTrees]);
   const density = useMemo(() => {
     if (plots.length <= Math.pow(5, 2)) {
       return 1;
@@ -201,14 +202,15 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
     } else if (plots.length <= Math.pow(19, 2)) {
       return 1 / 12;
     } else {
-      return 1 / Object.keys(allTrees).length;
+      return 1 / numTrees;
     }
-  }, [plots.length, allTrees]);
+  }, [plots.length, numTrees]);
 
-  const trees = useTreesInRegion(
-    useTreesByDensity(reduxState, density),
-    regionSnapshot
-  );
+  const trees = useMemo(() => Object.values(allTrees), [allTrees]);
+
+  // console.log(testTrees.length);
+
+  // const trees = useMemo<Tree[]>(() => [], []);
 
   const selectPlotAndCensus = useCallback(
     async (plotId: string) => {
@@ -277,49 +279,49 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
 
   const treeNodes = useMemo(() => {
     setSpeciesFrequencyMap({});
+    console.log("change tree nodes");
     // This ternary expression ensures that the selected tree is at the end of the list and is therefore rendered on top of others
-    return (selectedTreeId ? [...trees, allTrees[selectedTreeId]] : trees).map(
-      (tree: Tree, i) => {
-        if (
-          !!tree?.latitude &&
-          !!tree?.longitude &&
-          (tree.id !== selectedTreeId || i !== trees.length)
-        ) {
-          const selected = selectedTreeId === tree.id;
-          const activeCensus = allTreeCensuses[byTreeActive[tree.id]];
-          let nodeColor = visualizationConfig.satellite
-            ? Colors.neutral[1]
-            : Colors.primary.normal;
-          if (visualizationConfig.colorBySpecies) {
-            const { speciesCode } = tree;
-            if (speciesCode) {
-              nodeColor = colorMap[speciesCode];
-            }
+    return trees.map((tree: Tree, i) => {
+      // console.log("mapping over tree ", tree.id);
+      if (
+        tree?.latitude &&
+        tree?.longitude &&
+        (tree.id !== selectedTreeId || i !== trees.length)
+      ) {
+        const selected = selectedTreeId === tree.id;
+        const activeCensus = allTreeCensuses[byTreeActive[tree.id]];
+        let nodeColor = visualizationConfig.satellite
+          ? Colors.neutral[1]
+          : Colors.primary.normal;
+        if (visualizationConfig.colorBySpecies) {
+          const { speciesCode } = tree;
+          if (speciesCode) {
+            nodeColor = colorMap[speciesCode];
           }
-          const treePixelSize =
-            (activeCensus?.dbh ?? DEFAULT_DBH) *
-            0.01 *
-            0.5 *
-            FOLIAGE_MAGNIFICATION;
-          return (
-            <Circle
-              key={tree.id}
-              center={{
-                latitude: tree.latitude,
-                longitude: tree.longitude,
-              }}
-              radius={selected ? Math.max(1.5, treePixelSize) : treePixelSize}
-              strokeColor={selected ? Colors.highlight : nodeColor}
-              fillColor={selected ? Colors.highlight : nodeColor}
-              zIndex={selected ? 50 : 2}
-            ></Circle>
-          );
         }
+        const treePixelSize =
+          (activeCensus?.dbh ?? DEFAULT_DBH) *
+          0.01 *
+          0.5 *
+          FOLIAGE_MAGNIFICATION;
+        return (
+          <Circle
+            key={tree.id}
+            center={{
+              latitude: tree.latitude,
+              longitude: tree.longitude,
+            }}
+            radius={selected ? Math.max(1.5, treePixelSize) : treePixelSize}
+            strokeColor={selected ? Colors.highlight : nodeColor}
+            fillColor={selected ? Colors.highlight : nodeColor}
+            zIndex={selected ? 50 : 2}
+          ></Circle>
+        );
       }
-    );
+    });
   }, [
+    // trees,
     allTrees,
-    trees,
     visualizationConfig.colorBySpecies,
     visualizationConfig.satellite,
     colorMap,
@@ -327,6 +329,8 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
     byTreeActive,
     allTreeCensuses,
   ]);
+
+  console.log(trees.length, treeNodes.length);
 
   const plotIdColorMap = useCallback(
     (id: string) => {
@@ -553,7 +557,7 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
             />
           </>
         )}
-        {showTrees && treeNodes}
+        {/* {showTrees && treeNodes} */}
         {mode === MapScreenModes.Plot &&
           plots.map((plot) => {
             return (

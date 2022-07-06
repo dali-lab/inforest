@@ -80,9 +80,13 @@ export const HomeScreen = () => {
 
   const fetchUserData = useCallback(async () => {
     if (!(isConnected && rehydrated && token && currentUser?.id)) return;
-    setUserFetched(true);
-    await dispatch(getUserByToken(token));
-    await dispatch(getTeams(currentUser.id));
+    try {
+      setUserFetched(true);
+      await dispatch(getUserByToken(token));
+      await dispatch(getTeams(currentUser.id));
+    } catch (e) {
+      setUserFetched(false);
+    }
   }, [isConnected, rehydrated, token, currentUser, setUserFetched]);
 
   const refreshCensusData = useCallback(async () => {
@@ -91,7 +95,14 @@ export const HomeScreen = () => {
     await dispatch(uploadCensusData());
     dispatch(resetData());
     await dispatch(getForests(currentTeamId));
-  }, [isConnected, rehydrated, token, currentTeamId, setCensusRefreshed]);
+  }, [
+    isConnected,
+    rehydrated,
+    token,
+    currentTeamId,
+    currentUser,
+    setCensusRefreshed,
+  ]);
 
   useEffect(() => {
     try {
