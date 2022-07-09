@@ -57,7 +57,7 @@ class Plot extends Model<IPlot> implements IPlot {
   @Column(DataTypes.UUID)
   forestId: string;
 
-  @BelongsTo(() => Forest)
+  @BelongsTo(() => Forest, { onDelete: "CASCADE" })
   forest: IForest;
 
   @HasMany(() => PlotCensus)

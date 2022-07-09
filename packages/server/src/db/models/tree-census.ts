@@ -54,7 +54,7 @@ class TreeCensus
   @Column(DataTypes.STRING)
   treeId: string;
 
-  @BelongsTo(() => Tree)
+  @BelongsTo(() => Tree, { onDelete: "CASCADE" })
   tree: ITree;
 
   @Column(DataTypes.FLOAT)
@@ -85,7 +85,7 @@ class TreeCensus
   @Column(DataTypes.UUID)
   plotCensusId: string;
 
-  @BelongsTo(() => PlotCensus)
+  @BelongsTo(() => PlotCensus, { onDelete: "CASCADE" })
   plotCensus: IPlotCensus;
 
   @HasOne(() => Tree, { onDelete: "SET NULL" })
