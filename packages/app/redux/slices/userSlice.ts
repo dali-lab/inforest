@@ -2,7 +2,6 @@ import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { User } from "@ong-forestry/schema";
 import SERVER_URL from "../../constants/Url";
 import axios from "axios";
-import { persistConfig } from "..";
 
 const BASE_URL = SERVER_URL + "users/";
 

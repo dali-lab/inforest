@@ -284,6 +284,8 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
     isConnected,
     byTreeActive,
     currentUser,
+    byPlotCensus,
+    inProgressCensuses,
   ]);
   useEffect(() => {
     addNewCensus();

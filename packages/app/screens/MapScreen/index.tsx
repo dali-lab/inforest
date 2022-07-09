@@ -11,11 +11,8 @@ import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
 import { CensusStackParamList } from "../../Screens";
 import useAppSelector from "../../hooks/useAppSelector";
 import { deselectTreeCensus } from "../../redux/slices/treeCensusSlice";
-import Colors from "../../constants/Colors";
 import { selectPlotCensus } from "../../redux/slices/plotCensusSlice";
 import LoadingOverlay from "../../components/LoadingOverlay";
-import OfflineBar from "../../components/OfflineBar";
-import { useIsConnected } from "react-native-offline";
 
 export default function MapScreen() {
   const route = useRoute<RouteProp<CensusStackParamList, "map">>();
@@ -78,7 +75,7 @@ export default function MapScreen() {
     dispatch(deselectTreeCensus());
     setZoomLevel(MapScreenZoomLevels.Forest);
     navigation.navigate("home");
-  }, [dispatch, setZoomLevel]);
+  }, [dispatch, setZoomLevel, navigation]);
   return (
     <>
       {loadingTasks.size > 0 && (
