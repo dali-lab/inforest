@@ -29,6 +29,7 @@ import {
   deselectTree,
   updateTree,
   locallyUpdateTree,
+  deleteTreeById,
 } from "../../redux/slices/treeSlice";
 import AppButton from "../AppButton";
 import { Text, TextStyles, TextVariants } from "../Themed";
@@ -221,13 +222,13 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
         ? deleteTreeCensus(selectedTreeCensus.id)
         : locallyDeleteTreeCensus(selectedTreeCensus.id)
     );
-    dispatch(deselectTree());
-    // if (selectedTree?.initCensusId === selectedTreeCensus.id)
-    //   await dispatch(
-    //     isConnected
-    //       ? deleteTree(selectedTree.id)
-    //       : locallyDeleteTree(selectedTree.id)
-    //   );
+    console.log(selectedTree.initCensusId, selectedTreeCensus.id);
+    if (selectedTree?.initCensusId === selectedTreeCensus.id)
+      dispatch(
+        isConnected
+          ? deleteTreeById(selectedTree.id)
+          : locallyDeleteTree(selectedTree.id)
+      );
   }, [isConnected, selectedTree, selectedTreeCensus, dispatch]);
 
   const toggleFlagged = useCallback(async () => {
@@ -287,6 +288,16 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
   useEffect(() => {
     addNewCensus();
   }, [addNewCensus]);
+
+  useEffect(() => {
+    if (selectedTree?.initCensusId === null && selectedTreeCensusId)
+      dispatch(
+        locallyUpdateTree({
+          ...selectedTree,
+          initCensusId: selectedTreeCensusId,
+        })
+      );
+  }, [selectedTree, selectedTreeCensusId]);
   if (drawerState === DrawerStates.Closed) {
     return null;
   }

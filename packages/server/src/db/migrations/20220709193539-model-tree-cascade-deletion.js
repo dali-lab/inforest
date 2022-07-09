@@ -87,6 +87,16 @@ module.exports = {
       },
       onDelete: "cascade",
     });
+    await queryInterface.removeConstraint("trees", "trees_initCensusId_fkey");
+    await queryInterface.addConstraint("trees", {
+      fields: ["initCensusId"],
+      type: "foreign key",
+      references: {
+        table: "tree_census",
+        field: "id",
+      },
+      onDelete: "cascade",
+    });
     await queryInterface.removeConstraint(
       "plot_census_assignment",
       "plot_census_assignment_plotCensusId_fkey"
@@ -200,6 +210,20 @@ module.exports = {
         table: "plots",
         field: "id",
       },
+    });
+    await queryInterface.removeConstraint(
+      "trees",
+      "trees_initCensusId_tree_census_fk"
+    );
+    await queryInterface.addConstraint("trees", {
+      fields: ["initCensusId"],
+      type: "foreign key",
+      name: "trees_initCensusId_fkey",
+      references: {
+        table: "tree_census",
+        field: "id",
+      },
+      onDelete: "SET NULL",
     });
     await queryInterface.removeConstraint(
       "plot_census_assignment",
