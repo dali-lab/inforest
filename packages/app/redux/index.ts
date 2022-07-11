@@ -38,7 +38,6 @@ import hardSet from "redux-persist/lib/stateReconciler/hardSet";
 import ExpoFileSystemStorage from "redux-persist-expo-filesystem";
 import { enableMapSet } from "immer";
 import { isArray, isObject } from "lodash";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { SyncState } from "./slices/syncSlice";
 import { isEmpty } from "lodash";
 
@@ -83,16 +82,26 @@ const rootReducer = combineReducers<RootState>(reducers);
 
 const SurfaceSetTransform = createTransform(
   (inboundState: any, key) => {
-    if ("drafts" in inboundState) {
-      return { ...inboundState, drafts: Array.from(inboundState.drafts) };
-    }
-    return inboundState;
+    return {
+      ...inboundState,
+      ...("drafts" in inboundState
+        ? { drafts: Array.from(inboundState.drafts) }
+        : {}),
+      ...("localDeletions" in inboundState
+        ? { localDeletions: Array.from(inboundState.localDeletions) }
+        : {}),
+    };
   },
   (outboundState: RootState[keyof RootState]) => {
-    if ("drafts" in outboundState) {
-      return { ...outboundState, drafts: new Set(outboundState.drafts) };
-    }
-    return outboundState;
+    return {
+      ...outboundState,
+      ...("drafts" in outboundState
+        ? { drafts: new Set(outboundState.drafts) }
+        : {}),
+      ...("localDeletions" in outboundState
+        ? { localDeletions: new Set(outboundState.localDeletions) }
+        : {}),
+    };
   },
   { whitelist: ["trees", "treeCensuses", "treePhotos", "treeCensusLabels"] }
 );
@@ -154,7 +163,7 @@ const LoadingTransformer = createTransform(
   }
 );
 
-const persistConfig = {
+export const persistConfig = {
   key: "root",
   storage: ExpoFileSystemStorage,
   stateReconciler: hardSet,

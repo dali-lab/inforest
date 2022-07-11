@@ -7,7 +7,13 @@ import {
   getPlots,
   getTrees,
 } from "services";
-import { PlotCensus, TreeCensusLabel, TreeLabel, TreePhoto } from "db/models";
+import {
+  PlotCensus,
+  TreeCensusLabel,
+  TreeLabel,
+  TreePhoto,
+  Tree,
+} from "db/models";
 import { PlotCensusStatuses } from "../enums";
 
 export const bulkUpsertTreeCensuses = async (treeCensuses: TreeCensus[]) => {
@@ -75,15 +81,10 @@ export const createTreeCensus = async (treeCensus: TreeCensus) => {
 
   const newCensus = await TreeCensusModel.create(treeCensus);
 
-  const relatedTree = (
-    await getTrees({
-      id: newCensus.treeId,
-    })
-  )[0];
-  if (relatedTree.initCensusId === null) {
-    relatedTree.initCensusId = newCensus.id;
-    relatedTree.save();
-  }
+  await Tree.update(
+    { initCensusId: newCensus.id },
+    { where: { id: newCensus.treeId, initCensusId: null } }
+  );
   return newCensus;
 };
 

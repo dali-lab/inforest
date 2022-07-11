@@ -7,20 +7,17 @@ import { selectPlot } from "../../redux/slices/plotSlice";
 import { deselectTree } from "../../redux/slices/treeSlice";
 import PlotView from "./PlotView";
 import ForestView from "./ExploreView";
-import { RouteProp, useRoute } from "@react-navigation/native";
+import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
 import { CensusStackParamList } from "../../Screens";
 import useAppSelector from "../../hooks/useAppSelector";
 import { deselectTreeCensus } from "../../redux/slices/treeCensusSlice";
-import Colors from "../../constants/Colors";
 import { selectPlotCensus } from "../../redux/slices/plotCensusSlice";
 import LoadingOverlay from "../../components/LoadingOverlay";
-import OfflineBar from "../../components/OfflineBar";
-import { useIsConnected } from "react-native-offline";
 
 export default function MapScreen() {
   const route = useRoute<RouteProp<CensusStackParamList, "map">>();
   const dispatch = useAppDispatch();
-  const isConnected = useIsConnected();
+  const navigation = useNavigation();
 
   const [zoomLevel, setZoomLevel] = useState<MapScreenZoomLevels>(
     route.params.zoomLevel
@@ -77,11 +74,14 @@ export default function MapScreen() {
     dispatch(deselectTree());
     dispatch(deselectTreeCensus());
     setZoomLevel(MapScreenZoomLevels.Forest);
-  }, [dispatch, setZoomLevel]);
+    navigation.navigate("home");
+  }, [dispatch, setZoomLevel, navigation]);
   return (
     <>
       {loadingTasks.size > 0 && (
-        <LoadingOverlay isBackArrow={true}>{loadingTasks.values().next().value}</LoadingOverlay>
+        <LoadingOverlay isBackArrow={true}>
+          {loadingTasks.values().next().value}
+        </LoadingOverlay>
       )}
       <View style={styles.container}>
         {zoomLevel === "FOREST" && (

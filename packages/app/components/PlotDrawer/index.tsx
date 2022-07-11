@@ -29,6 +29,7 @@ import {
   deselectTree,
   updateTree,
   locallyUpdateTree,
+  deleteTreeById,
 } from "../../redux/slices/treeSlice";
 import AppButton from "../AppButton";
 import { Text, TextStyles, TextVariants } from "../Themed";
@@ -47,7 +48,6 @@ import {
   updateTreeCensus,
 } from "../../redux/slices/treeCensusSlice";
 import { useIsConnected } from "react-native-offline";
-import { AUTHOR_ID } from "../../constants/dev";
 import ConfirmationModal from "../ConfirmationModal";
 import { submitPlotCensus } from "../../redux/slices/plotCensusSlice";
 
@@ -109,6 +109,7 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
   stopPlotting,
 }) => {
   const dispatch = useAppDispatch();
+  const { currentUser } = useAppSelector((state) => state.user);
   const {
     all: allTrees,
     selected: selectedTreeId,
@@ -120,7 +121,7 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
   const {
     all: allTreeCensuses,
     selected: selectedTreeCensusId,
-    indices: { byTreeActive },
+    indices: { byTreeActive, byPlotCensus },
   } = useAppSelector((state) => state.treeCensuses);
   const { all: allForestCensuses, selected: selectedForestCensusId } =
     useAppSelector((state) => state.forestCensuses);
@@ -221,13 +222,13 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
         ? deleteTreeCensus(selectedTreeCensus.id)
         : locallyDeleteTreeCensus(selectedTreeCensus.id)
     );
-    dispatch(deselectTree());
-    // if (selectedTree?.initCensusId === selectedTreeCensus.id)
-    //   await dispatch(
-    //     isConnected
-    //       ? deleteTree(selectedTree.id)
-    //       : locallyDeleteTree(selectedTree.id)
-    //   );
+    console.log(selectedTree.initCensusId, selectedTreeCensus.id);
+    if (selectedTree?.initCensusId === selectedTreeCensus.id)
+      dispatch(
+        isConnected
+          ? deleteTreeById(selectedTree.id)
+          : locallyDeleteTree(selectedTree.id)
+      );
   }, [isConnected, selectedTree, selectedTreeCensus, dispatch]);
 
   const toggleFlagged = useCallback(async () => {
@@ -235,6 +236,10 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
       editTreeCensus({ flagged: !selectedTreeCensus.flagged });
     }
   }, [selectedTreeCensus, editTreeCensus]);
+
+  const inProgressCensuses = useMemo(() => {
+    return Object.keys(byTreeActive);
+  }, [byTreeActive]);
 
   const addNewCensus = useCallback(async () => {
     // if (selectedTree)
@@ -253,7 +258,11 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
         selectedTree?.plotId &&
         selectedTree?.id &&
         plotCensus?.id &&
-        !byTreeActive?.[selectedTree.id]
+        !(
+          inProgressCensuses.includes(selectedTree.id) &&
+          byPlotCensus?.[plotCensus.id]?.has(byTreeActive[selectedTree.id])
+        ) &&
+        currentUser
       )
     )
       return;
@@ -261,19 +270,36 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
       ...blankTreeCensus,
       treeId: selectedTree?.id,
       plotCensusId: plotCensus.id,
-      authorId: AUTHOR_ID,
+      authorId: currentUser.id,
     };
     if (isConnected) {
       await dispatch(createTreeCensus(newCensus));
     } else {
-      const { payload } = dispatch(locallyCreateTreeCensus(newCensus));
-      if (payload?.id) newCensus.id = payload.id;
+      dispatch(locallyCreateTreeCensus(newCensus));
     }
-    // if (!selectedTree?.initCensus) editTree({ initCensusId: newCensus.id });
-  }, [selectedTree, plotCensus, dispatch, isConnected, byTreeActive]);
+  }, [
+    selectedTree,
+    plotCensus,
+    dispatch,
+    isConnected,
+    byTreeActive,
+    currentUser,
+    byPlotCensus,
+    inProgressCensuses,
+  ]);
   useEffect(() => {
     addNewCensus();
   }, [addNewCensus]);
+
+  useEffect(() => {
+    if (selectedTree?.initCensusId === null && selectedTreeCensusId)
+      dispatch(
+        locallyUpdateTree({
+          ...selectedTree,
+          initCensusId: selectedTreeCensusId,
+        })
+      );
+  }, [selectedTree, selectedTreeCensusId]);
   if (drawerState === DrawerStates.Closed) {
     return null;
   }
@@ -394,7 +420,7 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
               )}
               {drawerState === "EXPANDED" && !!selectedTree && (
                 <>
-                  {!!selectedTreeCensus && (
+                  {selectedTreeCensus && (
                     <>
                       <Stack size={24}></Stack>
                       <DataEntryForm

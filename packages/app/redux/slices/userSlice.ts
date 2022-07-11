@@ -154,7 +154,9 @@ export const userSlice = createSlice({
       state.currentUser = action.payload.user;
       return state;
     },
-    logout: () => initialState,
+    logout: () => {
+      return initialState;
+    },
     startUserLoading: (state) => ({ ...state, loading: true }),
     stopUserLoading: (state) => ({ ...state, loading: false }),
   },

@@ -29,7 +29,7 @@ class PlotCensusAssignment
   @Column({ type: DataTypes.UUID })
   id: string;
 
-  @BelongsTo(() => PlotCensus)
+  @BelongsTo(() => PlotCensus, { onDelete: "CASCADE" })
   plotCensus: IPlotCensus;
 
   @ForeignKey(() => PlotCensus)
@@ -37,7 +37,7 @@ class PlotCensusAssignment
   @Column(DataTypes.STRING)
   plotCensusId: string;
 
-  @BelongsTo(() => User)
+  @BelongsTo(() => User, { onDelete: "CASCADE" })
   user: IUser;
 
   @ForeignKey(() => User)

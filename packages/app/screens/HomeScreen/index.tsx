@@ -38,8 +38,6 @@ import useAppDispatch from "../../hooks/useAppDispatch";
 import { selectForestCensus } from "../../redux/slices/forestCensusSlice";
 import { selectPlot } from "../../redux/slices/plotSlice";
 import { selectPlotCensus } from "../../redux/slices/plotCensusSlice";
-import OfflineBar from "../../components/OfflineBar";
-import LoadingOverlay from "../../components/LoadingOverlay";
 
 const TABLE_COLUMN_WIDTHS = {
   PLOT_NUMBER: 96,
@@ -80,9 +78,13 @@ export const HomeScreen = () => {
 
   const fetchUserData = useCallback(async () => {
     if (!(isConnected && rehydrated && token && currentUser?.id)) return;
-    setUserFetched(true);
-    await dispatch(getUserByToken(token));
-    await dispatch(getTeams(currentUser.id));
+    try {
+      setUserFetched(true);
+      await dispatch(getUserByToken(token));
+      await dispatch(getTeams(currentUser.id));
+    } catch (e) {
+      setUserFetched(false);
+    }
   }, [isConnected, rehydrated, token, currentUser, setUserFetched]);
 
   const refreshCensusData = useCallback(async () => {
@@ -91,7 +93,14 @@ export const HomeScreen = () => {
     await dispatch(uploadCensusData());
     dispatch(resetData());
     await dispatch(getForests(currentTeamId));
-  }, [isConnected, rehydrated, token, currentTeamId, setCensusRefreshed]);
+  }, [
+    isConnected,
+    rehydrated,
+    token,
+    currentTeamId,
+    currentUser,
+    setCensusRefreshed,
+  ]);
 
   useEffect(() => {
     try {
@@ -124,14 +133,15 @@ export const HomeScreen = () => {
     await dispatch(loadForestData(selectedForestId));
   }, [isConnected, rehydrated, token, selectedForestId, setCensusLoaded]);
   const {
-    selected: selectedForestCensus,
+    selected: selectedForestCensusId,
     all: allForestCensuses,
     loading: forestCensusLoading,
   } = useAppSelector((state: RootState) => state.forestCensuses);
   const { all: allPlots } = useAppSelector((state: RootState) => state.plots);
-  const { all: allPlotCensus } = useAppSelector(
-    (state: RootState) => state.plotCensuses
-  );
+  const {
+    all: allPlotCensus,
+    indices: { byForestCensuses },
+  } = useAppSelector((state: RootState) => state.plotCensuses);
   const { height: windowHeight, width: windowWidth } = useWindowDimensions();
 
   const availableForests = useMemo(
@@ -150,6 +160,12 @@ export const HomeScreen = () => {
       );
     }
   }, [loadCensusData, censusLoaded]);
+
+  useEffect(() => {
+    if (availableForests.length > 0 && !selectedForestId) {
+      dispatch(selectForest(availableForests[0].id));
+    }
+  }, [availableForests]);
 
   if (availableForests.length === 0) {
     return (
@@ -209,7 +225,7 @@ export const HomeScreen = () => {
           height: windowHeight,
           flexGrow: 1,
         }}
-        contentInset={{bottom: 100}}
+        contentInset={{ bottom: 100 }}
       >
         <View
           style={{
@@ -254,7 +270,7 @@ export const HomeScreen = () => {
               label: name,
               value: id,
             }))}
-            placeholder={{ label: "Select a forest...", value: undefined }}
+            placeholder={{ label: "Loading forests...", value: undefined }}
             style={{
               inputIOS: {
                 ...TextStyles[TextVariants.H3],
@@ -277,8 +293,8 @@ export const HomeScreen = () => {
           <RNPickerSelect
             itemKey="id"
             value={
-              selectedForestCensus &&
-              allForestCensuses[selectedForestCensus]?.id
+              selectedForestCensusId &&
+              allForestCensuses[selectedForestCensusId]?.id
             }
             onValueChange={(value) => {
               dispatch(selectForestCensus(value));
@@ -287,7 +303,12 @@ export const HomeScreen = () => {
               label: name,
               value: id,
             }))}
-            placeholder={{ label: "Select a project...", value: undefined }}
+            placeholder={{
+              label: forestCensusLoading
+                ? "Loading projects..."
+                : "Select a project",
+              value: undefined,
+            }}
             style={{
               inputIOS: {
                 ...TextStyles[TextVariants.H3],
@@ -399,108 +420,121 @@ export const HomeScreen = () => {
             </Text>
           </View>
           <ScrollView>
-            {Object.values(allPlotCensus).map((plotCensuses) => {
-              let statusColor = Colors.status.problem;
-              let actionButtonText = "";
-              switch (plotCensuses.status) {
-                case PlotCensusStatuses.InProgress:
-                  statusColor = Colors.status.ongoing;
-                  actionButtonText = "Plot";
-                  break;
-                case PlotCensusStatuses.Pending:
-                  statusColor = Colors.status.waiting;
-                  actionButtonText = "View";
+            {Object.values(allPlotCensus)
+              .filter((plotCensus) => {
+                try {
+                  return (
+                    selectedForestCensusId &&
+                    byForestCensuses?.[selectedForestCensusId].has(
+                      plotCensus.id
+                    )
+                  );
+                } catch (e) {
+                  return false;
+                }
+              })
+              .map((plotCensuses) => {
+                let statusColor = Colors.status.problem;
+                let actionButtonText = "";
+                switch (plotCensuses.status) {
+                  case PlotCensusStatuses.InProgress:
+                    statusColor = Colors.status.ongoing;
+                    actionButtonText = "Plot";
+                    break;
+                  case PlotCensusStatuses.Pending:
+                    statusColor = Colors.status.waiting;
+                    actionButtonText = "View";
 
-                  break;
-                case PlotCensusStatuses.Approved:
-                  statusColor = Colors.status.done;
-                  actionButtonText = "View";
-                  break;
-              }
+                    break;
+                  case PlotCensusStatuses.Approved:
+                    statusColor = Colors.status.done;
+                    actionButtonText = "View";
+                    break;
+                }
 
-              return (
-                <View
-                  key={plotCensuses.id}
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    paddingVertical: 12,
-                    paddingHorizontal: 24,
-                  }}
-                >
-                  <Text
-                    style={{ width: TABLE_COLUMN_WIDTHS.PLOT_NUMBER }}
-                    variant={TextVariants.Label}
-                  >
-                    {(plotCensuses.plotId &&
-                      allPlots?.[plotCensuses.plotId]?.number) ||
-                      "No number"}
-                  </Text>
-                  <Text
-                    style={styles.collaboratorsColumn}
-                    variant={TextVariants.Label}
-                  >
-                    {plotCensuses.authors
-                      ?.map(
-                        (author) => author.firstName + " " + author.lastName
-                      )
-                      .join(", ")}
-                  </Text>
+                return (
                   <View
+                    key={plotCensuses.id}
                     style={{
-                      width: TABLE_COLUMN_WIDTHS.STATUS,
                       flexDirection: "row",
+                      alignItems: "center",
+                      paddingVertical: 12,
+                      paddingHorizontal: 24,
                     }}
                   >
+                    <Text
+                      style={{ width: TABLE_COLUMN_WIDTHS.PLOT_NUMBER }}
+                      variant={TextVariants.Label}
+                    >
+                      {(plotCensuses.plotId &&
+                        allPlots?.[plotCensuses.plotId]?.number) ||
+                        "No number"}
+                    </Text>
+                    <Text
+                      style={styles.collaboratorsColumn}
+                      variant={TextVariants.Label}
+                    >
+                      {plotCensuses.authors
+                        ?.map(
+                          (author) => author.firstName + " " + author.lastName
+                        )
+                        .join(", ")}
+                    </Text>
                     <View
                       style={{
-                        paddingVertical: 6,
-                        paddingHorizontal: 8,
-                        borderRadius: 12,
-                        backgroundColor: statusColor,
+                        width: TABLE_COLUMN_WIDTHS.STATUS,
+                        flexDirection: "row",
+                      }}
+                    >
+                      <View
+                        style={{
+                          paddingVertical: 6,
+                          paddingHorizontal: 8,
+                          borderRadius: 12,
+                          backgroundColor: statusColor,
+                          minWidth: 100,
+                        }}
+                      >
+                        <Text
+                          variant={TextVariants.SmallLabel}
+                          color={Colors.neutral[8]}
+                          style={{
+                            textAlign: "center",
+                          }}
+                        >
+                          {convertToNaturalLanguage(
+                            plotCensuses.status,
+                            "ALL_UPPER"
+                          )}
+                        </Text>
+                      </View>
+                    </View>
+                    <View
+                      style={{
                         minWidth: 100,
                       }}
                     >
-                      <Text
-                        variant={TextVariants.SmallLabel}
-                        color={Colors.neutral[8]}
-                        style={{
-                          textAlign: "center"
+                      <AppButton
+                        // @ts-ignore
+                        onPress={() => {
+                          dispatch(selectPlot(plotCensuses.plotId));
+                          dispatch(selectPlotCensus(plotCensuses.id));
+                          // @ts-ignore
+                          navigation.navigate("map", {
+                            mode: MapScreenModes.Plot,
+                            zoomLevel: MapScreenZoomLevels.Plot,
+                            selectedPlot: allPlots[plotCensuses.plotId],
+                          });
                         }}
+                        icon={<Ionicons name={"ios-eye"} size={16} />}
+                        type="PLAIN"
                       >
-                        {convertToNaturalLanguage(
-                          plotCensuses.status,
-                          "ALL_UPPER"
-                        )}
-                      </Text>
+                        {actionButtonText}
+                      </AppButton>
                     </View>
                   </View>
-                  <View
-                    style={{
-                      minWidth: 100,
-                    }}
-                  >
-                    <AppButton
-                      // @ts-ignore
-                      onPress={() => {
-                        dispatch(selectPlot(plotCensuses.plotId));
-                        dispatch(selectPlotCensus(plotCensuses.id));
-                        // @ts-ignore
-                        navigation.navigate("map", {
-                          mode: MapScreenModes.Plot,
-                          zoomLevel: MapScreenZoomLevels.Plot,
-                          selectedPlot: allPlots[plotCensuses.plotId],
-                        });
-                      }}
-                      icon={<Ionicons name={"ios-eye"} size={16} />}
-                      type="PLAIN"
-                    >
-                      {actionButtonText}
-                    </AppButton>
-                  </View>
-                </View>
-              );
-            })}
+                );
+              })}
           </ScrollView>
         </View>
       </ScrollView>

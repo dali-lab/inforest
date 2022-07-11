@@ -126,6 +126,9 @@ const initialState: TreeState = {
 export const upsertTrees = (state: TreeState, action: UpsertAction<Tree>) => {
   const newTrees: Tree[] = action.data;
   newTrees.forEach((newTree) => {
+    const oldTree = newTree.id
+      ? state?.all?.[newTree.id] || undefined
+      : undefined;
     if (!newTree?.id) newTree.id = uuid.v4().toString();
     state.all[newTree.id] = newTree;
     // add to drafts
@@ -134,13 +137,19 @@ export const upsertTrees = (state: TreeState, action: UpsertAction<Tree>) => {
     if (!(newTree.plotId in state.indices.byPlots))
       state.indices.byPlots[newTree.plotId] = new Set([]);
     state.indices.byPlots[newTree.plotId].add(newTree.id);
-    if (newTree.speciesCode) {
+    if (oldTree && oldTree?.speciesCode !== newTree?.speciesCode)
+      state.indices.bySpecies[oldTree.speciesCode].delete(newTree.id);
+    if (newTree?.speciesCode) {
       if (!(newTree.speciesCode in state.indices.bySpecies))
         state.indices.bySpecies[newTree.speciesCode] = new Set([]);
       state.indices.bySpecies[newTree.speciesCode].add(newTree.id);
     }
-    if (newTree.tag) {
-      state.indices.byTag[newTree.tag] = newTree.id;
+    try {
+      if (newTree?.tag) {
+        state.indices.byTag[newTree.tag] = newTree.id;
+      }
+    } catch (e) {
+      // console.error(e);
     }
     if (action?.selectFinal) state.selected = newTree.id;
   });
@@ -152,7 +161,8 @@ export const deleteTrees = (state: TreeState, ids: string[]) => {
   for (const id of ids) {
     const currTree = state.all[id];
     state.indices.byPlots[currTree.plotId].delete(id);
-    state.indices.bySpecies[currTree.speciesCode].delete(id);
+    if (currTree?.speciesCode)
+      state.indices.bySpecies[currTree.speciesCode].delete(id);
     state.drafts.delete(currTree.id);
     if (state.selected === id) state.selected = undefined;
     delete state.all[id];
@@ -175,6 +185,8 @@ export const treeSlice = createSlice({
       state.localDeletions.add(action.payload);
       return deleteTrees(state, [action.payload]);
     },
+    deleteTreeById: (state, action: { payload: string }) =>
+      deleteTrees(state, [action.payload]),
     locallyUpdateTree: (state, action) => {
       const updated = action.payload;
       state.all[updated.id] = updated;
@@ -228,6 +240,7 @@ export const treeSlice = createSlice({
 export const {
   locallyDraftNewTree,
   locallyDeleteTree,
+  deleteTreeById,
   locallyUpdateTree,
   selectTree,
   deselectTree,

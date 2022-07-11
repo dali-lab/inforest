@@ -34,7 +34,7 @@ class ForestCensus extends Model<IForestCensus> implements IForestCensus {
   @Column(DataTypes.BOOLEAN)
   active: boolean;
 
-  @BelongsTo(() => Forest)
+  @BelongsTo(() => Forest, { onDelete: "CASCADE" })
   forest: IForest;
 
   @ForeignKey(() => Forest)
