@@ -50,7 +50,7 @@ class Tree
   @Column(DataTypes.UUID)
   plotId: string;
 
-  @BelongsTo(() => Plot)
+  @BelongsTo(() => Plot, { onDelete: "CASCADE" })
   plot: IPlot;
 
   @Column(DataTypes.FLOAT)

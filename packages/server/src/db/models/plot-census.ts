@@ -38,7 +38,7 @@ class PlotCensus extends Model<IPlotCensus> implements IPlotCensus {
   @Column(DataTypes.ENUM({ values: Object.values(PlotCensusStatuses) }))
   status: PlotCensusStatuses;
 
-  @BelongsTo(() => Plot)
+  @BelongsTo(() => Plot, { onDelete: "CASCADE" })
   plot: IPlot;
 
   @ForeignKey(() => Plot)
@@ -46,7 +46,7 @@ class PlotCensus extends Model<IPlotCensus> implements IPlotCensus {
   @Column(DataTypes.UUID)
   plotId: string;
 
-  @BelongsTo(() => ForestCensus)
+  @BelongsTo(() => ForestCensus, { onDelete: "CASCADE" })
   forestCensus: IForestCensus;
 
   @ForeignKey(() => ForestCensus)

@@ -5,7 +5,6 @@ import { Text, TextVariants } from "../components/Themed";
 import useAppDispatch from "../hooks/useAppDispatch";
 import { logout } from "../redux/slices/userSlice";
 import { useNavigation } from "@react-navigation/native";
-import { MapOverlay } from "../components/MapOverlay";
 import { Ionicons } from "@expo/vector-icons";
 
 const ProfileScreen: FC = () => {

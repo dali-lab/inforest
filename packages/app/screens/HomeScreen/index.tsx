@@ -38,8 +38,6 @@ import useAppDispatch from "../../hooks/useAppDispatch";
 import { selectForestCensus } from "../../redux/slices/forestCensusSlice";
 import { selectPlot } from "../../redux/slices/plotSlice";
 import { selectPlotCensus } from "../../redux/slices/plotCensusSlice";
-import OfflineBar from "../../components/OfflineBar";
-import LoadingOverlay from "../../components/LoadingOverlay";
 
 const TABLE_COLUMN_WIDTHS = {
   PLOT_NUMBER: 96,
@@ -138,7 +136,6 @@ export const HomeScreen = () => {
     selected: selectedForestCensusId,
     all: allForestCensuses,
     loading: forestCensusLoading,
-    indices: { byForests },
   } = useAppSelector((state: RootState) => state.forestCensuses);
   const { all: allPlots } = useAppSelector((state: RootState) => state.plots);
   const {
