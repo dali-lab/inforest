@@ -5,15 +5,15 @@ export default {
     dark: "#1F3627",
   },
   secondary: {
-    light: "#E0F2E1",
+    light: "#C3E0A6", //#E0F2E1
     normal: "#A7DBAA",
     dark: "#69CD6F",
   },
   status: {
     problem: "#DBB7A7",
-    ongoing: "#DADBA7",
-    waiting: "#A7D5DB",
-    done: "#A7DBB6",
+    ongoing: "#FFB978",
+    waiting: "#8AB7FF",
+    done: "#83C272",
   },
   neutral: {
     1: "#E2E7EC",

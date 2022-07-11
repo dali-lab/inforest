@@ -6,6 +6,7 @@ import { createDraftSafeSelector as createSelector } from "@reduxjs/toolkit";
 import { getPlotCorners } from "../constants/plots";
 import { PersistPartial } from "redux-persist/es/persistReducer";
 
+//flag
 //This hook allows for the selector hook to use typescript types
 const useAppSelector: TypedUseSelectorHook<RootState & PersistPartial> =
   useSelector;
