@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import MapView, {
   Marker,
@@ -25,11 +31,7 @@ import { getPlotCorners } from "../../constants/plots";
 import VisualizationModal from "../../components/VisualizationModal";
 import SearchModal from "../../components/SearchModal";
 import ColorKey from "../../components/ColorKey";
-import useAppSelector, {
-  usePlotsInRegion,
-  useTreesByDensity,
-  useTreesInRegion,
-} from "../../hooks/useAppSelector";
+import useAppSelector, { usePlotsInRegion } from "../../hooks/useAppSelector";
 import { RootState } from "../../redux";
 
 import {
@@ -54,6 +56,7 @@ import {
 import { deselectTreeCensus } from "../../redux/slices/treeCensusSlice";
 import { useIsConnected } from "react-native-offline";
 import ConfirmationModal from "../../components/ConfirmationModal";
+import LoadingOverlay from "../../components/LoadingOverlay";
 
 const O_FARM_LAT = 43.7348569458618;
 const O_FARM_LNG = -72.2519099587406;
@@ -69,22 +72,16 @@ const plotCensusColorMap: { [key in PlotCensusStatuses]?: string } = {
 
 type ForestViewProps = {
   mode: MapScreenModes;
-  switchMode: () => void;
-  beginPlotting: (plot: Plot) => void;
   showUI?: boolean;
   showTrees?: boolean;
 };
 
 const ForestView: React.FC<ForestViewProps> = (props) => {
-  const {
-    mode,
-    switchMode,
-    beginPlotting,
-    showUI = true,
-    showTrees = true,
-  } = props;
+  const { mode = MapScreenModes.Plot, showUI = true, showTrees = true } = props;
 
-  const navigate = useNavigation();
+  const [viewMode, setViewMode] = useState<MapScreenModes>(mode);
+
+  const navigation = useNavigation();
 
   const [searchModalOpen, setSearchModalOpen] = useState(false);
   const [regionSnapshot, setRegionSnapshot] = useState<Region>();
@@ -141,6 +138,7 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
     selected: selectedPlotCensusId,
     indices: { byForestCensuses },
   } = useAppSelector((state: RootState) => state.plotCensuses);
+  const { loadingTasks } = useAppSelector((state) => state.sync);
 
   const plotCensusesByActivePlot = useMemo(() => {
     if (!selectedForestCensusId || !byForestCensuses?.[selectedForestCensusId])
@@ -330,8 +328,6 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
     allTreeCensuses,
   ]);
 
-  console.log(trees.length, treeNodes.length);
-
   const plotIdColorMap = useCallback(
     (id: string) => {
       if (plotCensusesByActivePlot?.[id]) {
@@ -370,6 +366,26 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
       }
     })();
   }, []);
+
+  const beginPlotting = useCallback(
+    (plot) => {
+      dispatch(selectPlot(plot.id));
+      dispatch(selectPlotCensus(plotCensusesByActivePlot[plot.id]));
+      navigation.navigate("plot", { mode: viewMode });
+    },
+    [navigation, dispatch, plotCensusesByActivePlot, viewMode]
+  );
+
+  const switchMode = useCallback(() => {
+    switch (viewMode) {
+      case MapScreenModes.Explore:
+        setViewMode(MapScreenModes.Plot);
+        break;
+      case MapScreenModes.Plot:
+        setViewMode(MapScreenModes.Explore);
+        break;
+    }
+  }, [viewMode, setViewMode, navigation]);
 
   const getCurrentLocation = useCallback(async () => {
     Location.getCurrentPositionAsync()
@@ -418,6 +434,11 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
 
   return (
     <>
+      {loadingTasks && loadingTasks.size > 0 && (
+        <LoadingOverlay isBackArrow={showUI}>
+          {loadingTasks.values().next().value}
+        </LoadingOverlay>
+      )}
       <MapView
         style={styles.map}
         ref={mapRef}
@@ -558,7 +579,7 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
           </>
         )}
         {/* {showTrees && treeNodes} */}
-        {mode === MapScreenModes.Plot &&
+        {viewMode === MapScreenModes.Plot &&
           plots.map((plot) => {
             return (
               <Polygon
@@ -598,7 +619,7 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
             name="ios-arrow-back"
             size={32}
             onPress={() => {
-              navigate.goBack();
+              navigation.goBack();
             }}
           />
         </MapOverlay>
@@ -625,7 +646,7 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
       )}
       {showUI && (
         <View style={{ position: "absolute", top: 32, right: 32 }}>
-          <ModeSwitcher mode={mode} switchMode={switchMode}></ModeSwitcher>
+          <ModeSwitcher mode={viewMode} switchMode={switchMode}></ModeSwitcher>
         </View>
       )}
       <View style={{ position: "absolute" }}>
@@ -666,7 +687,7 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
       </View>
       {showUI && (
         <PlotDrawer
-          mode={mode}
+          mode={MapScreenModes.Explore}
           zoom={MapScreenZoomLevels.Forest}
           drawerState={drawerState}
           setDrawerHeight={setDrawerHeight}

@@ -15,7 +15,7 @@ import { RootState } from "../../redux";
 import { selectForest, getForests } from "../../redux/slices/forestSlice";
 import { Queue, Stack } from "react-native-spacing-system";
 import { useNavigation } from "@react-navigation/native";
-import ForestView from "../MapScreen/ExploreView";
+import ForestView from "../MapScreen/ExploreScreen";
 import Colors from "../../constants/Colors";
 import {
   convertToNaturalLanguage,
@@ -367,8 +367,6 @@ export const HomeScreen = () => {
             </View>
             <ForestView
               mode={MapScreenModes.Plot}
-              switchMode={() => {}}
-              beginPlotting={() => {}}
               showUI={false}
               showTrees={false}
             ></ForestView>
@@ -524,9 +522,10 @@ export const HomeScreen = () => {
                           dispatch(selectPlotCensus(plotCensuses.id));
                           // @ts-ignore
                           navigation.navigate("map", {
-                            mode: MapScreenModes.Plot,
-                            zoomLevel: MapScreenZoomLevels.Plot,
-                            selectedPlot: allPlots[plotCensuses.plotId],
+                            screen: "plot",
+                            params: {
+                              mode: MapScreenModes.Plot,
+                            },
                           });
                         }}
                         icon={<Ionicons name={"ios-eye"} size={16} />}

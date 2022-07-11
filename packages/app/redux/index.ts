@@ -160,6 +160,11 @@ const LoadingTransformer = createTransform(
   (inboundState: RootState[keyof RootState]) => {
     if ("loading" in inboundState) return { ...inboundState, loading: false };
     return inboundState;
+  },
+  (outboundState: RootState[keyof RootState]) => {
+    if ("loadingTasks" in outboundState)
+      return { ...outboundState, loadingTasks: new Set([]) };
+    return outboundState;
   }
 );
 
@@ -173,7 +178,6 @@ export const persistConfig = {
     SelectedTransformer,
     LoadingTransformer,
   ],
-  blacklist: ["sync"],
   debug: true,
 };
 
