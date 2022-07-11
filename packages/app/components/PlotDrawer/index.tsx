@@ -421,8 +421,12 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
                           dispatch(deselectTree());
                           minimizeDrawer();
                         }}
-                        finish={() => {
-                          minimizeDrawer();
+                        finish={(newTree, newTreeCensus) => {
+                          if (!newTreeCensus?.dbh)
+                            alert(
+                              "You must set a DBH for this tree! If you are unsure, set a rough dbh and flag the census entry for review."
+                            );
+                          else minimizeDrawer();
                         }}
                         style={{ flex: 1 }}
                       />
