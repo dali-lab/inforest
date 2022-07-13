@@ -31,7 +31,7 @@ class TreePhoto extends Model<ITreePhoto> implements ITreePhoto {
   @Column(DataTypes.UUID)
   treeCensusId: string;
 
-  @BelongsTo(() => TreeCensus, { onDelete: "CASCADE" })
+  @BelongsTo(() => TreeCensus)
   treeCensus: ITreeCensus;
 
   @AllowNull(false)
