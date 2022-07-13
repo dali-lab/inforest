@@ -206,8 +206,6 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
 
   const trees = useMemo(() => Object.values(allTrees), [allTrees]);
 
-  // console.log(testTrees.length);
-
   // const trees = useMemo<Tree[]>(() => [], []);
 
   const selectPlotAndCensus = useCallback(
@@ -277,10 +275,8 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
 
   const treeNodes = useMemo(() => {
     setSpeciesFrequencyMap({});
-    console.log("change tree nodes");
     // This ternary expression ensures that the selected tree is at the end of the list and is therefore rendered on top of others
     return trees.map((tree: Tree, i) => {
-      // console.log("mapping over tree ", tree.id);
       if (
         tree?.latitude &&
         tree?.longitude &&

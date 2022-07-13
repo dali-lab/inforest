@@ -14,7 +14,6 @@ import MapScreen from "./screens/MapScreen";
 import axios from "axios";
 import ProfileScreen from "./screens/ProfileScreen";
 import OfflineBar from "./components/OfflineBar";
-import { useIsConnected } from "react-native-offline";
 
 export type CensusStackParamList = {
   map: {
@@ -38,7 +37,6 @@ const AuthStack = createNativeStackNavigator<AuthStackParamList>();
 // It is separate from App to allow for use of useAppSelector
 const Screens: FC = () => {
   const isLoadingComplete = useCachedResources();
-  const isConnected = useIsConnected();
   const { token, currentUser } = useAppSelector((state) => state.user);
 
   useEffect(() => {

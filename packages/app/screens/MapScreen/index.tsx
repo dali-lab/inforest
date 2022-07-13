@@ -1,19 +1,7 @@
-import React, { useCallback, useMemo, useState } from "react";
-import { Dimensions, StyleSheet, View, Text } from "react-native";
-import { MapScreenModes, MapScreenZoomLevels } from "../../constants";
-
-import useAppDispatch from "../../hooks/useAppDispatch";
-import { selectPlot } from "../../redux/slices/plotSlice";
-import { deselectTree } from "../../redux/slices/treeSlice";
-import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
-import { CensusStackParamList } from "../../Screens";
+import React, { useMemo } from "react";
+import { Dimensions, StyleSheet } from "react-native";
+import { MapScreenModes } from "../../constants";
 import useAppSelector from "../../hooks/useAppSelector";
-import { deselectTreeCensus } from "../../redux/slices/treeCensusSlice";
-import Colors from "../../constants/Colors";
-import { selectPlotCensus } from "../../redux/slices/plotCensusSlice";
-import LoadingOverlay from "../../components/LoadingOverlay";
-import OfflineBar from "../../components/OfflineBar";
-import { useIsConnected } from "react-native-offline";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import ExploreScreen from "./ExploreScreen";
 import PlotScreen from "./PlotScreen";

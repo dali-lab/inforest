@@ -57,7 +57,7 @@ const SignupScreen: React.FC = () => {
     } catch (err: any) {
       alert(err?.message || "An unknown error occured.");
     }
-  }, [newUser, dispatch, navigation]);
+  }, [newUser, dispatch, navigation, isConnected]);
 
   return (
     <>
