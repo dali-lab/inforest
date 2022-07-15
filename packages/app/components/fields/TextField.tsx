@@ -73,58 +73,60 @@ const TextField: React.FC<TextFieldProps> = ({
           alignItems: "center",
         }}
       >
-        {prefixComponent}
-        {editing && !disabled ? (
-          <TextInput
-            style={[
-              {
-                width: "100%",
-                fontFamily: "Open Sans Regular",
+        <>
+          {prefixComponent}
+          {editing && !disabled ? (
+            <TextInput
+              style={[
+                {
+                  flexGrow: 1,
+                  fontFamily: "Open Sans Regular",
+                  height: textType === "LONG_TEXT" ? 128 : undefined,
+                },
+                isModal && textType != "LONG_TEXT" && { fontSize: 36 },
+              ]}
+              focusable={true}
+              secureTextEntry={secure}
+              keyboardType={keyboardType}
+              onSubmitEditing={(e) => {
+                setValue(e.nativeEvent.text);
+              }}
+              onChange={(e) => {
+                setValue(e.nativeEvent.text);
+              }}
+              multiline={textType === "LONG_TEXT"}
+              returnKeyType={textType === "LONG_TEXT" ? "default" : "done"}
+              placeholder={placeholder}
+              autoFocus={isModal}
+              autoCapitalize={"none"}
+              autoCorrect={false}
+            >
+              {value}
+            </TextInput>
+          ) : (
+            <Text
+              variant={TextVariants.Body}
+              color={value && value !== "" ? undefined : Colors.neutral[4]}
+              style={{
+                flex: 1,
                 height: textType === "LONG_TEXT" ? 128 : undefined,
-              },
-              isModal && textType != "LONG_TEXT" && { fontSize: 36 },
-            ]}
-            focusable={true}
-            secureTextEntry={secure}
-            keyboardType={keyboardType}
-            onSubmitEditing={(e) => {
-              setValue(e.nativeEvent.text);
-            }}
-            onChange={(e) => {
-              setValue(e.nativeEvent.text);
-            }}
-            multiline={textType === "LONG_TEXT"}
-            returnKeyType={textType === "LONG_TEXT" ? "default" : "done"}
-            placeholder={placeholder}
-            autoFocus={isModal}
-            autoCapitalize={"none"}
-            autoCorrect={false}
-          >
-            {value}
-          </TextInput>
-        ) : (
-          <Text
-            variant={TextVariants.Body}
-            color={value && value !== "" ? undefined : Colors.neutral[4]}
-            style={{
-              flex: 1,
-              height: textType === "LONG_TEXT" ? 128 : undefined,
-              fontSize: 14,
-            }}
-          >
-            {value && value !== "" ? value : placeholder || null}
-          </Text>
-        )}
-        {suffix ? (
-          <Text
-            style={[
-              { textAlign: "right", fontSize: 16 },
-              isModal && textType != "LONG_TEXT" && { fontSize: 36 },
-            ]}
-          >
-            {suffix}
-          </Text>
-        ) : null}
+                fontSize: 14,
+              }}
+            >
+              {value && value !== "" ? value : placeholder || null}
+            </Text>
+          )}
+          {suffix ? (
+            <Text
+              style={[
+                { textAlign: "right", fontSize: 16 },
+                isModal && textType != "LONG_TEXT" && { fontSize: 36 },
+              ]}
+            >
+              {suffix}
+            </Text>
+          ) : null}
+        </>
       </View>
     </FieldWrapper>
   );

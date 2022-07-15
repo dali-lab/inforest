@@ -193,6 +193,7 @@ export const treeSlice = createSlice({
       return state;
     },
     selectTree: (state, action) => {
+      console.log("selecting tree");
       state.selected = action.payload;
       return state;
     },

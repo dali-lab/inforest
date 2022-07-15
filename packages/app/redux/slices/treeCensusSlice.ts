@@ -68,10 +68,12 @@ export const createTreeCensus = createAsyncThunk(
   "treeCensus/createTreeCensus",
   async (newCensus: Partial<TreeCensus>, { dispatch }) => {
     dispatch(startTreeCensusLoading());
+    console.log("loading");
     return await axios
       .post(`${BASE_URL}`, newCensus)
       .then((response) => {
         dispatch(stopTreeCensusLoading());
+        console.log("done loading");
         return response.data;
       })
       .catch((err) => {

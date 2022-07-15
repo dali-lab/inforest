@@ -54,7 +54,7 @@ const STAKE_LABEL_WIDTH = 36 + 16;
 const MIN_DOT_SIZE = 16;
 
 export const PlottingSheet: React.FC<PlottingSheetProps> = ({
-  mode,
+  mode = MapScreenModes.Plot,
   plot,
   stakeNames,
   mapWidth,
@@ -151,7 +151,6 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
       outputRange: ["0deg", "360deg"],
     });
   }, [animatedPlotRotationAngle]);
-
   const plotNewTree = useCallback(async () => {
     if (!markerPos) return;
     const { easting, northing, zoneNum, zoneLetter } = utm.fromLatLon(
@@ -280,7 +279,7 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
       </>
 
       {/* markers */}
-      {mode === MapScreenModes.Plot && !!markerPos && (
+      {mode === MapScreenModes.Plot && markerPos && (
         <>
           <View
             style={{
@@ -412,6 +411,7 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
                     onPress={() => {
                       setMarkerPos(undefined);
                       minimizeDrawer();
+                      console.log("press");
                       dispatch(selectTree(tree.id));
 
                       if (isCensusing) {

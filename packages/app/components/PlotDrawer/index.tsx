@@ -222,7 +222,6 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
         ? deleteTreeCensus(selectedTreeCensus.id)
         : locallyDeleteTreeCensus(selectedTreeCensus.id)
     );
-    console.log(selectedTree.initCensusId, selectedTreeCensus.id);
     if (selectedTree?.initCensusId === selectedTreeCensus.id)
       dispatch(
         isConnected
@@ -273,6 +272,7 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
       authorId: currentUser.id,
     };
     if (isConnected) {
+      console.log(selectedTree);
       await dispatch(createTreeCensus(newCensus));
     } else {
       dispatch(locallyCreateTreeCensus(newCensus));
@@ -292,6 +292,11 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
   }, [addNewCensus]);
 
   useEffect(() => {
+    console.log(
+      selectedTree?.initCensusId === null,
+      selectedTree,
+      selectedTreeCensusId
+    );
     if (selectedTree?.initCensusId === null && selectedTreeCensusId)
       dispatch(
         locallyUpdateTree({

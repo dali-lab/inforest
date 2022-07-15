@@ -101,6 +101,7 @@ const SignupScreen: React.FC = () => {
               label="Email"
               textType="SHORT_TEXT"
               value={newUser.email}
+              wrapperStyle={{ width: "100%" }}
               setValue={(newValue) => {
                 updateState({ email: newValue });
               }}
@@ -114,6 +115,7 @@ const SignupScreen: React.FC = () => {
               setValue={(newValue) => {
                 updateState({ confirmEmail: newValue });
               }}
+              wrapperStyle={{ width: "100%" }}
               label="Confirm email"
               textType="SHORT_TEXT"
               noHint
@@ -128,6 +130,7 @@ const SignupScreen: React.FC = () => {
               setValue={(newValue) => {
                 updateState({ password: newValue });
               }}
+              wrapperStyle={{ width: "100%" }}
               noHint
               editing
               secure
@@ -141,6 +144,7 @@ const SignupScreen: React.FC = () => {
               }}
               label="Confirm password"
               textType="SHORT_TEXT"
+              wrapperStyle={{ width: "100%" }}
               noHint
               editing
               secure
