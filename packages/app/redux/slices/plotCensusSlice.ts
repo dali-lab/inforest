@@ -4,6 +4,7 @@ import SERVER_URL from "../../constants/Url";
 import axios from "axios";
 import uuid from "uuid";
 import { UpsertAction } from "..";
+import { cloneDeep } from "lodash";
 
 const BASE_URL = SERVER_URL + "plots/census";
 
@@ -82,6 +83,7 @@ const upsertPlotCensuses = (
   state: PlotCensusState,
   action: UpsertAction<PlotCensus>
 ) => {
+  if (action?.overwriteNonDrafts) state = cloneDeep(initialState);
   const newCensuses = action.data;
   newCensuses.forEach((newCensus) => {
     if (!newCensus?.id) newCensus.id = uuid.v4();
@@ -115,10 +117,16 @@ export const plotCensusSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder.addCase(getPlotCensuses.fulfilled, (state, action) => {
-      return upsertPlotCensuses(state, { data: action.payload });
+      return upsertPlotCensuses(state, {
+        data: action.payload,
+        overwriteNonDrafts: true,
+      });
     });
     builder.addCase(getForestCensusPlotCensuses.fulfilled, (state, action) => {
-      return upsertPlotCensuses(state, { data: action.payload });
+      return upsertPlotCensuses(state, {
+        data: action.payload,
+        overwriteNonDrafts: true,
+      });
     });
     builder.addCase(createPlotCensus.fulfilled, (state, action) => {
       alert("Successfully assigned self to plot.");

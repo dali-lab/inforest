@@ -3,6 +3,7 @@ import { Forest } from "@ong-forestry/schema";
 import SERVER_URL from "../../constants/Url";
 import axios from "axios";
 import { UpsertAction } from "..";
+import { cloneDeep } from "lodash";
 
 const BASE_URL = SERVER_URL + "forests";
 
@@ -63,6 +64,7 @@ const initialState: ForestState = {
 
 const upsertForests = (state: ForestState, action: UpsertAction<Forest>) => {
   const newForests = action.data;
+  if (action?.overwriteNonDrafts) state = cloneDeep(initialState);
   newForests.forEach((newForest) => {
     state.all[newForest.id] = newForest;
     if (!(newForest.teamId in state.indices.byTeam))
@@ -87,7 +89,11 @@ export const forestSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder.addCase(getForests.fulfilled, (state, action) => {
-      return upsertForests(state, { data: action.payload, selectFinal: true });
+      return upsertForests(state, {
+        data: action.payload,
+        selectFinal: true,
+        overwriteNonDrafts: true,
+      });
     });
     builder.addCase(getForest.fulfilled, (state, action) => {
       return upsertForests(state, { data: action.payload });

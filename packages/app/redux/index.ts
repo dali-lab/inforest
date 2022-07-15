@@ -199,6 +199,10 @@ export type AppDispatch = typeof store.dispatch;
 
 export type UpsertAction<Model> = {
   data: Model[];
+  // this flag is true if the added model(s) are drafts
   draft?: boolean;
+  // this flag is true if the last model to be added should be selected
   selectFinal?: boolean;
+  // this flag is true if the models should be upserted into a fresh state, with only drafts retained
+  overwriteNonDrafts?: boolean;
 };

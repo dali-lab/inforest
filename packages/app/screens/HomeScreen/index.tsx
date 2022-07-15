@@ -91,7 +91,6 @@ export const HomeScreen = () => {
     if (!(isConnected && rehydrated && token && currentTeamId)) return;
     setCensusRefreshed(true);
     await dispatch(uploadCensusData());
-    dispatch(resetData());
     await dispatch(getForests(currentTeamId));
   }, [
     isConnected,

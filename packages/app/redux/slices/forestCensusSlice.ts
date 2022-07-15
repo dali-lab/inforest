@@ -4,6 +4,7 @@ import SERVER_URL from "../../constants/Url";
 import axios from "axios";
 import uuid from "uuid";
 import { UpsertAction } from "..";
+import { cloneDeep } from "lodash";
 
 const BASE_URL = SERVER_URL + "forests/census";
 
@@ -63,6 +64,7 @@ const upsertForestCensuses = (
   state: ForestCensusState,
   action: UpsertAction<ForestCensus>
 ) => {
+  if (action?.overwriteNonDrafts) state = cloneDeep(initialState);
   const newCensuses = action.data;
   newCensuses.forEach((newCensus) => {
     if (!newCensus?.id) newCensus.id = uuid.v4();
@@ -102,6 +104,7 @@ export const forestCensusSlice = createSlice({
       return upsertForestCensuses(state, {
         data: action.payload,
         selectFinal: true,
+        overwriteNonDrafts: true,
       });
     });
   },

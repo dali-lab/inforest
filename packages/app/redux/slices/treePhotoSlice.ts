@@ -4,6 +4,7 @@ import uuid from "uuid";
 import axios from "axios";
 import SERVER_URL from "../../constants/Url";
 import { RootState, UpsertAction } from "..";
+import { cloneDeep } from "lodash";
 
 const BASE_URL = SERVER_URL + "trees/photos";
 
@@ -57,12 +58,12 @@ export const updateTreePhoto = createAsyncThunk(
     return await axios
       .patch(`${BASE_URL}/${id}`, updates)
       .then((response) => {
-        dispatch(clearTreePhotoDrafts());
+        // dispatch(clearTreePhotoDrafts());
         return response.data;
       })
       .catch((err) => {
         dispatch(locallyUpdateTreePhoto(oldPhoto));
-        dispatch(clearTreePhotoDrafts);
+        // dispatch(clearTreePhotoDrafts());
         alert("Error while updating tree photo: " + err?.message);
         throw err;
       });
@@ -82,6 +83,13 @@ export const upsertTreePhotos = (
   state: TreePhotoState,
   action: UpsertAction<TreePhoto>
 ) => {
+  if (action?.overwriteNonDrafts) {
+    const newState = cloneDeep(initialState);
+    const draftModels = Object.values(state.all).filter((treePhoto) =>
+      state.drafts.has(treePhoto.id)
+    );
+    state = upsertTreePhotos(newState, { data: draftModels, draft: true });
+  }
   const newPhotos: TreePhoto[] = action.data;
   newPhotos.forEach((newPhoto) => {
     if (!newPhoto?.id) newPhoto.id = uuid.v4();
@@ -111,7 +119,10 @@ export const treePhotoSlice = createSlice({
   initialState,
   reducers: {
     addTreePhotos: (state, action: { payload: TreePhoto[] }) => {
-      return upsertTreePhotos(state, { data: action.payload });
+      return upsertTreePhotos(state, {
+        data: action.payload,
+        overwriteNonDrafts: true,
+      });
     },
     locallyCreateTreePhoto: (state, action) => {
       return upsertTreePhotos(state, { data: [action.payload], draft: true });
@@ -125,12 +136,17 @@ export const treePhotoSlice = createSlice({
       state.all[updated.id] = updated;
       return state;
     },
-    clearTreePhotoDrafts: (state) => {
-      return {
-        ...state,
-        drafts: initialState.drafts,
-        localDeletions: initialState.localDeletions,
-      };
+    clearTreePhotoDrafts: (
+      state,
+      action: { payload: { added?: string[]; deleted?: string[] } }
+    ) => {
+      for (const id of action?.payload?.added || []) {
+        state.drafts.delete(id);
+      }
+      for (const id of action?.payload?.deleted || []) {
+        state.localDeletions.delete(id);
+      }
+      return state;
     },
     resetTreePhotos: () => initialState,
     startTreePhotoLoading: (state) => ({ ...state, loading: true }),

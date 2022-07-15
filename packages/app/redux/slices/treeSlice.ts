@@ -4,6 +4,7 @@ import axios from "axios";
 import uuid from "react-native-uuid";
 import SERVER_URL from "../../constants/Url";
 import { RootState, UpsertAction } from "..";
+import { cloneDeep } from "lodash";
 
 const BASE_URL = SERVER_URL + "trees";
 
@@ -59,12 +60,12 @@ export const updateTree = createAsyncThunk(
     return await axios
       .patch(`${BASE_URL}/${id}`, updates)
       .then((response) => {
-        dispatch(clearTreeDrafts());
+        // dispatch(clearTreeDrafts());
         return response.data;
       })
       .catch((err) => {
         dispatch(locallyUpdateTree(oldTree));
-        dispatch(clearTreeDrafts());
+        // dispatch(clearTreeDrafts());
         alert("Error while updating tree: " + err?.message);
         throw err;
       });
@@ -124,6 +125,13 @@ const initialState: TreeState = {
 
 // takes the state and the action payload(!!) and returns the updated state with the payload's trees added. used for downloading, drafting, and rehydrating
 export const upsertTrees = (state: TreeState, action: UpsertAction<Tree>) => {
+  if (action?.overwriteNonDrafts) {
+    const newState = cloneDeep(initialState);
+    const draftModels = Object.values(state.all).filter((tree) =>
+      state.drafts.has(tree.id)
+    );
+    state = upsertTrees(newState, { data: draftModels, draft: true });
+  }
   const newTrees: Tree[] = action.data;
   newTrees.forEach((newTree) => {
     const oldTree = newTree.id
@@ -193,7 +201,6 @@ export const treeSlice = createSlice({
       return state;
     },
     selectTree: (state, action) => {
-      console.log("selecting tree");
       state.selected = action.payload;
       return state;
     },
@@ -201,12 +208,17 @@ export const treeSlice = createSlice({
       state.selected = undefined;
       return state;
     },
-    clearTreeDrafts: (state) => {
-      return {
-        ...state,
-        drafts: initialState.drafts,
-        localDeletions: initialState.localDeletions,
-      };
+    clearTreeDrafts: (
+      state,
+      action: { payload: { added?: string[]; deleted?: string[] } }
+    ) => {
+      for (const id of action?.payload?.added || []) {
+        state.drafts.delete(id);
+      }
+      for (const id of action?.payload?.deleted || []) {
+        state.localDeletions.delete(id);
+      }
+      return state;
     },
     resetTrees: () => initialState,
     startTreeLoading: (state) => ({ ...state, loading: true }),
@@ -214,7 +226,10 @@ export const treeSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder.addCase(getForestTrees.fulfilled, (state, action) => {
-      return upsertTrees(state, { data: action.payload });
+      return upsertTrees(state, {
+        data: action.payload,
+        overwriteNonDrafts: true,
+      });
     });
     builder.addCase(
       createTree.fulfilled,

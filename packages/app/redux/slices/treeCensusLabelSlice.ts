@@ -4,6 +4,7 @@ import axios from "axios";
 import uuid from "uuid";
 import SERVER_URL from "../../constants/Url";
 import { UpsertAction } from "..";
+import { cloneDeep } from "lodash";
 
 const BASE_URL = SERVER_URL + "trees/censuses/labels";
 
@@ -58,6 +59,16 @@ export const upsertTreeCensusLabels = (
   state: TreeCensusLabelState,
   action: UpsertAction<TreeCensusLabel>
 ) => {
+  if (action?.overwriteNonDrafts) {
+    const newState = cloneDeep(initialState);
+    const draftModels = Object.values(state.all).filter((censusLabel) =>
+      state.drafts.has(censusLabel.id)
+    );
+    state = upsertTreeCensusLabels(newState, {
+      data: draftModels,
+      draft: true,
+    });
+  }
   const newCensusLabels = action.data;
   newCensusLabels.forEach((newCensusLabel) => {
     if (!newCensusLabel?.id) newCensusLabel.id = uuid.v4();
@@ -90,7 +101,10 @@ export const treeCensusLabelSlice = createSlice({
   initialState,
   reducers: {
     addTreeCensusLabels: (state, action: { payload: TreeCensusLabel[] }) => {
-      return upsertTreeCensusLabels(state, { data: action.payload });
+      return upsertTreeCensusLabels(state, {
+        data: action.payload,
+        overwriteNonDrafts: true,
+      });
     },
     locallyCreateTreeCensusLabel: (state, action) => {
       return upsertTreeCensusLabels(state, {
@@ -102,12 +116,17 @@ export const treeCensusLabelSlice = createSlice({
       state.localDeletions.add(action.payload);
       return deleteTreeCensusLabels(state, [action.payload]);
     },
-    clearTreeCensusLabelDrafts: (state) => {
-      return {
-        ...state,
-        drafts: initialState.drafts,
-        localDeletions: initialState.localDeletions,
-      };
+    clearTreeCensusLabelDrafts: (
+      state,
+      action: { payload: { added?: string[]; deleted?: string[] } }
+    ) => {
+      for (const id of action?.payload?.added || []) {
+        state.drafts.delete(id);
+      }
+      for (const id of action?.payload?.deleted || []) {
+        state.localDeletions.delete(id);
+      }
+      return state;
     },
     resetTreeCensusLabels: () => initialState,
     startTreeCensusLabelLoading: (state) => ({ ...state, loading: true }),

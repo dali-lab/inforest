@@ -17,11 +17,45 @@ import {
 import { PlotCensusStatuses } from "../enums";
 
 export const bulkUpsertTreeCensuses = async (treeCensuses: TreeCensus[]) => {
-  return await TreeCensusModel.bulkCreate(treeCensuses, {
-    updateOnDuplicate: Object.keys(
-      TreeCensusModel.rawAttributes
-    ) as (keyof TreeCensus)[],
-  });
+  // return await TreeCensusModel.bulkCreate(treeCensuses, {
+  //   updateOnDuplicate: Object.keys(
+  //     TreeCensusModel.rawAttributes
+  //   ) as (keyof TreeCensus)[],
+  // });
+  const added = [];
+  for (const treeCensus of treeCensuses) {
+    added.push(TreeCensusModel.upsert(treeCensus));
+  }
+  const result = await Promise.allSettled(added);
+  return result.reduce((prev: string[], curr) => {
+    if (curr.status === "fulfilled") return prev.concat([curr.value[0].id]);
+    return prev;
+  }, []);
+};
+
+export const bulkDeleteTreeCensuses = async (ids: string[]) => {
+  // return await TreeModel.bulkCreate(trees, {
+  //   updateOnDuplicate: Object.keys(TreeModel.rawAttributes) as (keyof Tree)[],
+  // });
+  const deleted = [];
+  for (const id of ids) {
+    deleted.push(
+      new Promise<string>((resolve, reject) => {
+        TreeCensusModel.destroy({ where: { id } })
+          .then(() => {
+            resolve(id);
+          })
+          .catch((err) => {
+            reject(err);
+          });
+      })
+    );
+  }
+  const result = await Promise.allSettled(deleted);
+  return result.reduce((prev: string[], curr) => {
+    if (curr.status === "fulfilled") return prev.concat([curr.value]);
+    return prev;
+  }, []);
 };
 
 //TODO: revisit this

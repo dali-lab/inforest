@@ -7,6 +7,7 @@ import { RootState, UpsertAction } from "..";
 import { addTreePhotos } from "./treePhotoSlice";
 import { addTreeCensusLabels } from "./treeCensusLabelSlice";
 import { deselectTree } from "./treeSlice";
+import { cloneDeep } from "lodash";
 
 const BASE_URL = SERVER_URL + "trees/censuses";
 
@@ -93,12 +94,12 @@ export const updateTreeCensus = createAsyncThunk(
     return await axios
       .patch(`${BASE_URL}/${id}`, updates)
       .then((response) => {
-        dispatch(clearTreeCensusDrafts());
+        // dispatch(clearTreeCensusDrafts());
         return response.data;
       })
       .catch((err) => {
         dispatch(locallyUpdateTreeCensus(oldCensus));
-        dispatch(clearTreeCensusDrafts());
+        // dispatch(clearTreeCensusDrafts());
         alert("Error while updating tree census: " + err?.message);
         throw err;
       });
@@ -136,6 +137,13 @@ export const upsertTreeCensuses = (
   state: TreeCensusState,
   action: UpsertAction<TreeCensus>
 ) => {
+  if (action?.overwriteNonDrafts) {
+    const newState = cloneDeep(initialState);
+    const draftModels = Object.values(state.all).filter((treeCensus) =>
+      state.drafts.has(treeCensus.id)
+    );
+    state = upsertTreeCensuses(newState, { data: draftModels, draft: true });
+  }
   const newCensuses: TreeCensus[] = action.data;
   newCensuses.forEach((newCensus) => {
     if (!newCensus?.id) newCensus.id = uuid.v4().toString();
@@ -198,7 +206,10 @@ export const treeCensusSlice = createSlice({
   initialState,
   reducers: {
     addTreeCensuses: (state, action: { payload: TreeCensus[] }) => {
-      return upsertTreeCensuses(state, { data: action.payload });
+      return upsertTreeCensuses(state, {
+        data: action.payload,
+        overwriteNonDrafts: true,
+      });
     },
     locallyCreateTreeCensus: (state, action) => {
       return upsertTreeCensuses(state, {
@@ -220,11 +231,18 @@ export const treeCensusSlice = createSlice({
       state.selected = undefined;
       return state;
     },
-    clearTreeCensusDrafts: (state) => ({
-      ...state,
-      drafts: initialState.drafts,
-      localDeletions: initialState.localDeletions,
-    }),
+    clearTreeCensusDrafts: (
+      state,
+      action: { payload: { added?: string[]; deleted?: string[] } }
+    ) => {
+      for (const id of action?.payload?.added || []) {
+        state.drafts.delete(id);
+      }
+      for (const id of action?.payload?.deleted || []) {
+        state.localDeletions.delete(id);
+      }
+      return state;
+    },
     resetTreeCensuses: () => initialState,
     startTreeCensusLoading: (state) => ({ ...state, loading: true }),
     stopTreeCensusLoading: (state) => ({ ...state, loading: false }),
