@@ -411,7 +411,6 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
                     onPress={() => {
                       setMarkerPos(undefined);
                       minimizeDrawer();
-                      console.log("press");
                       dispatch(selectTree(tree.id));
 
                       if (isCensusing) {

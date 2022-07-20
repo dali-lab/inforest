@@ -24,7 +24,16 @@ export const bulkInsertTreePhotos = async (
   // });
   const added = [];
   for (const treePhoto of treePhotos) {
-    added.push(TreePhotoModel.upsert(treePhoto));
+    added.push(
+      new Promise<[TreePhoto, any]>((resolve, reject) =>
+        TreePhotoModel.upsert(treePhoto)
+          .then((val) => resolve(val))
+          .catch((err) => {
+            console.log("Error when adding TreePhoto ", err);
+            reject(err);
+          })
+      )
+    );
   }
   const result = await Promise.allSettled(added);
   return result.reduce((prev: string[], curr) => {
@@ -46,6 +55,7 @@ export const bulkDeleteTreePhotos = async (ids: string[]) => {
             resolve(id);
           })
           .catch((err) => {
+            console.log(`Error when deleting Tree Photo id ${id}:`, err);
             reject(err);
           });
       })

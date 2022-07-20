@@ -1,13 +1,18 @@
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { createSlice } from "@reduxjs/toolkit";
 import { TreeCensus, TreeCensusLabel, TreePhoto } from "@ong-forestry/schema";
 import SERVER_URL from "../../constants/Url";
 import axios from "axios";
 import uuid from "react-native-uuid";
-import { RootState, UpsertAction } from "..";
+import { produce } from "immer";
+import {
+  RootState,
+  UpsertAction,
+  createAppAsyncThunk,
+  throwIfLoadingBase,
+} from "../util";
 import { addTreePhotos } from "./treePhotoSlice";
 import { addTreeCensusLabels } from "./treeCensusLabelSlice";
 import { deselectTree } from "./treeSlice";
-import { cloneDeep } from "lodash";
 
 const BASE_URL = SERVER_URL + "trees/censuses";
 
@@ -19,7 +24,9 @@ type GetForestTreeCensusesParams = {
   forestId: string;
 };
 
-export const populateTreeCensusModels = createAsyncThunk(
+const throwIfLoading = throwIfLoadingBase("treeCensuses");
+
+export const populateTreeCensusModels = createAppAsyncThunk(
   "treeCensus/populateTreeCensusModels",
   async (censuses: TreeCensus[], thunkApi) => {
     const newCensuses: TreeCensus[] = [];
@@ -43,7 +50,7 @@ export const populateTreeCensusModels = createAsyncThunk(
   }
 );
 
-export const getPlotCensusTreeCensuses = createAsyncThunk(
+export const getPlotCensusTreeCensuses = createAppAsyncThunk(
   "treeCensus/getPlotCensusTreeCensuses",
   async (params: GetPlotCensusTreeCensusesParams, { dispatch }) => {
     return await axios
@@ -54,7 +61,7 @@ export const getPlotCensusTreeCensuses = createAsyncThunk(
   }
 );
 
-export const getForestTreeCensuses = createAsyncThunk(
+export const getForestTreeCensuses = createAppAsyncThunk(
   "treeCensus/getForestTreeCensuses",
   async (params: GetForestTreeCensusesParams, { dispatch }) => {
     return await axios
@@ -65,27 +72,25 @@ export const getForestTreeCensuses = createAsyncThunk(
   }
 );
 
-export const createTreeCensus = createAsyncThunk(
+export const createTreeCensus = createAppAsyncThunk(
   "treeCensus/createTreeCensus",
-  async (newCensus: Partial<TreeCensus>, { dispatch }) => {
+  async (newCensus: Partial<TreeCensus>, { getState, dispatch }) => {
+    throwIfLoading(getState());
     dispatch(startTreeCensusLoading());
-    console.log("loading");
     return await axios
       .post(`${BASE_URL}`, newCensus)
+      .finally(() => dispatch(stopTreeCensusLoading()))
       .then((response) => {
-        dispatch(stopTreeCensusLoading());
-        console.log("done loading");
         return response.data;
       })
       .catch((err) => {
-        dispatch(stopTreeCensusLoading());
         alert("Error while uploading tree census data: " + err?.message);
         throw err;
       });
   }
 );
 
-export const updateTreeCensus = createAsyncThunk(
+export const updateTreeCensus = createAppAsyncThunk(
   "treeCensus/updateTreeCensus",
   async (updatedCensus: TreeCensus, { getState, dispatch }) => {
     const oldCensus = (getState() as RootState)?.trees.all[updatedCensus.id];
@@ -106,7 +111,7 @@ export const updateTreeCensus = createAsyncThunk(
   }
 );
 
-export const deleteTreeCensus = createAsyncThunk(
+export const deleteTreeCensus = createAppAsyncThunk(
   "treeCensus/deleteTreeCensus",
   async (id: string, { dispatch }) => {
     return await axios
@@ -124,7 +129,7 @@ export const deleteTreeCensus = createAsyncThunk(
 );
 
 // This is a thunk to enable calling dispatching
-export const locallyDeleteTreeCensus = createAsyncThunk(
+export const locallyDeleteTreeCensus = createAppAsyncThunk(
   "treeCensus/locallyDeleteTreeCensus",
   async (id: string, { dispatch }) => {
     dispatch(deselectTree());
@@ -136,31 +141,39 @@ export const locallyDeleteTreeCensus = createAsyncThunk(
 export const upsertTreeCensuses = (
   state: TreeCensusState,
   action: UpsertAction<TreeCensus>
-) => {
-  if (action?.overwriteNonDrafts) {
-    const newState = cloneDeep(initialState);
-    const draftModels = Object.values(state.all).filter((treeCensus) =>
-      state.drafts.has(treeCensus.id)
-    );
-    state = upsertTreeCensuses(newState, { data: draftModels, draft: true });
-  }
-  const newCensuses: TreeCensus[] = action.data;
-  newCensuses.forEach((newCensus) => {
-    if (!newCensus?.id) newCensus.id = uuid.v4().toString();
-    state.all[newCensus.id] = newCensus;
-    // add to drafts
-    if (action?.draft) state.drafts.add(newCensus.id);
-    if (!(newCensus.plotCensusId in state.indices.byPlotCensus))
-      state.indices.byPlotCensus[newCensus.plotCensusId] = new Set([]);
-    state.indices.byPlotCensus[newCensus.plotCensusId].add(newCensus.id);
-    if (!(newCensus.treeId in state.indices.byTree))
-      state.indices.byTree[newCensus.treeId] = new Set([]);
-    state.indices.byTree[newCensus.treeId].add(newCensus.id);
-    state.indices.byTreeActive[newCensus.treeId] = newCensus.id;
-    if (action?.selectFinal) state.selected = newCensus.id;
-  });
+): TreeCensusState => {
+  const draftModels = action?.overwriteNonDrafts
+    ? Object.values(state.all).filter((treeCensus) =>
+        state.drafts.has(treeCensus.id)
+      )
+    : [];
+  return produce(
+    action?.overwriteNonDrafts
+      ? upsertTreeCensuses(initialState, {
+          data: draftModels,
+          draft: true,
+        })
+      : state,
+    (newState) => {
+      const newCensuses: TreeCensus[] = action.data;
+      newCensuses.forEach((newCensus) => {
+        if (!newCensus?.id) newCensus.id = uuid.v4().toString();
+        newState.all[newCensus.id] = newCensus;
+        // add to drafts
+        if (action?.draft) newState.drafts.add(newCensus.id);
+        if (!(newCensus.plotCensusId in newState.indices.byPlotCensus))
+          newState.indices.byPlotCensus[newCensus.plotCensusId] = new Set([]);
+        newState.indices.byPlotCensus[newCensus.plotCensusId].add(newCensus.id);
+        if (!(newCensus.treeId in newState.indices.byTree))
+          newState.indices.byTree[newCensus.treeId] = new Set([]);
+        newState.indices.byTree[newCensus.treeId].add(newCensus.id);
+        newState.indices.byTreeActive[newCensus.treeId] = newCensus.id;
+        if (action?.selectFinal) newState.selected = newCensus.id;
+      });
 
-  return state;
+      return newState;
+    }
+  );
 };
 
 export const deleteTreeCensuses = (state: TreeCensusState, ids: string[]) => {
@@ -260,6 +273,11 @@ export const treeCensusSlice = createSlice({
         });
       }
     );
+    // builder.addCase(createTreeCensus.pending, (state, action) => {
+    //   console.log("action pending");
+    //   state.loading = true;
+    //   return state;
+    // });
     // builder.addCase(
     //   createTreeCensus.rejected,
     //   (state, action: { payload: any }) => {

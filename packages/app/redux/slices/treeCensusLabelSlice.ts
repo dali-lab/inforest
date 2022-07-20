@@ -1,32 +1,37 @@
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { createSlice } from "@reduxjs/toolkit";
 import { TreeCensusLabel } from "@ong-forestry/schema";
 import axios from "axios";
 import uuid from "uuid";
 import SERVER_URL from "../../constants/Url";
-import { UpsertAction } from "..";
-import { cloneDeep } from "lodash";
+import { UpsertAction, createAppAsyncThunk, throwIfLoadingBase } from "../util";
+import { produce } from "immer";
 
 const BASE_URL = SERVER_URL + "trees/censuses/labels";
 
-export const createTreeCensusLabel = createAsyncThunk(
+const throwIfLoading = throwIfLoadingBase("treeCensusLabels");
+
+export const createTreeCensusLabel = createAppAsyncThunk(
   "treeCensusLabel/createTreeCensusLabel",
-  async (newCensusLabel: Omit<TreeCensusLabel, "id">, { dispatch }) => {
+  async (
+    newCensusLabel: Omit<TreeCensusLabel, "id">,
+    { dispatch, getState }
+  ) => {
+    throwIfLoading(getState());
     dispatch(startTreeCensusLabelLoading());
     return await axios
       .post(BASE_URL, newCensusLabel)
+      .finally(() => dispatch(stopTreeCensusLabelLoading()))
       .then((response) => {
-        dispatch(stopTreeCensusLabelLoading());
         return response.data;
       })
       .catch((err) => {
-        dispatch(stopTreeCensusLabelLoading());
         alert("Error while adding label: " + err?.message);
         throw err;
       });
   }
 );
 
-export const deleteTreeCensusLabel = createAsyncThunk(
+export const deleteTreeCensusLabel = createAppAsyncThunk(
   "treeCensusLabel/deleteTreeCensusLabel",
   async (censusLabelId: string) => {
     return await axios
@@ -58,29 +63,36 @@ const initialState: TreeCensusLabelState = {
 export const upsertTreeCensusLabels = (
   state: TreeCensusLabelState,
   action: UpsertAction<TreeCensusLabel>
-) => {
-  if (action?.overwriteNonDrafts) {
-    const newState = cloneDeep(initialState);
-    const draftModels = Object.values(state.all).filter((censusLabel) =>
-      state.drafts.has(censusLabel.id)
-    );
-    state = upsertTreeCensusLabels(newState, {
-      data: draftModels,
-      draft: true,
-    });
-  }
-  const newCensusLabels = action.data;
-  newCensusLabels.forEach((newCensusLabel) => {
-    if (!newCensusLabel?.id) newCensusLabel.id = uuid.v4();
-    state.all[newCensusLabel.id] = newCensusLabel;
-    if (action?.draft) state.drafts.add(newCensusLabel.id);
-    if (!(newCensusLabel.treeCensusId in state.indices.byTreeCensus))
-      state.indices.byTreeCensus[newCensusLabel.treeCensusId] = new Set([]);
-    state.indices.byTreeCensus[newCensusLabel.treeCensusId].add(
-      newCensusLabel.id
-    );
-  });
-  return state;
+): TreeCensusLabelState => {
+  const draftModels = action?.overwriteNonDrafts
+    ? Object.values(state.all).filter((censusLabel) =>
+        state.drafts.has(censusLabel.id)
+      )
+    : [];
+  return produce(
+    action?.overwriteNonDrafts
+      ? upsertTreeCensusLabels(initialState, {
+          data: draftModels,
+          draft: true,
+        })
+      : state,
+    (newState) => {
+      const newCensusLabels = action.data;
+      newCensusLabels.forEach((newCensusLabel) => {
+        if (!newCensusLabel?.id) newCensusLabel.id = uuid.v4();
+        newState.all[newCensusLabel.id] = newCensusLabel;
+        if (action?.draft) newState.drafts.add(newCensusLabel.id);
+        if (!(newCensusLabel.treeCensusId in newState.indices.byTreeCensus))
+          newState.indices.byTreeCensus[newCensusLabel.treeCensusId] = new Set(
+            []
+          );
+        newState.indices.byTreeCensus[newCensusLabel.treeCensusId].add(
+          newCensusLabel.id
+        );
+      });
+      return newState;
+    }
+  );
 };
 
 export const deleteTreeCensusLabels = (

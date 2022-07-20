@@ -10,7 +10,16 @@ export const bulkUpsertTrees = async (trees: Tree[]) => {
   // });
   const added = [];
   for (const tree of trees) {
-    added.push(TreeModel.upsert(tree));
+    added.push(
+      new Promise<[Tree, any]>((resolve, reject) =>
+        TreeModel.upsert(tree)
+          .then((val) => resolve(val))
+          .catch((err) => {
+            console.log("Error when adding Tree ", err);
+            reject(err);
+          })
+      )
+    );
   }
   const result = await Promise.allSettled(added);
   return result.reduce((prev: string[], curr) => {
@@ -32,6 +41,7 @@ export const bulkDeleteTrees = async (ids: string[]) => {
             resolve(id);
           })
           .catch((err) => {
+            console.log(`Error when deleting tree id ${id}: `, err);
             reject(err);
           });
       })

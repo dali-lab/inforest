@@ -1,12 +1,19 @@
 import { TreePhoto } from "@ong-forestry/schema";
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { createSlice } from "@reduxjs/toolkit";
 import uuid from "uuid";
 import axios from "axios";
+import { produce } from "immer";
 import SERVER_URL from "../../constants/Url";
-import { RootState, UpsertAction } from "..";
-import { cloneDeep } from "lodash";
+import {
+  createAppAsyncThunk,
+  RootState,
+  throwIfLoadingBase,
+  UpsertAction,
+} from "../util";
 
 const BASE_URL = SERVER_URL + "trees/photos";
+
+const throwIfLoading = throwIfLoadingBase("treePhotos");
 
 export interface TreePhotoState {
   all: Record<string, TreePhoto & { buffer?: string }>;
@@ -28,28 +35,28 @@ const initialState: TreePhotoState = {
   loading: false,
 };
 
-export const createTreePhoto = createAsyncThunk(
+export const createTreePhoto = createAppAsyncThunk(
   "treePhoto/createTreePhoto",
   async (
     newPhoto: Omit<TreePhoto, "id"> & { buffer: string },
-    { dispatch }
+    { dispatch, getState }
   ) => {
+    throwIfLoading(getState());
     dispatch(startTreePhotoLoading());
     return await axios
       .post(BASE_URL, newPhoto)
+      .finally(() => dispatch(stopTreePhotoLoading()))
       .then((response) => {
-        dispatch(stopTreePhotoLoading());
         return response.data;
       })
       .catch((err) => {
-        dispatch(stopTreePhotoLoading());
         alert("Error while uploading tree photo: " + err?.message);
         throw err;
       });
   }
 );
 
-export const updateTreePhoto = createAsyncThunk(
+export const updateTreePhoto = createAppAsyncThunk(
   "treePhoto/updateTreePhoto",
   async (updatedPhoto: TreePhoto, { getState, dispatch }) => {
     const oldPhoto = (getState() as RootState).treePhotos.all[updatedPhoto.id];
@@ -70,7 +77,7 @@ export const updateTreePhoto = createAsyncThunk(
   }
 );
 
-export const deleteTreePhoto = createAsyncThunk(
+export const deleteTreePhoto = createAppAsyncThunk(
   "treePhoto/deleteTreePhoto",
   async (id: string) => {
     return await axios.delete(`${BASE_URL}/${id}`).then((response) => {
@@ -82,26 +89,34 @@ export const deleteTreePhoto = createAsyncThunk(
 export const upsertTreePhotos = (
   state: TreePhotoState,
   action: UpsertAction<TreePhoto>
-) => {
-  if (action?.overwriteNonDrafts) {
-    const newState = cloneDeep(initialState);
-    const draftModels = Object.values(state.all).filter((treePhoto) =>
-      state.drafts.has(treePhoto.id)
-    );
-    state = upsertTreePhotos(newState, { data: draftModels, draft: true });
-  }
-  const newPhotos: TreePhoto[] = action.data;
-  newPhotos.forEach((newPhoto) => {
-    if (!newPhoto?.id) newPhoto.id = uuid.v4();
-    // add to drafts
-    state.all[newPhoto.id] = newPhoto;
-    if (action?.draft) state.drafts.add(newPhoto.id);
-    if (!(newPhoto.treeCensusId in state.indices.byTreeCensus))
-      state.indices.byTreeCensus[newPhoto.treeCensusId] = new Set([]);
+): TreePhotoState => {
+  const draftModels = action?.overwriteNonDrafts
+    ? Object.values(state.all).filter((treePhoto) =>
+        state.drafts.has(treePhoto.id)
+      )
+    : [];
+  return produce(
+    action?.overwriteNonDrafts
+      ? upsertTreePhotos(initialState, {
+          data: draftModels,
+          draft: true,
+        })
+      : state,
+    (newState) => {
+      const newPhotos: TreePhoto[] = action.data;
+      newPhotos.forEach((newPhoto) => {
+        if (!newPhoto?.id) newPhoto.id = uuid.v4();
+        // add to drafts
+        newState.all[newPhoto.id] = newPhoto;
+        if (action?.draft) newState.drafts.add(newPhoto.id);
+        if (!(newPhoto.treeCensusId in newState.indices.byTreeCensus))
+          newState.indices.byTreeCensus[newPhoto.treeCensusId] = new Set([]);
 
-    state.indices.byTreeCensus[newPhoto.treeCensusId].add(newPhoto.id);
-  });
-  return state;
+        newState.indices.byTreeCensus[newPhoto.treeCensusId].add(newPhoto.id);
+      });
+      return newState;
+    }
+  );
 };
 
 export const deleteTreePhotos = (state: TreePhotoState, ids: string[]) => {

@@ -63,7 +63,7 @@ export const sync = async (data: SyncData) => {
     );
 
     transaction.commit();
-    return {};
+    return result;
   } catch (e: any) {
     transaction.rollback();
     console.error(e);

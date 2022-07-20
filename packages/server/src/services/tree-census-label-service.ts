@@ -8,7 +8,16 @@ export const bulkInsertTreeCensusLabels = async (
   // return await TreeCensusLabelModel.bulkCreate(treeCensusLabels);
   const added = [];
   for (const treeCensusLabel of treeCensusLabels) {
-    added.push(TreeCensusLabelModel.upsert(treeCensusLabel));
+    added.push(
+      new Promise<[TreeCensusLabel, any]>((resolve, reject) =>
+        TreeCensusLabelModel.upsert(treeCensusLabel)
+          .then((val) => resolve(val))
+          .catch((err) => {
+            console.log("Error when adding TreeCensusLabel", err);
+            reject(err);
+          })
+      )
+    );
   }
   const result = await Promise.allSettled(added);
   return result.reduce((prev: string[], curr) => {
@@ -30,6 +39,7 @@ export const bulkDeleteTreeCensusLabels = async (ids: string[]) => {
             resolve(id);
           })
           .catch((err) => {
+            console.log(`Error when deleting TreeCensusLabel id ${id}:`, err);
             reject(err);
           });
       })

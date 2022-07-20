@@ -1,10 +1,10 @@
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { createSlice } from "@reduxjs/toolkit";
 import { PlotCensus } from "@ong-forestry/schema";
 import SERVER_URL from "../../constants/Url";
 import axios from "axios";
 import uuid from "uuid";
-import { UpsertAction } from "..";
-import { cloneDeep } from "lodash";
+import { throwIfLoadingBase, UpsertAction, createAppAsyncThunk } from "../util";
+import { produce } from "immer";
 
 const BASE_URL = SERVER_URL + "plots/census";
 
@@ -12,7 +12,9 @@ type GetForestCensusPlotCensusesParams = {
   forestCensusId: string;
 };
 
-export const getPlotCensuses = createAsyncThunk(
+const throwIfLoading = throwIfLoadingBase("plotCensuses");
+
+export const getPlotCensuses = createAppAsyncThunk(
   "plotCensus/getPlotCensuses",
   async () => {
     return await axios.get<PlotCensus[]>(`${BASE_URL}`).then((response) => {
@@ -21,7 +23,7 @@ export const getPlotCensuses = createAsyncThunk(
   }
 );
 
-export const getForestCensusPlotCensuses = createAsyncThunk(
+export const getForestCensusPlotCensuses = createAppAsyncThunk(
   "plotCensus/getForestPlotCensuses",
   async (params: GetForestCensusPlotCensusesParams) => {
     return await axios
@@ -32,7 +34,7 @@ export const getForestCensusPlotCensuses = createAsyncThunk(
   }
 );
 
-export const createPlotCensus = createAsyncThunk(
+export const createPlotCensus = createAppAsyncThunk(
   "plotCensus/createPlotCensus",
   async (plotId: string) => {
     return await axios.post(`${BASE_URL}/${plotId}`).then((response) => {
@@ -41,18 +43,18 @@ export const createPlotCensus = createAsyncThunk(
   }
 );
 
-export const submitPlotCensus = createAsyncThunk(
+export const submitPlotCensus = createAppAsyncThunk(
   "plotCensus/submitPlotCensus",
-  async (plotId: string, { dispatch }) => {
+  async (plotId: string, { dispatch, getState }) => {
+    throwIfLoading(getState());
     dispatch(startPlotCensusLoading());
     return await axios
       .patch(`${BASE_URL}/submit/${plotId}`)
+      .finally(() => dispatch(stopPlotCensusLoading()))
       .then((response) => {
-        dispatch(stopPlotCensusLoading());
         return response.data;
       })
       .catch((err) => {
-        dispatch(stopPlotCensusLoading());
         alert("Error: could not submit plot census");
         throw err;
       });
@@ -83,20 +85,28 @@ const upsertPlotCensuses = (
   state: PlotCensusState,
   action: UpsertAction<PlotCensus>
 ) => {
-  if (action?.overwriteNonDrafts) state = cloneDeep(initialState);
-  const newCensuses = action.data;
-  newCensuses.forEach((newCensus) => {
-    if (!newCensus?.id) newCensus.id = uuid.v4();
-    state.all[newCensus.id] = newCensus;
-    if (!(newCensus.forestCensusId in state.indices.byForestCensuses))
-      state.indices.byForestCensuses[newCensus.forestCensusId] = new Set([]);
-    state.indices.byForestCensuses[newCensus.forestCensusId].add(newCensus.id);
-    if (!(newCensus.plotId in state.indices.byPlots))
-      state.indices.byPlots[newCensus.plotId] = new Set([]);
-    state.indices.byPlots[newCensus.plotId].add(newCensus.id);
-    if (action?.selectFinal) state.selected = newCensus.id;
-  });
-  return state;
+  return produce(
+    action?.overwriteNonDrafts ? initialState : state,
+    (newState) => {
+      const newCensuses = action.data;
+      newCensuses.forEach((newCensus) => {
+        if (!newCensus?.id) newCensus.id = uuid.v4();
+        newState.all[newCensus.id] = newCensus;
+        if (!(newCensus.forestCensusId in newState.indices.byForestCensuses))
+          newState.indices.byForestCensuses[newCensus.forestCensusId] = new Set(
+            []
+          );
+        newState.indices.byForestCensuses[newCensus.forestCensusId].add(
+          newCensus.id
+        );
+        if (!(newCensus.plotId in newState.indices.byPlots))
+          newState.indices.byPlots[newCensus.plotId] = new Set([]);
+        newState.indices.byPlots[newCensus.plotId].add(newCensus.id);
+        if (action?.selectFinal) newState.selected = newCensus.id;
+      });
+      return newState;
+    }
+  );
 };
 
 export const plotCensusSlice = createSlice({

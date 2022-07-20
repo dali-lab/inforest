@@ -5,9 +5,9 @@ import {
   TreeCensusLabel,
   TreePhoto,
 } from "@ong-forestry/schema";
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
-import { RootState } from "..";
+import { createAppAsyncThunk } from "../util";
 import SERVER_URL from "../../constants/Url";
 import { clearTreeDrafts, getForestTrees, resetTrees } from "./treeSlice";
 import {
@@ -44,7 +44,7 @@ const initialState: SyncState = {
   loadingTasks: new Set([]),
 };
 
-export const uploadCensusData = createAsyncThunk(
+export const uploadCensusData = createAppAsyncThunk(
   "sync/uploadCensusData",
   async (_params, { getState, dispatch }) => {
     const loadMessage = "Uploading New Census Data...";
@@ -70,7 +70,7 @@ export const uploadCensusData = createAsyncThunk(
         drafts: treeCensusLabelDrafts,
         localDeletions: deletedTreeCensusLabels,
       },
-    } = getState() as RootState;
+    } = getState();
     const trees: Tree[] = [];
     const treeCensuses: TreeCensus[] = [];
     const treePhotos: (TreePhoto & { buffer: string })[] = [];
@@ -123,7 +123,7 @@ export const uploadCensusData = createAsyncThunk(
   }
 );
 
-export const loadForestData = createAsyncThunk(
+export const loadForestData = createAppAsyncThunk(
   "sync/loadForestData",
   async (forestId: string, { dispatch }) => {
     const loadMessage = "Loading Census Data...";

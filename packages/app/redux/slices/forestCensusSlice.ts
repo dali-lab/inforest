@@ -1,10 +1,15 @@
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { createSlice } from "@reduxjs/toolkit";
 import { ForestCensus } from "@ong-forestry/schema";
 import SERVER_URL from "../../constants/Url";
 import axios from "axios";
 import uuid from "uuid";
-import { UpsertAction } from "..";
-import { cloneDeep } from "lodash";
+import {
+  createAppAsyncThunk,
+  RootState,
+  throwIfLoadingBase,
+  UpsertAction,
+} from "../util";
+import { produce } from "immer";
 
 const BASE_URL = SERVER_URL + "forests/census";
 
@@ -12,14 +17,17 @@ type GetForestCensusParams = {
   id: string;
 };
 
-export const getForestCensus = createAsyncThunk(
+const throwIfLoading = throwIfLoadingBase("forestCensuses");
+
+export const getForestCensus = createAppAsyncThunk(
   "forestCensus/getForestCensus",
-  async (params: GetForestCensusParams, { dispatch }) => {
+  async (params: GetForestCensusParams, { dispatch, getState }) => {
+    throwIfLoading(getState());
     dispatch(startForestCensusLoading());
     return await axios
       .get<ForestCensus>(`${BASE_URL}?id=${params.id}`)
+      .finally(() => dispatch(stopForestCensusLoading()))
       .then((response) => {
-        dispatch(stopForestCensusLoading());
         return response.data;
       });
   }
@@ -29,14 +37,15 @@ type GetForestForestCensusParams = {
   forestId: string;
 };
 
-export const getForestForestCensuses = createAsyncThunk(
+export const getForestForestCensuses = createAppAsyncThunk(
   "forestCensus/getForestForestCensuses",
-  async (params: GetForestForestCensusParams, { dispatch }) => {
+  async (params: GetForestForestCensusParams, { dispatch, getState }) => {
+    throwIfLoading(getState());
     dispatch(startForestCensusLoading());
     return await axios
       .get<ForestCensus[]>(`${BASE_URL}?forestId=${params.forestId}`)
+      .finally(() => dispatch(stopForestCensusLoading()))
       .then((response) => {
-        dispatch(stopForestCensusLoading());
         return response.data;
       });
   }
@@ -64,17 +73,21 @@ const upsertForestCensuses = (
   state: ForestCensusState,
   action: UpsertAction<ForestCensus>
 ) => {
-  if (action?.overwriteNonDrafts) state = cloneDeep(initialState);
-  const newCensuses = action.data;
-  newCensuses.forEach((newCensus) => {
-    if (!newCensus?.id) newCensus.id = uuid.v4();
-    state.all[newCensus.id] = newCensus;
-    if (!(newCensus.forestId in state.indices.byForests))
-      state.indices.byForests[newCensus.forestId] = new Set([]);
-    state.indices.byForests[newCensus.forestId].add(newCensus.id);
-    if (action?.selectFinal) state.selected = newCensus.id;
-  });
-  return state;
+  return produce(
+    action?.overwriteNonDrafts ? initialState : state,
+    (newState) => {
+      const newCensuses = action.data;
+      newCensuses.forEach((newCensus) => {
+        if (!newCensus?.id) newCensus.id = uuid.v4();
+        newState.all[newCensus.id] = newCensus;
+        if (!(newCensus.forestId in newState.indices.byForests))
+          newState.indices.byForests[newCensus.forestId] = new Set([]);
+        newState.indices.byForests[newCensus.forestId].add(newCensus.id);
+        if (action?.selectFinal) newState.selected = newCensus.id;
+      });
+      return newState;
+    }
+  );
 };
 
 export const forestCensusSlice = createSlice({

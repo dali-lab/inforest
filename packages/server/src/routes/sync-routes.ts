@@ -5,9 +5,12 @@ import { sync, SyncData } from "../services/sync-service";
 const syncRouter = express.Router();
 
 syncRouter.post<{}, any, SyncData>("/", requireAuth, async (req, res) => {
-  const result = await sync(req.body);
-  if (result.error) res.status(500).send(result.error);
-  else res.status(200).send();
+  try {
+    const result = await sync(req.body);
+    res.status(200).send(result);
+  } catch (err) {
+    res.status(500).send(err);
+  }
 });
 
 export { syncRouter };

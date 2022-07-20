@@ -122,6 +122,7 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
     all: allTreeCensuses,
     selected: selectedTreeCensusId,
     indices: { byTreeActive, byPlotCensus },
+    loading: treeCensusLoading,
   } = useAppSelector((state) => state.treeCensuses);
   const { all: allForestCensuses, selected: selectedForestCensusId } =
     useAppSelector((state) => state.forestCensuses);
@@ -241,17 +242,6 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
   }, [byTreeActive]);
 
   const addNewCensus = useCallback(async () => {
-    // if (selectedTree)
-    //   alert(
-    //     selectedTree?.plotId ||
-    //       "none" + selectedTree?.id ||
-    //       "none" + plotCensus?.id ||
-    //       ("none" + selectedTree?.id &&
-    //         //@ts-ignore
-    //         !byTreeActive?.[selectedTree.id]) ||
-    //       "none"
-    //   );
-
     if (
       !(
         selectedTree?.plotId &&
@@ -272,31 +262,28 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
       authorId: currentUser.id,
     };
     if (isConnected) {
-      console.log(selectedTree);
+      console.log("is dispatching now!");
       await dispatch(createTreeCensus(newCensus));
     } else {
+      console.log("dispatching locally");
       dispatch(locallyCreateTreeCensus(newCensus));
     }
   }, [
     selectedTree,
     plotCensus,
-    dispatch,
+    // dispatch,
     isConnected,
     byTreeActive,
     currentUser,
     byPlotCensus,
     inProgressCensuses,
+    // treeCensusLoading,
   ]);
   useEffect(() => {
     addNewCensus();
   }, [addNewCensus]);
 
   useEffect(() => {
-    console.log(
-      selectedTree?.initCensusId === null,
-      selectedTree,
-      selectedTreeCensusId
-    );
     if (selectedTree?.initCensusId === null && selectedTreeCensusId)
       dispatch(
         locallyUpdateTree({

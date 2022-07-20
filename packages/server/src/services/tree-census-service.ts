@@ -24,7 +24,17 @@ export const bulkUpsertTreeCensuses = async (treeCensuses: TreeCensus[]) => {
   // });
   const added = [];
   for (const treeCensus of treeCensuses) {
-    added.push(TreeCensusModel.upsert(treeCensus));
+    console.log(treeCensus);
+    added.push(
+      new Promise<[TreeCensus, any]>((resolve, reject) =>
+        TreeCensusModel.upsert(treeCensus)
+          .then((val) => resolve(val))
+          .catch((err) => {
+            console.log(`Error while adding tree census`, err);
+            reject(err);
+          })
+      )
+    );
   }
   const result = await Promise.allSettled(added);
   return result.reduce((prev: string[], curr) => {
@@ -46,6 +56,7 @@ export const bulkDeleteTreeCensuses = async (ids: string[]) => {
             resolve(id);
           })
           .catch((err) => {
+            console.log(`Error while deleting tree census id ${id}:`, err);
             reject(err);
           });
       })

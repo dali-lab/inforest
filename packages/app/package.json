@@ -48,6 +48,7 @@
     "expo-updates": "~0.13.2",
     "expo-web-browser": "~10.2.1",
     "geolib": "^3.3.3",
+    "immer": "^9.0.15",
     "lodash": "^4.17.21",
     "react": "17.0.2",
     "react-dom": "17.0.2",
