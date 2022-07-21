@@ -114,7 +114,6 @@ export const upsertTreePhotos = (
 
         newState.indices.byTreeCensus[newPhoto.treeCensusId].add(newPhoto.id);
       });
-      return newState;
     }
   );
 };

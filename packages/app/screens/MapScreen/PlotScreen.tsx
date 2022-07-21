@@ -1,5 +1,5 @@
 import { Dimensions, View, StyleSheet } from "react-native";
-import { useMemo, useState, useCallback } from "react";
+import { useMemo, useState, useCallback, useEffect } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { PlottingSheet } from "../../components/PlottingSheet";
 import { PlotDrawer } from "../../components/PlotDrawer";
@@ -19,6 +19,7 @@ import { deselectTree, selectTree } from "../../redux/slices/treeSlice";
 import LoadingOverlay from "../../components/LoadingOverlay";
 import { deselectTreeCensus } from "../../redux/slices/treeCensusSlice";
 import { useNavigation } from "@react-navigation/native";
+import { useIsConnected } from "react-native-offline";
 
 const LOWER_BUTTON_HEIGHT = 64;
 
@@ -28,6 +29,8 @@ type PlotViewProps = {
 
 const PlotView: React.FC<PlotViewProps> = (props) => {
   const { mode } = props;
+
+  const isConnected = useIsConnected();
 
   const [viewMode, setViewMode] = useState<MapScreenModes>(mode);
 
@@ -66,6 +69,7 @@ const PlotView: React.FC<PlotViewProps> = (props) => {
   const { loading: treeCensusLabelLoading } = useAppSelector(
     (state) => state.treeCensusLabels
   );
+  const { loadingTasks } = useAppSelector((state) => state.sync);
   const selectedPlot = useMemo(
     () =>
       (selectedPlotId &&
@@ -129,9 +133,18 @@ const PlotView: React.FC<PlotViewProps> = (props) => {
     }
   }, [viewMode, setViewMode, navigation]);
 
+  useEffect(() => {
+    if (!selectedPlot) navigation.goBack();
+  }, [selectedPlot]);
+
   return (
     <>
       <View style={styles.map}>
+        {loadingTasks && loadingTasks.size > 0 && (
+          <LoadingOverlay isBackArrow>
+            {loadingTasks.values().next().value}
+          </LoadingOverlay>
+        )}
         <MapOverlay top={32} left={32}>
           <Ionicons name="ios-arrow-back" size={32} onPress={onExit} />
         </MapOverlay>

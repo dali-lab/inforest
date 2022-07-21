@@ -3,7 +3,7 @@ import { Animated, Pressable, StyleSheet, View } from "react-native";
 import * as utm from "utm";
 import DashedLine from "react-native-dashed-line";
 import { getRandomBytes } from "expo-random";
-import { Plot, PlotCensus } from "@ong-forestry/schema";
+import { Plot, PlotCensus, TreeCensus } from "@ong-forestry/schema";
 import Colors from "../constants/Colors";
 import { Text, TextVariants } from "./Themed";
 import {
@@ -26,7 +26,9 @@ import {
 import useAppDispatch from "../hooks/useAppDispatch";
 import AppButton from "./AppButton";
 import {
+  createTreeCensus,
   deselectTreeCensus,
+  locallyCreateTreeCensus,
   selectTreeCensus,
 } from "../redux/slices/treeCensusSlice";
 import { useIsConnected } from "react-native-offline";
@@ -48,6 +50,15 @@ interface PlottingSheetProps {
   minimizeDrawer: () => void;
 }
 
+const blankTreeCensus: Omit<
+  TreeCensus,
+  "id" | "treeId" | "plotCensusId" | "authorId" | "dbh"
+> = {
+  labels: [],
+  photos: [],
+  flagged: false,
+};
+
 const STAKE_LABEL_HEIGHT = 18 + 8;
 const STAKE_LABEL_WIDTH = 36 + 16;
 
@@ -56,6 +67,7 @@ const MIN_DOT_SIZE = 16;
 export const PlottingSheet: React.FC<PlottingSheetProps> = ({
   mode = MapScreenModes.Plot,
   plot,
+  plotCensus,
   stakeNames,
   mapWidth,
   direction = 0,
@@ -107,6 +119,7 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
   );
 
   const dispatch = useAppDispatch();
+  const { currentUser } = useAppSelector((state) => state.user);
   const { all, selected: selectedTreeId } = useAppSelector(
     (state) => state.trees
   );
@@ -189,6 +202,33 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
     plot.longitude,
     sheetSize,
   ]);
+
+  const createCensus = useCallback(
+    async (treeId) => {
+      const newCensus: Partial<TreeCensus> = {
+        ...blankTreeCensus,
+        treeId,
+        plotCensusId: selectedPlotCensusId,
+        authorId: currentUser.id,
+      };
+      if (isConnected) {
+        await dispatch(createTreeCensus(newCensus));
+      } else {
+        dispatch(locallyCreateTreeCensus(newCensus));
+      }
+    },
+    [
+      selectedTreeId,
+      plotCensus,
+      // dispatch,
+      isConnected,
+      byTreeActive,
+      currentUser,
+      byPlotCensus,
+      allTreeCensuses,
+      // treeCensusLoading,
+    ]
+  );
 
   return (
     <Pressable
@@ -384,6 +424,7 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
                 byPlotCensus?.[selectedPlotCensusId]?.has(
                   byTreeActive[tree.id]
                 );
+
               const { plotX, plotY } = tree;
               if (!!plotX && !!plotY) {
                 const treePixelSize = Math.max(
@@ -408,15 +449,14 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
                       left:
                         plotY * (sheetSize / plot.length) - treePixelSize / 2,
                     }}
-                    onPress={() => {
+                    onPress={async () => {
                       setMarkerPos(undefined);
                       minimizeDrawer();
                       dispatch(selectTree(tree.id));
-
                       if (isCensusing) {
                         dispatch(selectTreeCensus(byTreeActive[tree.id]));
                       } else {
-                        // createCensus();
+                        await createCensus(tree.id);
                       }
                     }}
                   >

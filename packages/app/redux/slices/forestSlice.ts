@@ -81,7 +81,6 @@ const upsertForests = (state: ForestState, action: UpsertAction<Forest>) => {
         newState.indices.byTeam[newForest.teamId].add(newForest.id);
         if (action.selectFinal) newState.selected = newForest.id;
       });
-      return newState;
     }
   );
 };

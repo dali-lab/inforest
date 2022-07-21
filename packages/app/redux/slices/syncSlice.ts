@@ -4,6 +4,7 @@ import {
   TreeCensus,
   TreeCensusLabel,
   TreePhoto,
+  SyncData,
 } from "@ong-forestry/schema";
 import { createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
@@ -87,19 +88,22 @@ export const uploadCensusData = createAppAsyncThunk(
     treeCensusLabelDrafts.forEach((censusLabelId) => {
       treeCensusLabels.push(allTreeCensusLabels[censusLabelId]);
     });
+    const syncData: SyncData = {
+      upserted: { trees, treeCensuses, treePhotos, treeCensusLabels },
+      deleted: {
+        trees: Array.from(deletedTrees),
+        treeCensuses: Array.from(deletedTreeCensuses),
+        treePhotos: Array.from(deletedTreePhotos),
+        treeCensusLabels: Array.from(deletedTreeCensusLabels),
+      },
+    };
     return await axios
-      .post<any, { data: SyncResponse }>(BASE_URL, {
-        upserted: { trees, treeCensuses, treePhotos, treeCensusLabels },
-        deleted: {
-          trees: Array.from(deletedTrees),
-          treeCensuses: Array.from(deletedTreeCensuses),
-          treePhotos: Array.from(deletedTreePhotos),
-          treeCensusLabels: Array.from(deletedTreeCensusLabels),
-        },
-      })
+      .post<any, { data: SyncResponse }>(BASE_URL, syncData)
       .then(async (response) => {
         const { trees, treeCensuses, treePhotos, treeCensusLabels } =
           response.data;
+
+        console.log("syncresponse", response.data);
         dispatch(stopLoading(loadMessage));
         dispatch(clearTreeDrafts(trees));
         dispatch(clearTreeCensusDrafts(treeCensuses));

@@ -90,7 +90,6 @@ export const upsertTreeCensusLabels = (
           newCensusLabel.id
         );
       });
-      return newState;
     }
   );
 };

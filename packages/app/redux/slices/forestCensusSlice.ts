@@ -85,7 +85,6 @@ const upsertForestCensuses = (
         newState.indices.byForests[newCensus.forestId].add(newCensus.id);
         if (action?.selectFinal) newState.selected = newCensus.id;
       });
-      return newState;
     }
   );
 };

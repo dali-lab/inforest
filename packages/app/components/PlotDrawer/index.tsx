@@ -151,6 +151,7 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
   );
 
   const isConnected = useIsConnected();
+  // const isConnected = false;
   const [deleteModalOpen, setDeleteModalOpen] = useState<boolean>(false);
   const [submitModalOpen, setSubmitModalOpen] = useState<boolean>(false);
 
@@ -206,7 +207,7 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
             ...updatedFields,
           };
           isConnected
-            ? dispatch(updateTreeCensus(updated))
+            ? await dispatch(updateTreeCensus(updated))
             : dispatch(locallyUpdateTreeCensus(updated));
         } catch (err: any) {
           alert(err?.message || "An unknown error occurred.");
@@ -223,6 +224,7 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
         ? deleteTreeCensus(selectedTreeCensus.id)
         : locallyDeleteTreeCensus(selectedTreeCensus.id)
     );
+    console.log(selectedTree);
     if (selectedTree?.initCensusId === selectedTreeCensus.id)
       dispatch(
         isConnected
@@ -247,11 +249,9 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
         selectedTree?.plotId &&
         selectedTree?.id &&
         plotCensus?.id &&
-        !(
-          inProgressCensuses.includes(selectedTree.id) &&
-          byPlotCensus?.[plotCensus.id]?.has(byTreeActive[selectedTree.id])
-        ) &&
-        currentUser
+        currentUser &&
+        allTreeCensuses[byTreeActive[selectedTree.id]]?.plotCensusId !=
+          plotCensus.id
       )
     )
       return;
@@ -262,29 +262,28 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
       authorId: currentUser.id,
     };
     if (isConnected) {
-      console.log("is dispatching now!");
       await dispatch(createTreeCensus(newCensus));
     } else {
-      console.log("dispatching locally");
       dispatch(locallyCreateTreeCensus(newCensus));
     }
   }, [
-    selectedTree,
+    selectedTreeId,
     plotCensus,
     // dispatch,
     isConnected,
     byTreeActive,
     currentUser,
     byPlotCensus,
-    inProgressCensuses,
+    allTreeCensuses,
     // treeCensusLoading,
   ]);
   useEffect(() => {
-    addNewCensus();
+    // addNewCensus();
   }, [addNewCensus]);
 
   useEffect(() => {
-    if (selectedTree?.initCensusId === null && selectedTreeCensusId)
+    console.log(!selectedTree?.initCensusId, selectedTreeCensusId);
+    if (!selectedTree?.initCensusId && selectedTreeCensusId)
       dispatch(
         locallyUpdateTree({
           ...selectedTree,

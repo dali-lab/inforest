@@ -24,7 +24,8 @@ export const bulkUpsertTreeCensuses = async (treeCensuses: TreeCensus[]) => {
   // });
   const added = [];
   for (const treeCensus of treeCensuses) {
-    console.log(treeCensus);
+    // temp upload fix
+    if (!treeCensus || !("dbh" in treeCensus)) continue;
     added.push(
       new Promise<[TreeCensus, any]>((resolve, reject) =>
         TreeCensusModel.upsert(treeCensus)

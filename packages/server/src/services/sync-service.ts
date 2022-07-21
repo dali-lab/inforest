@@ -4,6 +4,7 @@ import {
   TreeCensus,
   TreeCensusLabel,
   TreePhoto,
+  SyncData,
 } from "@ong-forestry/schema";
 import { sequelize } from "index";
 import {
@@ -16,25 +17,12 @@ import {
   bulkDeleteTrees,
   bulkDeleteTreeCensusLabels,
 } from "services";
-
-export interface SyncData {
-  upserted: {
-    trees: Tree[];
-    treeCensuses: TreeCensus[];
-    treePhotos: TreePhoto[];
-    treeCensusLabels: TreeCensusLabel[];
-  };
-  deleted: {
-    trees: string[];
-    treeCensuses: string[];
-    treePhotos: string[];
-    treeCensusLabels: string[];
-  };
-}
+import util from "util";
 
 export const sync = async (data: SyncData) => {
   const transaction = await sequelize.transaction();
   try {
+    console.log(util.inspect(data));
     const { upserted, deleted } = data;
     const result: SyncResponse = {
       trees: {},

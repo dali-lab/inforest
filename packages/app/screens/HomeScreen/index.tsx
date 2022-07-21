@@ -296,7 +296,8 @@ export const HomeScreen = () => {
               allForestCensuses[selectedForestCensusId]?.id
             }
             onValueChange={(value) => {
-              dispatch(selectForestCensus(value));
+              if (value != selectedForestCensusId)
+                dispatch(selectForestCensus(value));
             }}
             items={Object.values(allForestCensuses).map(({ name, id }) => ({
               label: name,

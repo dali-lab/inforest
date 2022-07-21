@@ -69,7 +69,6 @@ const upsertPlots = (state: PlotState, action: UpsertAction<Plot>) => {
       // sort indices
       newState.latitude.sort(({ value: a }, { value: b }) => a - b);
       newState.longitude.sort(({ value: a }, { value: b }) => a - b);
-      return newState;
     }
   );
 };

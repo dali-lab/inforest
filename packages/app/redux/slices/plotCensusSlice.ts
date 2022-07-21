@@ -104,7 +104,6 @@ const upsertPlotCensuses = (
         newState.indices.byPlots[newCensus.plotId].add(newCensus.id);
         if (action?.selectFinal) newState.selected = newCensus.id;
       });
-      return newState;
     }
   );
 };

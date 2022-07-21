@@ -170,8 +170,6 @@ export const upsertTreeCensuses = (
         newState.indices.byTreeActive[newCensus.treeId] = newCensus.id;
         if (action?.selectFinal) newState.selected = newCensus.id;
       });
-
-      return newState;
     }
   );
 };
@@ -232,9 +230,8 @@ export const treeCensusSlice = createSlice({
       });
     },
     locallyUpdateTreeCensus: (state, action) => {
-      const updated = action.payload;
-      state.all[updated.id] = updated;
-      return state;
+      console.log("updating", action.payload);
+      return upsertTreeCensuses(state, { data: [action.payload], draft: true });
     },
     selectTreeCensus: (state, action) => {
       state.selected = action.payload;
@@ -273,11 +270,6 @@ export const treeCensusSlice = createSlice({
         });
       }
     );
-    // builder.addCase(createTreeCensus.pending, (state, action) => {
-    //   console.log("action pending");
-    //   state.loading = true;
-    //   return state;
-    // });
     // builder.addCase(
     //   createTreeCensus.rejected,
     //   (state, action: { payload: any }) => {
