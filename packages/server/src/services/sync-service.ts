@@ -50,7 +50,7 @@ export const sync = async (data: SyncData) => {
     );
 
     transaction.commit();
-    console.log(util.inspect(result), { depth: 5 });
+    console.log("sync result", util.inspect(result, { depth: 5 }));
     return result;
   } catch (e: any) {
     transaction.rollback();

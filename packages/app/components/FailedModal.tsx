@@ -57,9 +57,10 @@ const FailedModal: FC = () => {
     failedDrafts: labelFailedDrafts,
     failedDeletions: labelFailedDeletions,
   } = useAppSelector((state) => state.treeCensusLabels);
-  const { loadingTasks } = useAppSelector((state) => state.sync);
+  const syncState = useAppSelector((state) => state.sync);
   const getTreeNumFromTree = useCallback(
-    (treeId) => allTrees?.[treeId]?.number,
+    (treeId) => allTrees?.[treeId]?.number || treeId,
+    // (treeId) => treeId,
     [allTrees]
   );
   const getTreeNumFromCensus = useCallback(
@@ -112,6 +113,7 @@ const FailedModal: FC = () => {
     [
       treeFailedDrafts,
       treeFailedDeletions,
+      getTreeNumFromTree,
       censusFailedDrafts,
       censusFailedDeletions,
       getTreeNumFromCensus,
@@ -129,10 +131,14 @@ const FailedModal: FC = () => {
     dispatch(clearTreeCensusLabelFailed());
     dispatch(clearTreePhotoFailed());
   }, []);
+  console.log(failedObj);
   return (
     <AppModal
       setVisible={closeModal}
-      visible={loadingTasks.size === 0 && !isEqual(failedObj, emptyFailedObj)}
+      visible={
+        syncState?.loadingTasks?.size === 0 &&
+        !isEqual(failedObj, emptyFailedObj)
+      }
       modalSize={"large"}
     >
       <View style={{ flexDirection: "column" }}>

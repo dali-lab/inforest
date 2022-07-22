@@ -136,13 +136,14 @@ const SelectedTransformer = createTransform(
 );
 
 const LoadingTransformer = createTransform(
-  (inboundState: RootState[keyof RootState]) => {
+  (inboundState: any) => {
     if ("loading" in inboundState) return { ...inboundState, loading: false };
     return inboundState;
   },
   (outboundState: RootState[keyof RootState]) => {
-    if ("loadingTasks" in outboundState)
+    if ("loadingTasks" in outboundState) {
       return { ...outboundState, loadingTasks: new Set([]) };
+    }
     return outboundState;
   }
 );

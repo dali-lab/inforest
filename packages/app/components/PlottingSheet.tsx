@@ -384,8 +384,16 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
         <Pressable
           style={{
             position: "absolute",
-            top: sheetSize - selectedTree.plotX * (sheetSize / plot.width) - 2,
-            left: selectedTree.plotY * (sheetSize / plot.length) - 2,
+            top:
+              sheetSize -
+              transformXY(
+                selectedTree.plotX * (sheetSize / plot.width) - 2,
+                selectedTree.plotY * (sheetSize / plot.length) - 2
+              ).x,
+            left: transformXY(
+              selectedTree.plotX * (sheetSize / plot.width) - 2,
+              selectedTree.plotY * (sheetSize / plot.length) - 2
+            ).y,
             backgroundColor: "white",
             zIndex: 1,
             padding: 12,
