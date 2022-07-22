@@ -15,7 +15,7 @@ import treeCensusReducer, { TreeCensusState } from "./treeCensusSlice";
 import treeCensusLabelReducer, {
   TreeCensusLabelState,
 } from "./treeCensusLabelSlice";
-import syncReducer from "./syncSlice";
+import syncReducer, { SyncState } from "./syncSlice";
 
 export {
   userReducer,
@@ -45,4 +45,5 @@ export {
   treeCensusLabelReducer,
   TreeCensusLabelState,
   syncReducer,
+  SyncState,
 };

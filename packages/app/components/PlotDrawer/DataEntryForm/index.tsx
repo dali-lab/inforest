@@ -29,7 +29,7 @@ interface DataEntryFormProps {
   selectedTree: Tree;
   selectedTreeCensus: TreeCensus;
   cancel: () => void;
-  finish: (newTreeCensus: TreeCensus) => void;
+  finish: (newTree: Tree, newTreeCensus: TreeCensus) => void;
   editTree: (updated: Partial<Tree>) => void;
   editTreeCensus: (updated: Partial<TreeCensus>) => void;
 }
@@ -94,7 +94,7 @@ const DataEntryForm: React.FC<DataEntryFormProps & View["props"]> = ({
             )}
             {stage == StageList.length - 1 && (
               <AppButton
-                onPress={() => finish(selectedTreeCensus)}
+                onPress={() => finish(selectedTree, selectedTreeCensus)}
                 style={[styles.navButton, { marginLeft: "auto" }]}
               >
                 Finish

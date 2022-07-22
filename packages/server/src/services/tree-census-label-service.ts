@@ -5,7 +5,51 @@ import { Op } from "sequelize";
 export const bulkInsertTreeCensusLabels = async (
   treeCensusLabels: TreeCensusLabel[]
 ) => {
-  return await TreeCensusLabelModel.bulkCreate(treeCensusLabels);
+  // return await TreeCensusLabelModel.bulkCreate(treeCensusLabels);
+  const added = [];
+  for (const treeCensusLabel of treeCensusLabels) {
+    added.push(
+      new Promise<[TreeCensusLabel, any]>((resolve, reject) =>
+        TreeCensusLabelModel.upsert(treeCensusLabel)
+          .then((val) => resolve(val))
+          .catch((err) => {
+            console.log("Error when adding TreeCensusLabel", err);
+            reject(err);
+          })
+      )
+    );
+  }
+  const result = await Promise.allSettled(added);
+  return result.reduce((prev: string[], curr) => {
+    if (curr.status === "fulfilled") return prev.concat([curr.value[0].id]);
+    return prev;
+  }, []);
+};
+
+export const bulkDeleteTreeCensusLabels = async (ids: string[]) => {
+  // return await TreeModel.bulkCreate(trees, {
+  //   updateOnDuplicate: Object.keys(TreeModel.rawAttributes) as (keyof Tree)[],
+  // });
+  const deleted = [];
+  for (const id of ids) {
+    deleted.push(
+      new Promise<string>((resolve, reject) => {
+        TreeCensusLabelModel.destroy({ where: { id } })
+          .then(() => {
+            resolve(id);
+          })
+          .catch((err) => {
+            console.log(`Error when deleting TreeCensusLabel id ${id}:`, err);
+            reject(err);
+          });
+      })
+    );
+  }
+  const result = await Promise.allSettled(deleted);
+  return result.reduce((prev: string[], curr) => {
+    if (curr.status === "fulfilled") return prev.concat([curr.value]);
+    return prev;
+  }, []);
 };
 
 export const createTreeCensusLabel = async (

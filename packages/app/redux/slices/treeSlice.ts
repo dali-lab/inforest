@@ -1,9 +1,15 @@
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { createSlice } from "@reduxjs/toolkit";
 import { Tree } from "@ong-forestry/schema";
 import axios from "axios";
 import uuid from "react-native-uuid";
 import SERVER_URL from "../../constants/Url";
-import { RootState, UpsertAction } from "..";
+import {
+  RootState,
+  UpsertAction,
+  createAppAsyncThunk,
+  throwIfLoadingBase,
+} from "../util";
+import { produce } from "immer";
 
 const BASE_URL = SERVER_URL + "trees";
 
@@ -12,7 +18,9 @@ type GetForestTreesParams = {
   limit?: number;
 };
 
-export const getForestTrees = createAsyncThunk(
+const throwIfLoading = throwIfLoadingBase("trees");
+
+export const getForestTrees = createAppAsyncThunk(
   "tree/getForestTrees",
   async (params: GetForestTreesParams) => {
     return await axios
@@ -31,26 +39,25 @@ export const getForestTrees = createAsyncThunk(
   }
 );
 
-export const createTree = createAsyncThunk(
+export const createTree = createAppAsyncThunk(
   "tree/createTree",
-  async (newTree: Partial<Tree>, { dispatch }) => {
-    // todo handle failure
+  async (newTree: Partial<Tree>, { dispatch, getState }) => {
+    throwIfLoading(getState());
     dispatch(startTreeLoading());
     return await axios
       .post(`${BASE_URL}`, newTree)
+      .finally(() => dispatch(stopTreeLoading()))
       .then((response) => {
-        dispatch(stopTreeLoading());
         return response.data;
       })
       .catch((err) => {
-        dispatch(stopTreeLoading());
         alert("Error when creating tree: " + err?.message);
         throw err;
       });
   }
 );
 
-export const updateTree = createAsyncThunk(
+export const updateTree = createAppAsyncThunk(
   "tree/updateTree",
   async (updatedTree: Tree, { getState, dispatch }) => {
     const oldTree = (getState() as RootState)?.trees.all[updatedTree.id];
@@ -59,19 +66,19 @@ export const updateTree = createAsyncThunk(
     return await axios
       .patch(`${BASE_URL}/${id}`, updates)
       .then((response) => {
-        dispatch(clearTreeDrafts());
+        // dispatch(clearTreeDrafts());
         return response.data;
       })
       .catch((err) => {
         dispatch(locallyUpdateTree(oldTree));
-        dispatch(clearTreeDrafts());
+        // dispatch(clearTreeDrafts());
         alert("Error while updating tree: " + err?.message);
         throw err;
       });
   }
 );
 
-export const deleteTree = createAsyncThunk(
+export const deleteTree = createAppAsyncThunk(
   "tree/deleteTree",
   async (id: string) => {
     return await axios
@@ -105,6 +112,8 @@ export interface TreeState {
   localDeletions: Set<string>;
   selected: string | undefined;
   loading: boolean;
+  failedDrafts: string[];
+  failedDeletions: string[];
 }
 
 const initialState: TreeState = {
@@ -120,41 +129,62 @@ const initialState: TreeState = {
   localDeletions: new Set([]),
   selected: undefined,
   loading: false,
+  failedDrafts: [],
+  failedDeletions: [],
 };
 
 // takes the state and the action payload(!!) and returns the updated state with the payload's trees added. used for downloading, drafting, and rehydrating
-export const upsertTrees = (state: TreeState, action: UpsertAction<Tree>) => {
-  const newTrees: Tree[] = action.data;
-  newTrees.forEach((newTree) => {
-    const oldTree = newTree.id
-      ? state?.all?.[newTree.id] || undefined
-      : undefined;
-    if (!newTree?.id) newTree.id = uuid.v4().toString();
-    state.all[newTree.id] = newTree;
-    // add to drafts
-    if (action?.draft) state.drafts.add(newTree.id);
-    // update plots index
-    if (!(newTree.plotId in state.indices.byPlots))
-      state.indices.byPlots[newTree.plotId] = new Set([]);
-    state.indices.byPlots[newTree.plotId].add(newTree.id);
-    if (oldTree && oldTree?.speciesCode !== newTree?.speciesCode)
-      state.indices.bySpecies[oldTree.speciesCode].delete(newTree.id);
-    if (newTree?.speciesCode) {
-      if (!(newTree.speciesCode in state.indices.bySpecies))
-        state.indices.bySpecies[newTree.speciesCode] = new Set([]);
-      state.indices.bySpecies[newTree.speciesCode].add(newTree.id);
-    }
-    try {
-      if (newTree?.tag) {
-        state.indices.byTag[newTree.tag] = newTree.id;
-      }
-    } catch (e) {
-      // console.error(e);
-    }
-    if (action?.selectFinal) state.selected = newTree.id;
-  });
+export const upsertTrees = (
+  state: TreeState,
+  action: UpsertAction<Tree>
+): TreeState => {
+  const draftModels = action?.overwriteNonDrafts
+    ? Object.values(state.all).filter((tree) => state.drafts.has(tree.id))
+    : [];
+  return produce(
+    action?.overwriteNonDrafts
+      ? upsertTrees(initialState, { data: draftModels, draft: true })
+      : state,
+    (newState) => {
+      const newTrees: Tree[] = action.data;
+      newTrees.forEach((newTree) => {
+        const oldTree = newState?.all?.[newTree?.id || ""];
+        if (!newTree?.id) newTree.id = uuid.v4().toString();
+        newState.all[newTree.id] = newTree;
+        // add to drafts
+        if (action?.draft) newState.drafts.add(newTree.id);
 
-  return state;
+        // update plots index
+        // A tree's plot id should never change so this probably isnt needed
+        // if (oldTree && oldTree?.plotId !== newTree?.plotId)
+        //   newState.indices.byPlots[oldTree.plotId].delete(newTree.id);
+        if (!(newTree.plotId in newState.indices.byPlots))
+          newState.indices.byPlots[newTree.plotId] = new Set([]);
+        newState.indices.byPlots[newTree.plotId].add(newTree.id);
+
+        if (
+          oldTree &&
+          oldTree?.speciesCode &&
+          oldTree?.speciesCode !== newTree?.speciesCode
+        )
+          newState.indices.bySpecies[oldTree.speciesCode].delete(newTree.id);
+        if (newTree?.speciesCode) {
+          if (!(newTree.speciesCode in newState.indices.bySpecies))
+            newState.indices.bySpecies[newTree.speciesCode] = new Set([]);
+          newState.indices.bySpecies[newTree.speciesCode].add(newTree.id);
+        }
+        // TODO: revisit this
+        try {
+          if (newTree?.tag) {
+            newState.indices.byTag[newTree.tag] = newTree.id;
+          }
+        } catch (e) {
+          // console.error(e);
+        }
+        if (action?.selectFinal) newState.selected = newTree.id;
+      });
+    }
+  );
 };
 
 export const deleteTrees = (state: TreeState, ids: string[]) => {
@@ -178,19 +208,18 @@ export const treeSlice = createSlice({
       return upsertTrees(state, {
         data: [action.payload],
         draft: true,
-        selectFinal: true,
+        // selectFinal: true,
       });
     },
     locallyDeleteTree: (state, action: { payload: string }) => {
-      state.localDeletions.add(action.payload);
+      if (!state.drafts.has(action.payload))
+        state.localDeletions.add(action.payload);
       return deleteTrees(state, [action.payload]);
     },
     deleteTreeById: (state, action: { payload: string }) =>
       deleteTrees(state, [action.payload]),
     locallyUpdateTree: (state, action) => {
-      const updated = action.payload;
-      state.all[updated.id] = updated;
-      return state;
+      return upsertTrees(state, { data: [action.payload], draft: true });
     },
     selectTree: (state, action) => {
       state.selected = action.payload;
@@ -200,27 +229,42 @@ export const treeSlice = createSlice({
       state.selected = undefined;
       return state;
     },
-    clearTreeDrafts: (state) => {
-      return {
-        ...state,
-        drafts: initialState.drafts,
-        localDeletions: initialState.localDeletions,
-      };
+    clearTreeDrafts: (
+      state,
+      action: { payload: { added?: string[]; deleted?: string[] } }
+    ) => {
+      for (const id of action?.payload?.added || []) {
+        state.drafts.delete(id);
+      }
+      for (const id of action?.payload?.deleted || []) {
+        state.localDeletions.delete(id);
+      }
+      state.failedDrafts = Array.from(state.drafts);
+      state.failedDeletions = Array.from(state.failedDeletions);
+      return state;
     },
+    clearTreeFailed: (state) => ({
+      ...state,
+      failedDrafts: initialState.failedDrafts,
+      failedDeletions: initialState.failedDeletions,
+    }),
     resetTrees: () => initialState,
     startTreeLoading: (state) => ({ ...state, loading: true }),
     stopTreeLoading: (state) => ({ ...state, loading: false }),
   },
   extraReducers: (builder) => {
     builder.addCase(getForestTrees.fulfilled, (state, action) => {
-      return upsertTrees(state, { data: action.payload });
+      return upsertTrees(state, {
+        data: action.payload,
+        overwriteNonDrafts: true,
+      });
     });
     builder.addCase(
       createTree.fulfilled,
       (state, action: { payload: Tree }) => {
         return upsertTrees(state, {
           data: [action.payload],
-          selectFinal: true,
+          // selectFinal: true,
         });
       }
     );
@@ -245,6 +289,7 @@ export const {
   selectTree,
   deselectTree,
   clearTreeDrafts,
+  clearTreeFailed,
   resetTrees,
   startTreeLoading,
   stopTreeLoading,

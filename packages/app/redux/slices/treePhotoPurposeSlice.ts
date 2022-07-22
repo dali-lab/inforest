@@ -1,7 +1,8 @@
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { createSlice } from "@reduxjs/toolkit";
 import { TreePhotoPurpose } from "@ong-forestry/schema";
 import SERVER_URL from "../../constants/Url";
 import axios from "axios";
+import { createAppAsyncThunk } from "../util";
 
 const BASE_URL = SERVER_URL + "trees/photos/purposes";
 
@@ -17,7 +18,7 @@ const initialState: TreePhotoPurposeState = {
   all: {},
 };
 
-export const getAllTreePhotoPurposes = createAsyncThunk(
+export const getAllTreePhotoPurposes = createAppAsyncThunk(
   "treePhotoPurpose/getAllTreePhotoPurposes",
   async (_params?: GetTreePhotoPurposeParams) => {
     return await axios

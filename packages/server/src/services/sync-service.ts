@@ -1,57 +1,57 @@
 import {
+  SyncResponse,
   Tree,
   TreeCensus,
   TreeCensusLabel,
   TreePhoto,
+  SyncData,
 } from "@ong-forestry/schema";
 import { sequelize } from "index";
 import {
   bulkUpsertTrees,
   bulkUpsertTreeCensuses,
   bulkInsertTreePhotos,
-  deleteTreePhotos,
-} from "services";
-import {
   bulkInsertTreeCensusLabels,
-  deleteTreeCensusLabels,
-} from "./tree-census-label-service";
-import { deleteTreeCensuses } from "./tree-census-service";
-import { deleteTrees } from "./tree-service";
-
-export interface SyncData {
-  upserted: {
-    trees: Tree[];
-    treeCensuses: TreeCensus[];
-    treePhotos: TreePhoto[];
-    treeCensusLabels: TreeCensusLabel[];
-  };
-  deleted: {
-    trees: string[];
-    treeCensuses: string[];
-    treePhotos: string[];
-    treeCensusLabels: string[];
-  };
-}
+  bulkDeleteTreePhotos,
+  bulkDeleteTreeCensuses,
+  bulkDeleteTrees,
+  bulkDeleteTreeCensusLabels,
+} from "services";
+import util from "util";
 
 export const sync = async (data: SyncData) => {
   const transaction = await sequelize.transaction();
   try {
+    console.log(util.inspect(data));
     const { upserted, deleted } = data;
+    const result: SyncResponse = {
+      trees: {},
+      treeCensuses: {},
+      treePhotos: {},
+      treeCensusLabels: {},
+    };
+    result.trees.added = await bulkUpsertTrees(upserted.trees);
+    result.trees.deleted = await bulkDeleteTrees(deleted.trees);
 
-    await bulkUpsertTrees(upserted.trees);
-    await deleteTrees({ ids: deleted.trees });
+    result.treeCensuses.added = await bulkUpsertTreeCensuses(
+      upserted.treeCensuses
+    );
+    result.treeCensuses.deleted = await bulkDeleteTreeCensuses(
+      deleted.treeCensuses
+    );
 
-    await bulkUpsertTreeCensuses(upserted.treeCensuses);
-    await deleteTreeCensuses({ ids: deleted.treeCensuses });
+    result.treePhotos.added = await bulkInsertTreePhotos(upserted.treePhotos);
+    result.treePhotos.deleted = await bulkDeleteTreePhotos(deleted.treePhotos);
 
-    await bulkInsertTreePhotos(upserted.treePhotos);
-    await deleteTreePhotos({ ids: deleted.treePhotos });
-
-    await bulkInsertTreeCensusLabels(upserted.treeCensusLabels);
-    await deleteTreeCensusLabels({ ids: deleted.treeCensusLabels });
+    result.treeCensusLabels.added = await bulkInsertTreeCensusLabels(
+      upserted.treeCensusLabels
+    );
+    result.treeCensusLabels.deleted = await bulkDeleteTreeCensusLabels(
+      deleted.treeCensusLabels
+    );
 
     transaction.commit();
-    return {};
+    return result;
   } catch (e: any) {
     transaction.rollback();
     console.error(e);

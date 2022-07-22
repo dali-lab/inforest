@@ -1,7 +1,8 @@
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { createSlice } from "@reduxjs/toolkit";
 import { TreeLabel } from "@ong-forestry/schema";
 import SERVER_URL from "../../constants/Url";
 import axios from "axios";
+import { createAppAsyncThunk } from "../util";
 
 const BASE_URL = SERVER_URL + "trees/labels";
 
@@ -17,7 +18,7 @@ const initialState: TreeLabelState = {
   all: {},
 };
 
-export const getAllTreeLabels = createAsyncThunk(
+export const getAllTreeLabels = createAppAsyncThunk(
   "treeLabel/getAllTreeSpecies",
   async (_params?: GetTreeLabelsParams) => {
     //TODO: add back limit param
