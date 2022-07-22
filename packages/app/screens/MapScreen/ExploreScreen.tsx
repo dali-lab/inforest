@@ -437,6 +437,7 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
       )}
       <MapView
         style={styles.map}
+        userInterfaceStyle='light'
         ref={mapRef}
         mapPadding={{
           top: 24,

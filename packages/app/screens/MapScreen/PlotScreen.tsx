@@ -41,7 +41,7 @@ const PlotView: React.FC<PlotViewProps> = (props) => {
   );
   const [drawerHeight, setDrawerHeight] = useState(0);
 
-  const [direction, setDirection] = useState(0);
+  const [direction, setDirection] = useState(1);
   const rotate = useCallback(() => {
     setDirection((direction + 1) % 4);
   }, [direction]);
@@ -151,6 +151,32 @@ const PlotView: React.FC<PlotViewProps> = (props) => {
         <View style={{ position: "absolute", top: 32, right: 32 }}>
           <ModeSwitcher mode={viewMode} switchMode={switchMode}></ModeSwitcher>
         </View>
+        <View style={{ position: "absolute", top: 100}}>
+          {direction === 1 &&
+            <Ionicons
+              name="arrow-up" 
+              size={100}
+            />
+          }
+          {direction === 2 &&
+            <Ionicons
+              name="arrow-forward" 
+              size={100}
+            />
+          }
+          {direction === 3 &&
+            <Ionicons
+              name="arrow-down" 
+              size={100}
+            />
+          }
+          {direction === 0 &&
+            <Ionicons
+              name="arrow-back" 
+              size={100}
+            />
+          }
+        </View>
         <View
           style={{ ...styles.mapOverlay, bottom: drawerHeight + 32, left: 32 }}
         >
@@ -235,13 +261,13 @@ const styles = StyleSheet.create({
   map: {
     width: "100%",
     height: "100%",
-    backgroundColor: Colors.secondary.dark,
+    backgroundColor: Colors.secondary.light,
     justifyContent: "center",
     alignItems: "center",
   },
   mapOverlay: {
     position: "absolute",
-    backgroundColor: "white",
+    backgroundColor: Colors.blurViewBackground,
     width: LOWER_BUTTON_HEIGHT,
     height: LOWER_BUTTON_HEIGHT,
     borderRadius: 8,
