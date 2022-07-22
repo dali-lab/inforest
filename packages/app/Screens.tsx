@@ -14,6 +14,7 @@ import MapScreen from "./screens/MapScreen";
 import axios from "axios";
 import ProfileScreen from "./screens/ProfileScreen";
 import OfflineBar from "./components/OfflineBar";
+import FailedModal from "./components/FailedModal";
 
 export type CensusStackParamList = {
   map: {
@@ -45,6 +46,7 @@ const Screens: FC = () => {
   return isLoadingComplete ? (
     <>
       <OfflineBar />
+      <FailedModal />
       {token ? (
         currentUser?.verified ? (
           <>
@@ -59,6 +61,7 @@ const Screens: FC = () => {
               </CensusStack.Navigator>
             </NavigationContainer>
             <StatusBar />
+            <FailedModal />
           </>
         ) : (
           <VerifyScreen />

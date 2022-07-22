@@ -102,8 +102,6 @@ export const uploadCensusData = createAppAsyncThunk(
       .then(async (response) => {
         const { trees, treeCensuses, treePhotos, treeCensusLabels } =
           response.data;
-
-        console.log("syncresponse", response.data);
         dispatch(stopLoading(loadMessage));
         dispatch(clearTreeDrafts(trees));
         dispatch(clearTreeCensusDrafts(treeCensuses));

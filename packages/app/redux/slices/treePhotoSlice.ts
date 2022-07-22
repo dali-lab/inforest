@@ -23,6 +23,8 @@ export interface TreePhotoState {
   drafts: Set<string>;
   localDeletions: Set<string>;
   loading: boolean;
+  failedDrafts: string[];
+  failedDeletions: string[];
 }
 
 const initialState: TreePhotoState = {
@@ -33,6 +35,8 @@ const initialState: TreePhotoState = {
   drafts: new Set([]),
   localDeletions: new Set([]),
   loading: false,
+  failedDrafts: [],
+  failedDeletions: [],
 };
 
 export const createTreePhoto = createAppAsyncThunk(
@@ -142,7 +146,8 @@ export const treePhotoSlice = createSlice({
       return upsertTreePhotos(state, { data: [action.payload], draft: true });
     },
     locallyDeleteTreePhoto: (state, action: { payload: string }) => {
-      state.localDeletions.add(action.payload);
+      if (!state.drafts.has(action.payload))
+        state.localDeletions.add(action.payload);
       return deleteTreePhotos(state, [action.payload]);
     },
     locallyUpdateTreePhoto: (state, action) => {
@@ -160,8 +165,15 @@ export const treePhotoSlice = createSlice({
       for (const id of action?.payload?.deleted || []) {
         state.localDeletions.delete(id);
       }
+      state.failedDrafts = Array.from(state.drafts);
+      state.failedDeletions = Array.from(state.failedDeletions);
       return state;
     },
+    clearTreePhotoFailed: (state) => ({
+      ...state,
+      failedDrafts: initialState.failedDrafts,
+      failedDeletions: initialState.failedDeletions,
+    }),
     resetTreePhotos: () => initialState,
     startTreePhotoLoading: (state) => ({ ...state, loading: true }),
     stopTreePhotoLoading: (state) => ({ ...state, loading: false }),
@@ -191,6 +203,7 @@ export const {
   locallyDeleteTreePhoto,
   locallyUpdateTreePhoto,
   clearTreePhotoDrafts,
+  clearTreePhotoFailed,
   resetTreePhotos,
   startTreePhotoLoading,
   stopTreePhotoLoading,

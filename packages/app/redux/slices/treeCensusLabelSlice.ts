@@ -48,6 +48,8 @@ export interface TreeCensusLabelState {
   drafts: Set<string>;
   localDeletions: Set<string>;
   loading: boolean;
+  failedDrafts: string[];
+  failedDeletions: string[];
 }
 
 const initialState: TreeCensusLabelState = {
@@ -58,6 +60,8 @@ const initialState: TreeCensusLabelState = {
   drafts: new Set([]),
   localDeletions: new Set([]),
   loading: false,
+  failedDrafts: [],
+  failedDeletions: [],
 };
 
 export const upsertTreeCensusLabels = (
@@ -124,7 +128,8 @@ export const treeCensusLabelSlice = createSlice({
       });
     },
     locallyDeleteTreeCensusLabel: (state, action: { payload: string }) => {
-      state.localDeletions.add(action.payload);
+      if (!state.drafts.has(action.payload))
+        state.localDeletions.add(action.payload);
       return deleteTreeCensusLabels(state, [action.payload]);
     },
     clearTreeCensusLabelDrafts: (
@@ -137,8 +142,15 @@ export const treeCensusLabelSlice = createSlice({
       for (const id of action?.payload?.deleted || []) {
         state.localDeletions.delete(id);
       }
+      state.failedDrafts = Array.from(state.drafts);
+      state.failedDeletions = Array.from(state.failedDeletions);
       return state;
     },
+    clearTreeCensusLabelFailed: (state) => ({
+      ...state,
+      failedDrafts: initialState.failedDrafts,
+      failedDeletions: initialState.failedDeletions,
+    }),
     resetTreeCensusLabels: () => initialState,
     startTreeCensusLabelLoading: (state) => ({ ...state, loading: true }),
     stopTreeCensusLabelLoading: (state) => ({ ...state, loading: false }),
@@ -161,6 +173,7 @@ export const {
   locallyCreateTreeCensusLabel,
   locallyDeleteTreeCensusLabel,
   clearTreeCensusLabelDrafts,
+  clearTreeCensusLabelFailed,
   resetTreeCensusLabels,
   startTreeCensusLabelLoading,
   stopTreeCensusLabelLoading,

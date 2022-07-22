@@ -197,6 +197,8 @@ export interface TreeCensusState {
   localDeletions: Set<string>;
   selected: string | undefined;
   loading: boolean;
+  failedDrafts: string[];
+  failedDeletions: string[];
 }
 
 const initialState: TreeCensusState = {
@@ -210,6 +212,8 @@ const initialState: TreeCensusState = {
   localDeletions: new Set([]),
   selected: undefined,
   loading: false,
+  failedDrafts: [],
+  failedDeletions: [],
 };
 
 export const treeCensusSlice = createSlice({
@@ -251,8 +255,15 @@ export const treeCensusSlice = createSlice({
       for (const id of action?.payload?.deleted || []) {
         state.localDeletions.delete(id);
       }
+      state.failedDrafts = Array.from(state.drafts);
+      state.failedDeletions = Array.from(state.failedDeletions);
       return state;
     },
+    clearTreeCensusFailed: (state) => ({
+      ...state,
+      failedDrafts: initialState.failedDrafts,
+      failedDeletions: initialState.failedDeletions,
+    }),
     resetTreeCensuses: () => initialState,
     startTreeCensusLoading: (state) => ({ ...state, loading: true }),
     stopTreeCensusLoading: (state) => ({ ...state, loading: false }),
@@ -288,6 +299,8 @@ export const treeCensusSlice = createSlice({
       return deleteTreeCensuses(state, [action.meta.arg]);
     });
     builder.addCase(locallyDeleteTreeCensus.fulfilled, (state, action) => {
+      if (!state.drafts.has(action.payload))
+        state.localDeletions.add(action.payload);
       return deleteTreeCensuses(state, [action.payload]);
     });
   },
@@ -300,6 +313,7 @@ export const {
   selectTreeCensus,
   deselectTreeCensus,
   clearTreeCensusDrafts,
+  clearTreeCensusFailed,
   resetTreeCensuses,
   startTreeCensusLoading,
   stopTreeCensusLoading,

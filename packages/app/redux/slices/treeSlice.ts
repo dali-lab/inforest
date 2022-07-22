@@ -112,6 +112,8 @@ export interface TreeState {
   localDeletions: Set<string>;
   selected: string | undefined;
   loading: boolean;
+  failedDrafts: string[];
+  failedDeletions: string[];
 }
 
 const initialState: TreeState = {
@@ -127,6 +129,8 @@ const initialState: TreeState = {
   localDeletions: new Set([]),
   selected: undefined,
   loading: false,
+  failedDrafts: [],
+  failedDeletions: [],
 };
 
 // takes the state and the action payload(!!) and returns the updated state with the payload's trees added. used for downloading, drafting, and rehydrating
@@ -208,7 +212,8 @@ export const treeSlice = createSlice({
       });
     },
     locallyDeleteTree: (state, action: { payload: string }) => {
-      state.localDeletions.add(action.payload);
+      if (!state.drafts.has(action.payload))
+        state.localDeletions.add(action.payload);
       return deleteTrees(state, [action.payload]);
     },
     deleteTreeById: (state, action: { payload: string }) =>
@@ -234,8 +239,15 @@ export const treeSlice = createSlice({
       for (const id of action?.payload?.deleted || []) {
         state.localDeletions.delete(id);
       }
+      state.failedDrafts = Array.from(state.drafts);
+      state.failedDeletions = Array.from(state.failedDeletions);
       return state;
     },
+    clearTreeFailed: (state) => ({
+      ...state,
+      failedDrafts: initialState.failedDrafts,
+      failedDeletions: initialState.failedDeletions,
+    }),
     resetTrees: () => initialState,
     startTreeLoading: (state) => ({ ...state, loading: true }),
     stopTreeLoading: (state) => ({ ...state, loading: false }),
@@ -277,6 +289,7 @@ export const {
   selectTree,
   deselectTree,
   clearTreeDrafts,
+  clearTreeFailed,
   resetTrees,
   startTreeLoading,
   stopTreeLoading,
