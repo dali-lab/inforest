@@ -1,5 +1,5 @@
-import { Tree, TreePhoto, TreeCensusLabel } from "tree";
-import { TreeCensus } from "tree-census";
+import { Tree, TreePhoto, TreeCensusLabel } from "./tree";
+import { TreeCensus } from "./tree-census";
 
 type SyncResponseObject = {
   added?: string[];
