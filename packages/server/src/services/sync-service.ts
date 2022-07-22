@@ -22,7 +22,6 @@ import util from "util";
 export const sync = async (data: SyncData) => {
   const transaction = await sequelize.transaction();
   try {
-    console.log(util.inspect(data));
     const { upserted, deleted } = data;
     const result: SyncResponse = {
       trees: {},
@@ -51,6 +50,7 @@ export const sync = async (data: SyncData) => {
     );
 
     transaction.commit();
+    console.log(util.inspect(result), { depth: 5 });
     return result;
   } catch (e: any) {
     transaction.rollback();
