@@ -7,7 +7,7 @@ import {
   launchCameraAsync,
 } from "expo-image-picker";
 import useAppSelector from "../../../hooks/useAppSelector";
-import { RootState } from "../../../redux";
+import { RootState } from "../../../redux/util";
 import { Text, TextVariants } from "../../Themed";
 import FieldWrapper from "../FieldWrapper";
 import PhotoItem from "./PhotoItem";

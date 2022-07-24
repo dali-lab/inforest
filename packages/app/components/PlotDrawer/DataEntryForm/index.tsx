@@ -3,7 +3,7 @@ import { useCallback, useMemo, useState } from "react";
 import { View, StyleSheet, ScrollView, Dimensions } from "react-native";
 import useAppDispatch from "../../../hooks/useAppDispatch";
 import useAppSelector from "../../../hooks/useAppSelector";
-import { RootState } from "../../../redux";
+import { RootState } from "../../../redux/util";
 import AppButton from "../../AppButton";
 import { Text, TextVariants } from "../../Themed";
 import FormProgress from "../FormProgress";
@@ -196,7 +196,7 @@ const DataForm: React.FC<DataFormProps> = ({
   } = useAppSelector((state) => state.treeCensusLabels);
   const selectedLabels = useMemo(
     () =>
-      Array.from(byTreeCensus?.[selectedCensus.id] || []).map(
+      (Array.from(byTreeCensus?.[selectedCensus.id] || []) as string[]).map(
         (id) => allCensusLabels[id]
       ),
     [selectedCensus, byTreeCensus, allCensusLabels]
@@ -316,9 +316,9 @@ const ReviewForm: React.FC<ReviewFormProps> = ({
   } = useAppSelector((state) => state.treeCensusLabels);
   const selectedLabelCodes = useMemo(
     () =>
-      Array.from(labelsByTreeCensus?.[selectedCensus.id] || []).map(
-        (id) => allCensusLabels[id].treeLabelCode
-      ),
+      (
+        Array.from(labelsByTreeCensus?.[selectedCensus.id] || []) as string[]
+      ).map((id) => allCensusLabels[id].treeLabelCode),
     [selectedCensus, labelsByTreeCensus, allCensusLabels]
   );
   const {

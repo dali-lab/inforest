@@ -91,10 +91,10 @@ export const uploadCensusData = createAppAsyncThunk(
     const syncData: SyncData = {
       upserted: { trees, treeCensuses, treePhotos, treeCensusLabels },
       deleted: {
-        trees: Array.from(deletedTrees),
-        treeCensuses: Array.from(deletedTreeCensuses),
-        treePhotos: Array.from(deletedTreePhotos),
-        treeCensusLabels: Array.from(deletedTreeCensusLabels),
+        trees: Array.from(deletedTrees || []),
+        treeCensuses: Array.from(deletedTreeCensuses || []),
+        treePhotos: Array.from(deletedTreePhotos || []),
+        treeCensusLabels: Array.from(deletedTreeCensusLabels || []),
       },
     };
     return await axios

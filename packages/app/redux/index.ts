@@ -14,26 +14,12 @@ import {
   treeCensusLabelReducer,
   syncReducer,
   treePhotoReducer,
-  UserState,
-  ForestState,
-  PlotState,
-  TreeState,
-  TreeLabelState,
-  TreeSpeciesState,
-  TreePhotoState,
-  TeamState,
-  ForestCensusState,
-  PlotCensusState,
-  TreeCensusState,
-  TreePhotoPurposeState,
-  TreeCensusLabelState,
 } from "./slices";
 import { createTransform, persistReducer, persistStore } from "redux-persist";
 import hardSet from "redux-persist/lib/stateReconciler/hardSet";
 import ExpoFileSystemStorage from "redux-persist-expo-filesystem";
 import { enableMapSet } from "immer";
 import { isArray, isObject } from "lodash";
-import { SyncState } from "./slices/syncSlice";
 import { isEmpty } from "lodash";
 import { RootState } from "./util";
 

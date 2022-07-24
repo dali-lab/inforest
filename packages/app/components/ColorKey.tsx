@@ -5,7 +5,7 @@ import { Queue, Stack } from "react-native-spacing-system";
 import { BLUR_VIEW_INTENSITY, VisualizationConfigType } from "../constants";
 import Colors from "../constants/Colors";
 import useAppSelector from "../hooks/useAppSelector";
-import { RootState } from "../redux";
+import { RootState } from "../redux/util";
 import { Text } from "./Themed";
 
 interface ColorKeyProps {
