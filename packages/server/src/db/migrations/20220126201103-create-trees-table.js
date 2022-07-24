@@ -30,9 +30,6 @@ module.exports = {
       dbh: {
         type: Sequelize.FLOAT,
       },
-      height: {
-        type: Sequelize.FLOAT,
-      },
       speciesCode: {
         type: Sequelize.STRING,
         references: {

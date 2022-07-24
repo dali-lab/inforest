@@ -30,9 +30,6 @@ module.exports = {
           dbh: {
             type: Sequelize.FLOAT,
           },
-          height: {
-            type: Sequelize.FLOAT,
-          },
           tripId: {
             type: Sequelize.UUID,
             references: {
@@ -76,7 +73,6 @@ module.exports = {
               id: treeTagToTreeCensusId[existingTree.tag],
               treeTag: existingTree.tag,
               dbh: existingTree.dbh,
-              height: existingTree.height,
               tripId: existingTree.tripId,
               authorId: existingTree.authorId,
               createdAt: existingTree.createdAt,
@@ -95,7 +91,6 @@ module.exports = {
 
       // Remove columns from trees table.
       await queryInterface.removeColumn("trees", "dbh", { transaction });
-      await queryInterface.removeColumn("trees", "height", { transaction });
       await queryInterface.removeColumn("trees", "tripId", { transaction });
       await queryInterface.removeColumn("trees", "authorId", { transaction });
 
@@ -264,18 +259,10 @@ module.exports = {
        *
        */
 
-      // Add trees.dbh, trees.height, trees.statusName, trees.tripId, trees.authorId.
+      // Add trees.dbh, trees.statusName, trees.tripId, trees.authorId.
       await queryInterface.addColumn(
         "trees",
         "dbh",
-        {
-          type: Sequelize.FLOAT,
-        },
-        { transaction }
-      );
-      await queryInterface.addColumn(
-        "trees",
-        "height",
         {
           type: Sequelize.FLOAT,
         },
@@ -308,13 +295,12 @@ module.exports = {
 
       Object.entries(mostRecentTreeCensusForTree).map(
         ([tag, mostRecentTreeCensus]) => {
-          const { dbh, height, tripId, authorId, updatedAt } =
+          const { dbh, tripId, authorId, updatedAt } =
             mostRecentTreeCensus;
           return queryInterface.bulkUpdate(
             "trees",
             {
               dbh,
-              height,
               tripId,
               authorId,
               updatedAt,

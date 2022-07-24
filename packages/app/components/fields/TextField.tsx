@@ -43,7 +43,7 @@ const TextField: React.FC<TextFieldProps> = ({
     let keyboardType: KeyboardTypeOptions = "default";
     switch (textType) {
       case "INTEGER":
-        keyboardType = "number-pad";
+        keyboardType = 'numeric';
         break;
       case "DECIMAL":
         keyboardType = "decimal-pad";
@@ -88,10 +88,18 @@ const TextField: React.FC<TextFieldProps> = ({
             secureTextEntry={secure}
             keyboardType={keyboardType}
             onSubmitEditing={(e) => {
-              setValue(e.nativeEvent.text);
+              if(keyboardType=='numeric') {
+                setValue(e.nativeEvent.text.replace(/[^0-9]/g, ''));
+              } else {
+                setValue(e.nativeEvent.text);
+              }
             }}
             onChange={(e) => {
-              setValue(e.nativeEvent.text);
+              if(keyboardType=='numeric') {
+                setValue(e.nativeEvent.text.replace(/[^0-9]/g, ''))
+              } else {
+                setValue(e.nativeEvent.text);
+              }
             }}
             multiline={textType === "LONG_TEXT"}
             returnKeyType={textType === "LONG_TEXT" ? "default" : "done"}
