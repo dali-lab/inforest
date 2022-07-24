@@ -56,6 +56,7 @@ export interface ForestCensusState {
   selected: string | undefined;
   indices: {
     byForests: Record<string, Set<string>>;
+    byForestActive: Record<string, string>;
   };
   loading: boolean;
 }
@@ -65,6 +66,7 @@ const initialState: ForestCensusState = {
   selected: undefined,
   indices: {
     byForests: {},
+    byForestActive: {},
   },
   loading: false,
 };
@@ -83,6 +85,8 @@ const upsertForestCensuses = (
         if (!(newCensus.forestId in newState.indices.byForests))
           newState.indices.byForests[newCensus.forestId] = new Set([]);
         newState.indices.byForests[newCensus.forestId].add(newCensus.id);
+        if (newCensus.active)
+          newState.indices.byForestActive[newCensus.forestId] = newCensus.id;
         if (action?.selectFinal) newState.selected = newCensus.id;
       });
     }
