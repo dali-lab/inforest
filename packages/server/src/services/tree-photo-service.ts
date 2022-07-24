@@ -17,11 +17,55 @@ export const bulkInsertTreePhotos = async (
     photo.thumbUrl = await uploadImage(resizedPhoto.thumb);
     delete photo.buffer;
   });
-  return await TreePhotoModel.bulkCreate(await Promise.all(treePhotos), {
-    updateOnDuplicate: Object.keys(
-      TreePhotoModel.rawAttributes
-    ) as (keyof TreePhoto)[],
-  });
+  // return await TreePhotoModel.bulkCreate(await Promise.all(treePhotos), {
+  //   updateOnDuplicate: Object.keys(
+  //     TreePhotoModel.rawAttributes
+  //   ) as (keyof TreePhoto)[],
+  // });
+  const added = [];
+  for (const treePhoto of treePhotos) {
+    added.push(
+      new Promise<[TreePhoto, any]>((resolve, reject) =>
+        TreePhotoModel.upsert(treePhoto)
+          .then((val) => resolve(val))
+          .catch((err) => {
+            console.log("Error when adding TreePhoto ", err);
+            reject(err);
+          })
+      )
+    );
+  }
+  const result = await Promise.allSettled(added);
+  return result.reduce((prev: string[], curr) => {
+    if (curr.status === "fulfilled") return prev.concat([curr.value[0].id]);
+    return prev;
+  }, []);
+};
+
+export const bulkDeleteTreePhotos = async (ids: string[]) => {
+  // return await TreeModel.bulkCreate(trees, {
+  //   updateOnDuplicate: Object.keys(TreeModel.rawAttributes) as (keyof Tree)[],
+  // });
+  const deleted = [];
+  for (const id of ids) {
+    deleted.push(
+      new Promise<string>((resolve, reject) => {
+        TreePhotoModel.destroy({ where: { id } })
+          .then(() => {
+            resolve(id);
+          })
+          .catch((err) => {
+            console.log(`Error when deleting Tree Photo id ${id}:`, err);
+            reject(err);
+          });
+      })
+    );
+  }
+  const result = await Promise.allSettled(deleted);
+  return result.reduce((prev: string[], curr) => {
+    if (curr.status === "fulfilled") return prev.concat([curr.value]);
+    return prev;
+  }, []);
 };
 
 export const createTreePhoto = async (

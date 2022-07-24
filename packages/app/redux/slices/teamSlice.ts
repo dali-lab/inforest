@@ -1,23 +1,25 @@
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { createSlice } from "@reduxjs/toolkit";
 import { Team } from "@ong-forestry/schema";
 import SERVER_URL from "../../constants/Url";
 import axios from "axios";
-import { UpsertAction } from "..";
+import { throwIfLoadingBase, UpsertAction, createAppAsyncThunk } from "../util";
 
 const BASE_URL = SERVER_URL + "teams/";
 
-export const getTeams = createAsyncThunk(
+const throwIfLoading = throwIfLoadingBase("teams");
+
+export const getTeams = createAppAsyncThunk(
   "team/getTeams",
-  async (userId: string, { dispatch }) => {
+  async (userId: string, { dispatch, getState }) => {
+    throwIfLoading(getState());
     dispatch(startTeamLoading());
     return await axios
       .get<Team[]>(`${BASE_URL}?userId=${userId}`)
+      .finally(() => dispatch(stopTeamLoading()))
       .then((response) => {
-        dispatch(stopTeamLoading());
         return response.data;
       })
       .catch((err) => {
-        dispatch(stopTeamLoading());
         throw err;
       });
   }

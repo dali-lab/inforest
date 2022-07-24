@@ -1,7 +1,9 @@
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { createSlice } from "@reduxjs/toolkit";
 import { Plot } from "@ong-forestry/schema";
 import SERVER_URL from "../../constants/Url";
 import axios from "axios";
+import { UpsertAction, createAppAsyncThunk } from "../util";
+import { produce } from "immer";
 
 const BASE_URL = SERVER_URL + "plots";
 
@@ -9,7 +11,7 @@ type GetForestPlotsParams = {
   forestId: string;
 };
 
-export const getForestPlots = createAsyncThunk(
+export const getForestPlots = createAppAsyncThunk(
   "plot/getForestPlots",
   async (params: GetForestPlotsParams) => {
     return await axios
@@ -45,6 +47,32 @@ const initialState: PlotState = {
   },
 };
 
+const upsertPlots = (state: PlotState, action: UpsertAction<Plot>) => {
+  return produce(
+    action?.overwriteNonDrafts ? initialState : state,
+    (newState) => {
+      const newPlots = action.data;
+      newPlots.forEach((newPlot) => {
+        newState.all[newPlot.id] = newPlot;
+        // add to latitude index
+        newState.latitude.push({
+          value: newPlot.latitude,
+          plotId: newPlot.id,
+        });
+        // add to longitude index
+        newState.longitude.push({
+          value: newPlot.longitude,
+          plotId: newPlot.id,
+        });
+        newState.indices.byNumber[newPlot.number] = newPlot.id;
+      });
+      // sort indices
+      newState.latitude.sort(({ value: a }, { value: b }) => a - b);
+      newState.longitude.sort(({ value: a }, { value: b }) => a - b);
+    }
+  );
+};
+
 export const plotSlice = createSlice({
   name: "plot",
   initialState,
@@ -61,23 +89,10 @@ export const plotSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder.addCase(getForestPlots.fulfilled, (state, action) => {
-      action.payload.forEach((plot) => {
-        state.all[plot.id] = plot;
-        // add to latitude index
-        state.latitude.push({
-          value: plot.latitude,
-          plotId: plot.id,
-        });
-        // add to longitude index
-        state.longitude.push({
-          value: plot.longitude,
-          plotId: plot.id,
-        });
-        state.indices.byNumber[plot.number] = plot.id;
+      return upsertPlots(state, {
+        data: action.payload,
+        overwriteNonDrafts: true,
       });
-      // sort indices
-      state.latitude.sort(({ value: a }, { value: b }) => a - b);
-      state.longitude.sort(({ value: a }, { value: b }) => a - b);
     });
   },
 });

@@ -20,6 +20,7 @@ import { TreeCensus } from "./tree-census";
 import { Forest } from "./forest";
 import { ForestCensus } from "./forest-census";
 import { VerificationCode } from "./verification-code";
+import { SyncResponse, SyncData } from "./sync";
 
 export {
   Plot,
@@ -41,4 +42,6 @@ export {
   Forest,
   ForestCensus,
   VerificationCode,
+  SyncResponse,
+  SyncData,
 };

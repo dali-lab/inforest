@@ -1,7 +1,8 @@
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { createSlice } from "@reduxjs/toolkit";
 import { TreeSpecies } from "@ong-forestry/schema";
 import SERVER_URL from "../../constants/Url";
 import axios from "axios";
+import { createAppAsyncThunk } from "../util";
 
 const BASE_URL = SERVER_URL + "trees/species";
 
@@ -9,7 +10,7 @@ type GetTreeSpeciesParams = {
   code: string;
 };
 
-export const getTreeSpecies = createAsyncThunk(
+export const getTreeSpecies = createAppAsyncThunk(
   "treeSpecies/getTreeSpecies",
   async (params: GetTreeSpeciesParams) => {
     return await axios
@@ -24,7 +25,7 @@ type GetManyTreeSpeciesParams = {
   codes: string[];
 };
 
-export const getManyTreeSpecies = createAsyncThunk(
+export const getManyTreeSpecies = createAppAsyncThunk(
   "treeSpecies/getManyTreeSpecies",
   async (params: GetManyTreeSpeciesParams) => {
     return await axios
@@ -35,7 +36,7 @@ export const getManyTreeSpecies = createAsyncThunk(
   }
 );
 
-export const getAllTreeSpecies = createAsyncThunk(
+export const getAllTreeSpecies = createAppAsyncThunk(
   "treeSpecies/getAllTreeSpecies",
   async () => {
     return await axios.get<TreeSpecies[]>(`${BASE_URL}`).then((response) => {

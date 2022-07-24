@@ -1,12 +1,14 @@
 import {
+  SyncResponse,
   Tree,
   TreeCensus,
   TreeCensusLabel,
   TreePhoto,
+  SyncData,
 } from "@ong-forestry/schema";
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
-import { RootState } from "..";
+import { createAppAsyncThunk } from "../util";
 import SERVER_URL from "../../constants/Url";
 import { clearTreeDrafts, getForestTrees, resetTrees } from "./treeSlice";
 import {
@@ -43,7 +45,7 @@ const initialState: SyncState = {
   loadingTasks: new Set([]),
 };
 
-export const uploadCensusData = createAsyncThunk(
+export const uploadCensusData = createAppAsyncThunk(
   "sync/uploadCensusData",
   async (_params, { getState, dispatch }) => {
     const loadMessage = "Uploading New Census Data...";
@@ -69,7 +71,7 @@ export const uploadCensusData = createAsyncThunk(
         drafts: treeCensusLabelDrafts,
         localDeletions: deletedTreeCensusLabels,
       },
-    } = getState() as RootState;
+    } = getState();
     const trees: Tree[] = [];
     const treeCensuses: TreeCensus[] = [];
     const treePhotos: (TreePhoto & { buffer: string })[] = [];
@@ -86,31 +88,33 @@ export const uploadCensusData = createAsyncThunk(
     treeCensusLabelDrafts.forEach((censusLabelId) => {
       treeCensusLabels.push(allTreeCensusLabels[censusLabelId]);
     });
+    const syncData: SyncData = {
+      upserted: { trees, treeCensuses, treePhotos, treeCensusLabels },
+      deleted: {
+        trees: Array.from(deletedTrees),
+        treeCensuses: Array.from(deletedTreeCensuses),
+        treePhotos: Array.from(deletedTreePhotos),
+        treeCensusLabels: Array.from(deletedTreeCensusLabels),
+      },
+    };
     return await axios
-      .post(BASE_URL, {
-        upserted: { trees, treeCensuses, treePhotos, treeCensusLabels },
-        deleted: {
-          trees: Array.from(deletedTrees),
-          treeCensuses: Array.from(deletedTreeCensuses),
-          treePhotos: Array.from(deletedTreePhotos),
-          treeCensusLabels: Array.from(deletedTreeCensusLabels),
-        },
-      })
+      .post<any, { data: SyncResponse }>(BASE_URL, syncData)
       .then(async (response) => {
+        const { trees, treeCensuses, treePhotos, treeCensusLabels } =
+          response.data;
         dispatch(stopLoading(loadMessage));
-        dispatch(clearTreeDrafts());
-        dispatch(clearTreeCensusDrafts());
-        dispatch(clearTreePhotoDrafts());
-        dispatch(clearTreeCensusLabelDrafts());
+        dispatch(clearTreeDrafts(trees));
+        dispatch(clearTreeCensusDrafts(treeCensuses));
+        dispatch(clearTreePhotoDrafts(treePhotos));
+        dispatch(clearTreeCensusLabelDrafts(treeCensusLabels));
         return response.data;
       })
       .catch((err: any) => {
         dispatch(stopLoading(loadMessage));
-        dispatch(clearTreeDrafts());
-        dispatch(clearTreeCensusDrafts());
-        dispatch(clearTreePhotoDrafts());
-        dispatch(clearTreeCensusLabelDrafts());
-
+        // dispatch(clearTreeDrafts());
+        // dispatch(clearTreeCensusDrafts());
+        // dispatch(clearTreePhotoDrafts());
+        // dispatch(clearTreeCensusLabelDrafts());
         alert(
           "An error occurred while syncing your data: " +
             err?.message +
@@ -121,21 +125,21 @@ export const uploadCensusData = createAsyncThunk(
   }
 );
 
-export const loadForestData = createAsyncThunk(
+export const loadForestData = createAppAsyncThunk(
   "sync/loadForestData",
   async (forestId: string, { dispatch }) => {
     const loadMessage = "Loading Census Data...";
     try {
       dispatch(startLoading(loadMessage));
       await dispatch(getForest({ id: forestId }));
+      await dispatch(getForestForestCensuses({ forestId }));
+      await dispatch(getPlotCensuses());
       await dispatch(getForestPlots({ forestId }));
       await dispatch(getForestTrees({ forestId }));
       await dispatch(getForestTreeCensuses({ forestId }));
       await dispatch(getAllTreeSpecies());
       await dispatch(getAllTreeLabels());
       await dispatch(getAllTreePhotoPurposes());
-      await dispatch(getForestForestCensuses({ forestId }));
-      await dispatch(getPlotCensuses());
       dispatch(stopLoading(loadMessage));
     } catch (err: any) {
       console.error(err);

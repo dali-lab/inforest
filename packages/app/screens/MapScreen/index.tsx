@@ -1,41 +1,19 @@
-import React, { useCallback, useMemo, useState } from "react";
-import { Dimensions, StyleSheet, View, Text } from "react-native";
-import { MapScreenModes, MapScreenZoomLevels } from "../../constants";
-
-import useAppDispatch from "../../hooks/useAppDispatch";
-import { selectPlot } from "../../redux/slices/plotSlice";
-import { deselectTree } from "../../redux/slices/treeSlice";
-import PlotView from "./PlotView";
-import ForestView from "./ExploreView";
-import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
-import { CensusStackParamList } from "../../Screens";
+import React, { useMemo } from "react";
+import { Dimensions, StyleSheet } from "react-native";
+import { MapScreenModes } from "../../constants";
 import useAppSelector from "../../hooks/useAppSelector";
-import { deselectTreeCensus } from "../../redux/slices/treeCensusSlice";
-import { selectPlotCensus } from "../../redux/slices/plotCensusSlice";
-import LoadingOverlay from "../../components/LoadingOverlay";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import ExploreScreen from "./ExploreScreen";
+import PlotScreen from "./PlotScreen";
+
+export type MapStackParamList = {
+  explore: Record<string, unknown>;
+  plot: Record<string, unknown>;
+};
+
+const MapStack = createNativeStackNavigator<MapStackParamList>();
 
 export default function MapScreen() {
-  const route = useRoute<RouteProp<CensusStackParamList, "map">>();
-  const dispatch = useAppDispatch();
-  const navigation = useNavigation();
-
-  const [zoomLevel, setZoomLevel] = useState<MapScreenZoomLevels>(
-    route.params.zoomLevel
-  );
-  const [mode, setMode] = useState<MapScreenModes>(route.params.mode);
-  const switchMode = useCallback(() => {
-    switch (mode) {
-      case MapScreenModes.Explore:
-        setMode(MapScreenModes.Plot);
-        break;
-      case MapScreenModes.Plot:
-        setMode(MapScreenModes.Explore);
-        break;
-    }
-  }, [mode]);
-
-  const { loadingTasks } = useAppSelector((state) => state.sync);
-
   const { all, selected: selectedPlotId } = useAppSelector(
     (state) => state.plots
   );
@@ -61,28 +39,24 @@ export default function MapScreen() {
     return index;
   }, [selectedForestCensusId, byForestCensuses, allPlotCensuses]);
 
-  const beginPlotting = useCallback(
-    (plot) => {
-      setZoomLevel(MapScreenZoomLevels.Plot);
-      dispatch(selectPlot(plot.id));
-      dispatch(selectPlotCensus(plotCensusesByActivePlot[plot.id]));
-    },
-    [setZoomLevel, dispatch, plotCensusesByActivePlot]
-  );
-
-  const endPlotting = useCallback(() => {
-    dispatch(deselectTree());
-    dispatch(deselectTreeCensus());
-    setZoomLevel(MapScreenZoomLevels.Forest);
-    navigation.navigate("home");
-  }, [dispatch, setZoomLevel, navigation]);
   return (
     <>
-      {loadingTasks.size > 0 && (
-        <LoadingOverlay isBackArrow={true}>
-          {loadingTasks.values().next().value}
-        </LoadingOverlay>
-      )}
+      <MapStack.Navigator
+        screenOptions={{ headerShown: false }}
+        initialRouteName="explore"
+      >
+        <MapStack.Screen
+          name="explore"
+          component={ExploreScreen}
+          initialParams={{ mode: MapScreenModes.Plot }}
+        />
+        <MapStack.Screen
+          name="plot"
+          component={PlotScreen}
+          initialParams={{ mode: MapScreenModes.Plot }}
+        />
+      </MapStack.Navigator>
+      {/*       
       <View style={styles.container}>
         {zoomLevel === "FOREST" && (
           <ForestView
@@ -94,7 +68,7 @@ export default function MapScreen() {
         {zoomLevel === "PLOT" && selectedPlot && (
           <PlotView mode={mode} switchMode={switchMode} onExit={endPlotting} />
         )}
-      </View>
+      </View> */}
     </>
   );
 }

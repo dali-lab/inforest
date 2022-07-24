@@ -28,37 +28,16 @@ import {
   TreePhotoPurposeState,
   TreeCensusLabelState,
 } from "./slices";
-import {
-  createTransform,
-  persistReducer,
-  persistStore,
-  getStoredState,
-} from "redux-persist";
+import { createTransform, persistReducer, persistStore } from "redux-persist";
 import hardSet from "redux-persist/lib/stateReconciler/hardSet";
 import ExpoFileSystemStorage from "redux-persist-expo-filesystem";
 import { enableMapSet } from "immer";
 import { isArray, isObject } from "lodash";
 import { SyncState } from "./slices/syncSlice";
 import { isEmpty } from "lodash";
+import { RootState } from "./util";
 
 enableMapSet();
-
-export type RootState = {
-  user: UserState;
-  forest: ForestState;
-  plots: PlotState;
-  trees: TreeState;
-  treeLabels: TreeLabelState;
-  treeSpecies: TreeSpeciesState;
-  treePhotos: TreePhotoState;
-  teams: TeamState;
-  treePhotoPurposes: TreePhotoPurposeState;
-  forestCensuses: ForestCensusState;
-  plotCensuses: PlotCensusState;
-  treeCensuses: TreeCensusState;
-  treeCensusLabels: TreeCensusLabelState;
-  sync: SyncState;
-};
 
 const reducers = {
   user: userReducer,
@@ -157,9 +136,15 @@ const SelectedTransformer = createTransform(
 );
 
 const LoadingTransformer = createTransform(
-  (inboundState: RootState[keyof RootState]) => {
+  (inboundState: any) => {
     if ("loading" in inboundState) return { ...inboundState, loading: false };
     return inboundState;
+  },
+  (outboundState: RootState[keyof RootState]) => {
+    if ("loadingTasks" in outboundState) {
+      return { ...outboundState, loadingTasks: new Set([]) };
+    }
+    return outboundState;
   }
 );
 
@@ -173,7 +158,6 @@ export const persistConfig = {
     SelectedTransformer,
     LoadingTransformer,
   ],
-  blacklist: ["sync"],
   debug: true,
 };
 
@@ -192,9 +176,3 @@ export const store = configureStore({
 export const persistor = persistStore(store, {});
 
 export type AppDispatch = typeof store.dispatch;
-
-export type UpsertAction<Model> = {
-  data: Model[];
-  draft?: boolean;
-  selectFinal?: boolean;
-};

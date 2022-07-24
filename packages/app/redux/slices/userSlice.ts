@@ -1,7 +1,8 @@
-import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { User } from "@ong-forestry/schema";
 import SERVER_URL from "../../constants/Url";
 import axios from "axios";
+import { createAppAsyncThunk, throwIfLoadingBase } from "../util";
 
 const BASE_URL = SERVER_URL + "users/";
 
@@ -12,17 +13,19 @@ export interface AuthParams {
   lastName?: string;
 }
 
+const throwIfLoading = throwIfLoadingBase("user");
+
 type LoginResponse = { token: string; user: User };
 
-export const login = createAsyncThunk(
+export const login = createAppAsyncThunk(
   "user/login",
-  async (credentials: AuthParams, { dispatch }) => {
+  async (credentials: AuthParams, { dispatch, getState }) => {
+    throwIfLoading(getState());
     dispatch(startUserLoading());
     return await axios
       .post<LoginResponse>(`${BASE_URL}login`, credentials)
+      .finally(() => dispatch(stopUserLoading()))
       .then((response) => {
-        dispatch(stopUserLoading());
-
         if (response.status == 403) {
           // forbidden - not verified
           return {
@@ -33,7 +36,6 @@ export const login = createAsyncThunk(
         return { ...response.data };
       })
       .catch((error) => {
-        dispatch(stopUserLoading());
         alert(
           "Unable to log in, please ensure your email and password are correct."
         );
@@ -44,26 +46,25 @@ export const login = createAsyncThunk(
 );
 
 // might not need to be a thunk but it might end up calling login() or something
-export const signUp = createAsyncThunk(
+export const signUp = createAppAsyncThunk(
   "user/signUp",
   async (credentials: AuthParams, { dispatch }) => {
     dispatch(startUserLoading());
     return await axios
       .post(`${BASE_URL}signup`, credentials)
+      .finally(() => dispatch(stopUserLoading()))
       .then((response) => {
         alert("Sign up successful! Use your account information to sign in.");
-        dispatch(stopUserLoading());
         return response.data;
       })
       .catch((error) => {
         console.error("Error when signing up", error);
-        dispatch(stopUserLoading());
         return false;
       });
   }
 );
 
-export const verify = createAsyncThunk(
+export const verify = createAppAsyncThunk(
   "user/verify",
   async (credentials: { email: string; code: string }) => {
     return await axios
@@ -77,7 +78,7 @@ export const verify = createAsyncThunk(
   }
 );
 
-export const resendCode = createAsyncThunk(
+export const resendCode = createAppAsyncThunk(
   "user/resend-code",
   async (credentials: { email: string }) => {
     // const { dispatch } = thunkApi;
@@ -95,7 +96,7 @@ export const resendCode = createAsyncThunk(
 type EditUserParams = Partial<User> & { id: string };
 
 // TODO: enforce that the current user is the one being edited
-export const editUser = createAsyncThunk(
+export const editUser = createAppAsyncThunk(
   "user/editUser",
   async (user: EditUserParams) => {
     return await axios
@@ -114,18 +115,17 @@ export const editUser = createAsyncThunk(
   }
 );
 
-export const getUserByToken = createAsyncThunk(
+export const getUserByToken = createAppAsyncThunk(
   "user/getUserByToken",
   async (token: string, { dispatch }) => {
     dispatch(startUserLoading());
     return await axios
       .get<User>(`${BASE_URL}${token}`)
+      .finally(() => dispatch(stopUserLoading()))
       .then((response) => {
-        dispatch(stopUserLoading());
         return response.data;
       })
       .catch((err) => {
-        dispatch(stopUserLoading());
         console.error(err);
         alert("Your login session has expired.");
         throw err;

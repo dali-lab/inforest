@@ -1,4 +1,5 @@
 export * from "services/tree-service";
+export * from "services/tree-census-label-service";
 export * from "services/tree-census-service";
 export * from "services/tree-label-service";
 export * from "services/team-service";
