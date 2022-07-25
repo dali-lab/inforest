@@ -30,8 +30,6 @@ type PlotViewProps = {
 const PlotView: React.FC<PlotViewProps> = (props) => {
   const { mode } = props;
 
-  const isConnected = useIsConnected();
-
   const [viewMode, setViewMode] = useState<MapScreenModes>(mode);
 
   const navigation = useNavigation();
@@ -131,11 +129,11 @@ const PlotView: React.FC<PlotViewProps> = (props) => {
         setViewMode(MapScreenModes.Explore);
         break;
     }
-  }, [viewMode, setViewMode, navigation]);
+  }, [viewMode, setViewMode]);
 
   useEffect(() => {
     if (!selectedPlot) navigation.goBack();
-  }, [selectedPlot]);
+  }, [selectedPlot, navigation]);
 
   return (
     <>
@@ -151,31 +149,18 @@ const PlotView: React.FC<PlotViewProps> = (props) => {
         <View style={{ position: "absolute", top: 32, right: 32 }}>
           <ModeSwitcher mode={viewMode} switchMode={switchMode}></ModeSwitcher>
         </View>
-        <View style={{ position: "absolute", top: 100}}>
-          {direction === 1 &&
-            <Ionicons
-              name="arrow-up" 
-              size={100}
-            />
-          }
-          {direction === 2 &&
-            <Ionicons
-              name="arrow-forward" 
-              size={100}
-            />
-          }
-          {direction === 3 &&
-            <Ionicons
-              name="arrow-down" 
-              size={100}
-            />
-          }
-          {direction === 0 &&
-            <Ionicons
-              name="arrow-back" 
-              size={100}
-            />
-          }
+        <MapOverlay top={108} right={32}>
+          <Ionicons
+            name="list-outline"
+            size={32}
+            onPress={() => navigation.navigate("plotTable")}
+          />
+        </MapOverlay>
+        <View style={{ position: "absolute", top: 100 }}>
+          {direction === 1 && <Ionicons name="arrow-up" size={100} />}
+          {direction === 2 && <Ionicons name="arrow-forward" size={100} />}
+          {direction === 3 && <Ionicons name="arrow-down" size={100} />}
+          {direction === 0 && <Ionicons name="arrow-back" size={100} />}
         </View>
         <View
           style={{ ...styles.mapOverlay, bottom: drawerHeight + 32, left: 32 }}

@@ -224,7 +224,6 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
         ? deleteTreeCensus(selectedTreeCensus.id)
         : locallyDeleteTreeCensus(selectedTreeCensus.id)
     );
-    console.log(selectedTree);
     if (selectedTree?.initCensusId === selectedTreeCensus.id)
       dispatch(
         isConnected
@@ -247,17 +246,17 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
     if (
       !(
         selectedTree?.plotId &&
-        selectedTree?.id &&
+        selectedTreeId &&
         plotCensus?.id &&
         currentUser &&
-        allTreeCensuses[byTreeActive[selectedTree.id]]?.plotCensusId !=
+        allTreeCensuses[byTreeActive[selectedTreeId]]?.plotCensusId !=
           plotCensus.id
       )
     )
       return;
     const newCensus: Partial<TreeCensus> = {
       ...blankTreeCensus,
-      treeId: selectedTree?.id,
+      treeId: selectedTreeId,
       plotCensusId: plotCensus.id,
       authorId: currentUser.id,
     };
@@ -268,6 +267,7 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
     }
   }, [
     selectedTreeId,
+    selectedTree?.plotId,
     plotCensus,
     // dispatch,
     isConnected,
@@ -275,14 +275,12 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
     currentUser,
     byPlotCensus,
     allTreeCensuses,
-    // treeCensusLoading,
   ]);
   useEffect(() => {
     // addNewCensus();
   }, [addNewCensus]);
 
   useEffect(() => {
-    console.log(!selectedTree?.initCensusId, selectedTreeCensusId);
     if (!selectedTree?.initCensusId && selectedTreeCensusId)
       dispatch(
         locallyUpdateTree({
@@ -406,14 +404,27 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
                     {selectedTreeCensus?.flagged ? "Flagged" : "Flag"} for
                     Review
                   </AppButton>
-                  <Ionicons name="close" size={24} onPress={minimizeDrawer} />
+                  <Ionicons
+                    name="close"
+                    size={24}
+                    onPress={() => {
+                      if (!selectedTree && !selectedTreeCensus)
+                        minimizeDrawer();
+                      if (!selectedTree?.tag) {
+                        alert("You must set a tree tag!");
+                      } else if (!selectedTreeCensus?.dbh)
+                        alert(
+                          "You must set a DBH for this tree! If you are unsure, set a rough dbh and flag the census entry for review."
+                        );
+                      else minimizeDrawer();
+                    }}
+                  />
                 </View>
               )}
               {drawerState === "EXPANDED" && !!selectedTree && (
                 <>
                   {selectedTreeCensus && (
                     <>
-                      <Stack size={24}></Stack>
                       <DataEntryForm
                         selectedTree={selectedTree}
                         selectedTreeCensus={selectedTreeCensus}
@@ -426,7 +437,9 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
                           minimizeDrawer();
                         }}
                         finish={(newTree, newTreeCensus) => {
-                          if (!newTreeCensus?.dbh)
+                          if (!newTree?.tag) {
+                            alert("You must set a tree tag!");
+                          } else if (!newTreeCensus?.dbh)
                             alert(
                               "You must set a DBH for this tree! If you are unsure, set a rough dbh and flag the census entry for review."
                             );

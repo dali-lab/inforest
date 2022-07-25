@@ -19,7 +19,7 @@ import * as geolib from "geolib";
 import { Ionicons } from "@expo/vector-icons";
 import * as utm from "utm";
 import dateformat from "dateformat";
-import { Plot, PlotCensusStatuses, Tree } from "@ong-forestry/schema";
+import { PlotCensusStatuses, Tree } from "@ong-forestry/schema";
 
 import { Text, TextVariants } from "../../components/Themed";
 import Colors from "../../constants/Colors";
@@ -32,7 +32,7 @@ import VisualizationModal from "../../components/VisualizationModal";
 import SearchModal from "../../components/SearchModal";
 import ColorKey from "../../components/ColorKey";
 import useAppSelector, { usePlotsInRegion } from "../../hooks/useAppSelector";
-import { RootState } from "../../redux";
+import { RootState } from "../../redux/util";
 
 import {
   DEFAULT_DBH,
@@ -113,7 +113,7 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
   const mapRef = useRef<MapView>(null);
 
   const dispatch = useAppDispatch();
-  const reduxState = useAppSelector((state: RootState) => state);
+  // const reduxState = useAppSelector((state: RootState) => state);
   const {
     all: allTrees,
     selected: selectedTreeId,
@@ -381,7 +381,7 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
         setViewMode(MapScreenModes.Explore);
         break;
     }
-  }, [viewMode, setViewMode, navigation]);
+  }, [viewMode, setViewMode]);
 
   const getCurrentLocation = useCallback(async () => {
     Location.getCurrentPositionAsync()
@@ -437,7 +437,7 @@ const ForestView: React.FC<ForestViewProps> = (props) => {
       )}
       <MapView
         style={styles.map}
-        userInterfaceStyle='light'
+        userInterfaceStyle="light"
         ref={mapRef}
         mapPadding={{
           top: 24,

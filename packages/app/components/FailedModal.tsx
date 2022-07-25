@@ -1,4 +1,4 @@
-import { isEmpty, isEqual } from "lodash";
+import { isEqual } from "lodash";
 import { FC, useCallback, useMemo } from "react";
 import { View } from "react-native";
 import useAppDispatch from "../hooks/useAppDispatch";
@@ -144,11 +144,11 @@ const FailedModal: FC = () => {
       <View style={{ flexDirection: "column" }}>
         <Text variant={TextVariants.H2}>Sync Failure</Text>
         <Text variant={TextVariants.Body} style={{ marginBottom: 12 }}>
-          Uploading failed for the following entity's tree numbers. Check these
-          trees and verify that the information you inputted is correct. If it
-          is, then these failures are likely due to a server issue. In that
-          case, copy down the failed data, delete it, and then re-input the tree
-          census with internet connection.
+          Uploading failed for the following entity&apos;s tree numbers. Check
+          these trees and verify that the information you inputted is correct.
+          If it is, then these failures are likely due to a server issue. In
+          that case, copy down the failed data, delete it, and then re-input the
+          tree census with internet connection.
         </Text>
         {!isEqual(failedObj.trees, emptyFailedObj.trees) && (
           <FailedContainer title="Failed Trees" failedObj={failedObj.trees} />

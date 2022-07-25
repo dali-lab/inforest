@@ -226,7 +226,7 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
       currentUser,
       byPlotCensus,
       allTreeCensuses,
-      // treeCensusLoading,
+      selectedPlotCensusId,
     ]
   );
 
