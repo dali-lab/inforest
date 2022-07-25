@@ -5,17 +5,10 @@ module.exports = {
     const transaction = await queryInterface.sequelize.transaction();
 
     try {
-      // add flagged column
-      await queryInterface.addColumn(
-        "tree_census",
-        "flagged",
-        {
-          type: Sequelize.BOOLEAN,
-          defaultValue: false,
-          allowNull: false,
-        },
-        { transaction }
-      );
+      // remove height column
+      await queryInterface.removeColumn("tree_census", "height", {
+        transaction,
+      });
 
       await transaction.commit();
     } catch (e) {
@@ -29,10 +22,15 @@ module.exports = {
     const transaction = await queryInterface.sequelize.transaction();
 
     try {
-      // remove flagged column
-      await queryInterface.removeColumn("tree_census", "flagged", {
-        transaction,
-      });
+      // add height column
+      await queryInterface.addColumn(
+        "tree_census",
+        "height",
+        {
+          type: Sequelize.FLOAT,
+        },
+        { transaction }
+      );
 
       await transaction.commit();
     } catch (e) {
