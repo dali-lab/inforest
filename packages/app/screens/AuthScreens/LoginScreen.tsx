@@ -40,8 +40,8 @@ const LoginScreen: React.FC = () => {
         <Image style={{ height: 185, width: 250 }} source={titled_logo}></Image>
         <Text variant={TextVariants.H1}>Sign in</Text>
         <View style={styles.formContainer}>
-          <View style={styles.formRow}>
-            <View style={{ flexDirection: "column", marginBottom: 24 }}>
+          <View style={styles.innerContainer}>
+            <View style={styles.formRow}>
               <TextField
                 value={state?.email}
                 setValue={(newValue) => {
@@ -53,7 +53,7 @@ const LoginScreen: React.FC = () => {
                 noHint
               />
             </View>
-            <View style={{ flexDirection: "column", marginBottom: 24 }}>
+            <View style={styles.formRow}>
               <TextField
                 value={state?.password}
                 setValue={(newValue) => {
@@ -142,10 +142,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 128,
     marginTop: 24,
   },
-  formRow: {
+  innerContainer: {
     flexDirection: "column",
     justifyContent: "space-between",
     marginTop: 12,
+  },
+  formRow: {
+    flexDirection: "column",
+    marginBottom: 24,
+    height: 80,
   },
   dividerLine: {},
   progressRow: {
