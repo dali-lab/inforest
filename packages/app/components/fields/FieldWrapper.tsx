@@ -9,7 +9,7 @@ interface FieldWrapperProps {
   children: ReactNode;
   label?: string;
   disabled?: boolean;
-  wrapperStyle?: ViewStyle;
+  wrapperStyle?: ViewStyle[];
   style?: ViewStyle;
   noHint?: boolean;
 }
@@ -25,21 +25,19 @@ const FieldWrapper: React.FC<FieldWrapperProps> = ({
   return disabled ? (
     <>{children}</>
   ) : (
-    <View style={[styles.wrapper, wrapperStyle]}>
+    <View style={[styles.wrapper, ...(wrapperStyle || [])]}>
       <View style={styles.header}>
         {label && <Text variant={TextVariants.Label}>{label}</Text>}
         <Queue size={6}></Queue>
-        {noHint ? null : (
+        {/* {noHint ? null : (
           <Ionicons
             name="ios-information-circle-outline"
             size={16}
             color={Colors.neutral[7]}
           ></Ionicons>
-        )}
+        )} */}
       </View>
-      <Inset vertical={4} horizontal={8}>
-        <View style={style}>{children}</View>
-      </Inset>
+      <View style={style}>{children}</View>
     </View>
   );
 };
@@ -47,13 +45,13 @@ const FieldWrapper: React.FC<FieldWrapperProps> = ({
 const styles = StyleSheet.create({
   wrapper: {
     backgroundColor: "white",
-    padding: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
     borderRadius: 10,
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
-    paddingLeft: 8,
   },
 });
 

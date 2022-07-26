@@ -153,31 +153,11 @@ const PlotView: React.FC<PlotViewProps> = (props) => {
         <View style={{ position: "absolute", top: 32, right: 32 }}>
           <ModeSwitcher mode={viewMode} switchMode={switchMode}></ModeSwitcher>
         </View>
-        <View style={{ position: "absolute", top: 100}}>
-          {direction === 0 &&
-            <Ionicons
-              name="arrow-up" 
-              size={100}
-            />
-          }
-          {direction === 1 &&
-            <Ionicons
-              name="arrow-forward" 
-              size={100}
-            />
-          }
-          {direction === 2 &&
-            <Ionicons
-              name="arrow-down" 
-              size={100}
-            />
-          }
-          {direction === 3 &&
-            <Ionicons
-              name="arrow-back" 
-              size={100}
-            />
-          }
+        <View style={{ position: "absolute", top: 100 }}>
+          {direction === 0 && <Ionicons name="arrow-up" size={100} />}
+          {direction === 1 && <Ionicons name="arrow-forward" size={100} />}
+          {direction === 2 && <Ionicons name="arrow-down" size={100} />}
+          {direction === 3 && <Ionicons name="arrow-back" size={100} />}
         </View>
         <View style={{ position: "absolute" }}>
           <VisualizationModal
@@ -204,9 +184,7 @@ const PlotView: React.FC<PlotViewProps> = (props) => {
             />
           }
         </View>
-        <View
-          style={{ ...styles.mapOverlay, bottom: drawerHeight + 32, left: 32 }}
-        >
+        <MapOverlay bottom={drawerHeight + 32} left={32}>
           <Ionicons
             name="ios-search"
             size={32}
@@ -214,12 +192,10 @@ const PlotView: React.FC<PlotViewProps> = (props) => {
               setSearchModalOpen(true);
             }}
           />
-        </View>
-        <View
-          style={{ ...styles.mapOverlay, bottom: drawerHeight + 32, right: 32 }}
-        >
+        </MapOverlay>
+        <MapOverlay bottom={drawerHeight + 32} right={32}>
           <Ionicons name="ios-refresh" size={32} onPress={rotate} />
-        </View>
+        </MapOverlay>
         {selectedPlot ? (
           <PlottingSheet
             mode={viewMode}

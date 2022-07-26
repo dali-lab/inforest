@@ -43,7 +43,7 @@ const TextField: React.FC<TextFieldProps> = ({
     let keyboardType: KeyboardTypeOptions = "default";
     switch (textType) {
       case "INTEGER":
-        keyboardType = 'numeric';
+        keyboardType = "numeric";
         break;
       case "DECIMAL":
         keyboardType = "decimal-pad";
@@ -63,7 +63,20 @@ const TextField: React.FC<TextFieldProps> = ({
     <FieldWrapper
       label={label}
       disabled={wrapperDisabled}
-      wrapperStyle={wrapperStyle}
+      wrapperStyle={[
+        wrapperStyle || {},
+        !isModal ? { height: "100%", flex: 1 } : {},
+      ]}
+      style={
+        !isModal
+          ? {
+              flexDirection: "column",
+              flex: 1,
+              justifyContent:
+                textType === "LONG_TEXT" ? "flex-start" : "center",
+            }
+          : undefined
+      }
       noHint={noHint}
     >
       <View
@@ -81,7 +94,7 @@ const TextField: React.FC<TextFieldProps> = ({
                 {
                   flexGrow: 1,
                   fontFamily: "Open Sans Regular",
-                  height: textType === "LONG_TEXT" ? 128 : undefined,
+                  // height: textType === "LONG_TEXT" ? 128 : undefined,
                 },
                 isModal && textType != "LONG_TEXT" && { fontSize: 36 },
               ]}
@@ -109,7 +122,7 @@ const TextField: React.FC<TextFieldProps> = ({
               color={value && value !== "" ? undefined : Colors.neutral[4]}
               style={{
                 flex: 1,
-                height: textType === "LONG_TEXT" ? 128 : undefined,
+                // height: textType === "LONG_TEXT" ? 128 : undefined,
                 fontSize: 14,
               }}
             >

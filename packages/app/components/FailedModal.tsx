@@ -131,7 +131,6 @@ const FailedModal: FC = () => {
     dispatch(clearTreeCensusLabelFailed());
     dispatch(clearTreePhotoFailed());
   }, []);
-  console.log(failedObj);
   return (
     <AppModal
       setVisible={closeModal}

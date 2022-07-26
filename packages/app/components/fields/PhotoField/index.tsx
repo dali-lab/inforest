@@ -95,42 +95,46 @@ const PhotoField: React.FC<PhotoFieldProps> = ({ census }) => {
     [allPurposes]
   );
   return (
-    <FieldWrapper
-      label="Upload Photos"
-      style={{ flexDirection: "row", alignItems: "center" }}
-    >
-      <View style={styles.photoUploadContainer}>
-        <Pressable style={styles.photoAdder} onPress={addPhoto}>
-          <Ionicons
-            name="cloud-upload-outline"
-            size={28}
-            style={{ marginVertical: 4, color: "#333333" }}
-          />
-          <Text
-            variant={TextVariants.Label}
-            style={{ fontSize: 14, color: "#333333" }}
-          >
-            Tap to Upload
-          </Text>
-        </Pressable>
-      </View>
-      <View style={styles.addedPhotosContainer}>
-        <FlatList
-          data={photos}
-          renderItem={(item) => (
-            <PhotoItem
-              item={item}
-              removePhoto={removePhoto}
-              options={purposesOptions}
-              setPurpose={(newValue) => {
-                setPhotoPurpose(item.item, newValue);
-              }}
+    <FieldWrapper label="Upload Photos" style={{ flex: 0 }}>
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+        }}
+      >
+        <View style={styles.photoUploadContainer}>
+          <Pressable style={styles.photoAdder} onPress={addPhoto}>
+            <Ionicons
+              name="cloud-upload-outline"
+              size={28}
+              style={{ marginVertical: 4, color: "#333333" }}
             />
-          )}
-          horizontal={true}
-          keyExtractor={(_item, i) => i.toString()}
-          style={{ paddingVertical: 12 }}
-        ></FlatList>
+            <Text
+              variant={TextVariants.Label}
+              style={{ fontSize: 14, color: "#333333" }}
+            >
+              Tap to Upload
+            </Text>
+          </Pressable>
+        </View>
+        <View style={styles.addedPhotosContainer}>
+          <FlatList
+            data={photos}
+            renderItem={(item) => (
+              <PhotoItem
+                item={item}
+                removePhoto={removePhoto}
+                options={purposesOptions}
+                setPurpose={(newValue) => {
+                  setPhotoPurpose(item.item, newValue);
+                }}
+              />
+            )}
+            horizontal={true}
+            keyExtractor={(_item, i) => i.toString()}
+            style={{ paddingVertical: 12 }}
+          ></FlatList>
+        </View>
       </View>
     </FieldWrapper>
   );
@@ -151,7 +155,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     flex: 1,
-    height: 140,
+    // height: 140,
   },
   photoAdder: {
     width: 120,
