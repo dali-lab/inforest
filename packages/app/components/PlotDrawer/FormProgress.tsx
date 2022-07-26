@@ -17,7 +17,7 @@ const FormProgress: React.FC<FormProgressProps> = ({ stage, setStage }) => {
           stage={0}
           currentStage={stage}
           Icon={MetaIcon}
-          title="Tree Info"
+          title="Census Data"
           setStage={setStage}
         />
         <StageDivider />
@@ -25,7 +25,7 @@ const FormProgress: React.FC<FormProgressProps> = ({ stage, setStage }) => {
           stage={1}
           currentStage={stage}
           Icon={EditIcon}
-          title="Census Data"
+          title="Additional Data"
           setStage={setStage}
         />
         <StageDivider />
@@ -138,7 +138,7 @@ const styles = StyleSheet.create({
     fontFamily: "Nunito Black",
     position: "absolute",
     top: 96,
-    width: "150%",
+    width: "160%",
     textAlign: "center",
   },
   stageDivider: {

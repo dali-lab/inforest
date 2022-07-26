@@ -17,6 +17,8 @@ import { MapOverlay } from "../../components/MapOverlay";
 import { VisualizationConfigType } from "../../constants";
 import { deselectTree, selectTree } from "../../redux/slices/treeSlice";
 import LoadingOverlay from "../../components/LoadingOverlay";
+import VisualizationModal from "../../components/VisualizationModal";
+import SearchModal from "../../components/SearchModal";
 import { deselectTreeCensus } from "../../redux/slices/treeCensusSlice";
 import { useNavigation } from "@react-navigation/native";
 import { useIsConnected } from "react-native-offline";
@@ -41,7 +43,7 @@ const PlotView: React.FC<PlotViewProps> = (props) => {
   );
   const [drawerHeight, setDrawerHeight] = useState(0);
 
-  const [direction, setDirection] = useState(1);
+  const [direction, setDirection] = useState(0);
   const rotate = useCallback(() => {
     setDirection((direction + 1) % 4);
   }, [direction]);
@@ -151,35 +153,38 @@ const PlotView: React.FC<PlotViewProps> = (props) => {
         <View style={{ position: "absolute", top: 32, right: 32 }}>
           <ModeSwitcher mode={viewMode} switchMode={switchMode}></ModeSwitcher>
         </View>
-        <View style={{ position: "absolute", top: 100}}>
-          {direction === 1 &&
-            <Ionicons
-              name="arrow-up" 
-              size={100}
-            />
-          }
-          {direction === 2 &&
-            <Ionicons
-              name="arrow-forward" 
-              size={100}
-            />
-          }
-          {direction === 3 &&
-            <Ionicons
-              name="arrow-down" 
-              size={100}
-            />
-          }
-          {direction === 0 &&
-            <Ionicons
-              name="arrow-back" 
-              size={100}
+        <View style={{ position: "absolute", top: 100 }}>
+          {direction === 0 && <Ionicons name="arrow-up" size={100} />}
+          {direction === 1 && <Ionicons name="arrow-forward" size={100} />}
+          {direction === 2 && <Ionicons name="arrow-down" size={100} />}
+          {direction === 3 && <Ionicons name="arrow-back" size={100} />}
+        </View>
+        <View style={{ position: "absolute" }}>
+          <VisualizationModal
+            config={visualizationConfig}
+            setConfig={setVisualizationConfig}
+            visible={visualizationConfig.modalOpen}
+            setVisible={() => {
+              setVisualizationConfig((prev) => ({
+                ...prev,
+                modalOpen: !prev.modalOpen,
+              }));
+            }}
+          />
+          {
+            <SearchModal
+              open={searchModalOpen}
+              onExit={() => {
+                setSearchModalOpen(false);
+              }}
+              onSubmit={(searchValue: string) => {
+                setSearchModalOpen(false);
+                findTree(searchValue);
+              }}
             />
           }
         </View>
-        <View
-          style={{ ...styles.mapOverlay, bottom: drawerHeight + 32, left: 32 }}
-        >
+        <MapOverlay bottom={drawerHeight + 32} left={32}>
           <Ionicons
             name="ios-search"
             size={32}
@@ -187,12 +192,10 @@ const PlotView: React.FC<PlotViewProps> = (props) => {
               setSearchModalOpen(true);
             }}
           />
-        </View>
-        <View
-          style={{ ...styles.mapOverlay, bottom: drawerHeight + 32, right: 32 }}
-        >
+        </MapOverlay>
+        <MapOverlay bottom={drawerHeight + 32} right={32}>
           <Ionicons name="ios-refresh" size={32} onPress={rotate} />
-        </View>
+        </MapOverlay>
         {selectedPlot ? (
           <PlottingSheet
             mode={viewMode}

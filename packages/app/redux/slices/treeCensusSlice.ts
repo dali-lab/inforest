@@ -234,7 +234,6 @@ export const treeCensusSlice = createSlice({
       });
     },
     locallyUpdateTreeCensus: (state, action) => {
-      console.log("updating", action.payload);
       return upsertTreeCensuses(state, { data: [action.payload], draft: true });
     },
     selectTreeCensus: (state, action) => {
