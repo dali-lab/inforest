@@ -34,10 +34,6 @@ import {
       name: "dbh",
       fields: ["dbh"],
     },
-    {
-      name: "height",
-      fields: ["height"],
-    },
   ],
 })
 class TreeCensus
@@ -59,9 +55,6 @@ class TreeCensus
 
   @Column(DataTypes.FLOAT)
   dbh: number;
-
-  @Column(DataTypes.FLOAT)
-  height: number;
 
   @BelongsToMany(() => TreeLabel, () => TreeCensusLabel)
   labels: ITreeLabel[];

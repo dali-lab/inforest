@@ -56,7 +56,12 @@ const DataEntryForm: React.FC<DataEntryFormProps & View["props"]> = ({
           </View>
           <View>
             {StageList[stage] == "META" && (
-              <MetaDataForm selectedTree={selectedTree} editTree={editTree} />
+              <MetaDataForm
+                selectedTree={selectedTree}
+                editTree={editTree}
+                selectedCensus={selectedTreeCensus}
+                editTreeCensus={editTreeCensus}
+              />
             )}
             {StageList[stage] == "DATA" && (
               <DataForm
@@ -110,9 +115,16 @@ const DataEntryForm: React.FC<DataEntryFormProps & View["props"]> = ({
 interface MetaFormProps {
   selectedTree: Tree;
   editTree: (changes: Partial<Tree>) => void;
+  selectedCensus: TreeCensus;
+  editTreeCensus: (changes: Partial<TreeCensus>) => void;
 }
 
-const MetaDataForm: React.FC<MetaFormProps> = ({ selectedTree, editTree }) => {
+const MetaDataForm: React.FC<MetaFormProps> = ({
+  selectedTree,
+  editTree,
+  selectedCensus,
+  editTreeCensus,
+}) => {
   const { all: allSpecies } = useAppSelector(
     (state: RootState) => state.treeSpecies
   );
@@ -126,21 +138,21 @@ const MetaDataForm: React.FC<MetaFormProps> = ({ selectedTree, editTree }) => {
   );
   return (
     <View style={styles.formContainer}>
-      <View style={styles.formRow}>
+      <View style={[styles.formRow, { height: 80 }]}>
         <FieldController
-          value={selectedTree?.tag || "0"}
+          value={selectedTree?.tag}
           style={{ marginRight: 12 }}
           onConfirm={async (newValue) => {
             editTree({ tag: newValue });
           }}
-          formComponent={<TextField label="Tree Tag" textType="SHORT_TEXT" />}
+          formComponent={<TextField label="Tree Tag" textType="INTEGER" />}
         />
         <FieldController
           value={selectedTree?.speciesCode || ""}
           onConfirm={(newValue) => {
             editTree({ speciesCode: newValue });
           }}
-          style={{ flex: 1, marginRight: 12 }}
+          style={{ flex: 1, marginRight: 12, minWidth: 96 }}
           formComponent={
             <TextField
               label="Species Code"
@@ -153,8 +165,19 @@ const MetaDataForm: React.FC<MetaFormProps> = ({ selectedTree, editTree }) => {
           }
         />
         <FieldController
+          value={selectedCensus?.dbh?.toString() || ""}
+          style={{ flex: 1, marginRight: 12, minWidth: 36 }}
+          onConfirm={(newValue) => {
+            editTreeCensus({ dbh: Number(newValue) });
+          }}
+          formComponent={
+            <TextField label="DBH" textType="INTEGER" suffix="cm" />
+          }
+        />
+
+        <FieldController
           value={selectedTree?.plotX?.toString() || "0"}
-          style={{ marginRight: 12 }}
+          style={{ marginRight: 12, maxWidth: 144 }}
           onConfirm={(newValue) => {
             editTree({ plotX: Number(newValue) });
           }}
@@ -164,6 +187,7 @@ const MetaDataForm: React.FC<MetaFormProps> = ({ selectedTree, editTree }) => {
         />
         <FieldController
           value={selectedTree?.plotY?.toString() || "0"}
+          style={{ maxWidth: 144 }}
           onConfirm={(newValue) => {
             editTree({ plotY: Number(newValue) });
           }}
@@ -233,20 +257,10 @@ const DataForm: React.FC<DataFormProps> = ({
 
   return (
     <View style={styles.formContainer}>
-      <View style={styles.formRow}>
-        <FieldController
-          value={selectedCensus?.dbh?.toString() || ""}
-          style={{ width: 120 }}
-          onConfirm={(newValue) => {
-            editTreeCensus({ dbh: Number(newValue) });
-          }}
-          formComponent={
-            <TextField label="DBH" textType="INTEGER" suffix="cm" />
-          }
-        />
+      <View style={[styles.formRow, { height: 80 }]}>
         <FieldController
           value={""}
-          style={{ marginLeft: 12, flex: 1 }}
+          style={{ flex: 1 }}
           onConfirm={(newValue) => {
             addLabel(newValue?.toString());
           }}
@@ -267,16 +281,16 @@ const DataForm: React.FC<DataFormProps> = ({
           }
         />
       </View>
-      <View style={{ marginTop: 12 }}>
+      <View style={{ marginTop: 12, height: 200 }}>
         <PhotoField census={selectedCensus} />
       </View>
-      <View style={styles.formRow}>
+      <View style={[styles.formRow, { marginTop: 0, height: 128 }]}>
         <FieldController
           value={selectedCensus.notes || ""}
           onConfirm={(newValue) => {
             editTreeCensus({ notes: newValue });
           }}
-          style={{ flex: 1 }}
+          style={{ width: "100%" }}
           formComponent={
             <TextField
               label="Notes"

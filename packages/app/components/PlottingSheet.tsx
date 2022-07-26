@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Animated, Pressable, StyleSheet, View } from "react-native";
 import * as utm from "utm";
 import DashedLine from "react-native-dashed-line";
-import { getRandomBytes } from "expo-random";
 import { Plot, PlotCensus, TreeCensus } from "@ong-forestry/schema";
 import Colors from "../constants/Colors";
 import { Text, TextVariants } from "./Themed";
@@ -179,7 +178,7 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
       zoneNum,
       zoneLetter
     );
-    const tag = getRandomBytes(2).join("").substring(0, 5);
+    const tag = '';
     const newTree = {
       tag,
       plotId: plot.id,
@@ -268,7 +267,7 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
             variant={TextVariants.Numerical}
             color={direction === 1 ? Colors.neutral[1] : undefined}
           >
-            {stakeNames[Math.abs(1 - direction)]}
+            {stakeNames[(((0 - direction) % 4) + 4) % 4]}
           </Text>
         </View>
         <View
@@ -283,7 +282,7 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
             variant={TextVariants.Numerical}
             color={direction === 2 ? Colors.neutral[1] : undefined}
           >
-            {stakeNames[Math.abs(2 - direction)]}
+            {stakeNames[(((1 - direction) % 4) + 4) % 4]}
           </Text>
         </View>
         <View
@@ -298,7 +297,7 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
             variant={TextVariants.Numerical}
             color={direction === 3 ? Colors.neutral[1] : undefined}
           >
-            {stakeNames[Math.abs(3 - direction)]}
+            {stakeNames[(((2 - direction) % 4) + 4) % 4]}
           </Text>
         </View>
         <View
@@ -313,7 +312,7 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
             variant={TextVariants.Numerical}
             color={direction === 0 ? Colors.neutral[1] : undefined}
           >
-            {stakeNames[Math.abs(0 - direction)]}
+            {stakeNames[(((3 - direction) % 4) + 4) % 4]}
           </Text>
         </View>
       </>
