@@ -94,7 +94,6 @@ const TextField: React.FC<TextFieldProps> = ({
                 {
                   flexGrow: 1,
                   fontFamily: "Open Sans Regular",
-                  // height: textType === "LONG_TEXT" ? 128 : undefined,
                 },
                 isModal && textType != "LONG_TEXT" && { fontSize: 36 },
               ]}
@@ -122,7 +121,6 @@ const TextField: React.FC<TextFieldProps> = ({
               color={value && value !== "" ? undefined : Colors.neutral[4]}
               style={{
                 flex: 1,
-                // height: textType === "LONG_TEXT" ? 128 : undefined,
                 fontSize: 14,
               }}
             >

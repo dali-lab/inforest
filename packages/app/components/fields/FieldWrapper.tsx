@@ -29,13 +29,17 @@ const FieldWrapper: React.FC<FieldWrapperProps> = ({
       <View style={styles.header}>
         {label && <Text variant={TextVariants.Label}>{label}</Text>}
         <Queue size={6}></Queue>
-        {/* {noHint ? null : (
+
+        {
+          // Add this back once hint feature is being fleshed out
+          /* {noHint ? null : (
           <Ionicons
             name="ios-information-circle-outline"
             size={16}
             color={Colors.neutral[7]}
           ></Ionicons>
-        )} */}
+        )} */
+        }
       </View>
       <View style={style}>{children}</View>
     </View>

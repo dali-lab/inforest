@@ -155,7 +155,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     flex: 1,
-    // height: 140,
   },
   photoAdder: {
     width: 120,
