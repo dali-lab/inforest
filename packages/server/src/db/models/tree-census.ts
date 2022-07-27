@@ -11,6 +11,7 @@ import {
   BelongsToMany,
   Default,
   HasOne,
+  BeforeUpdate,
 } from "sequelize-typescript";
 import Tree from "db/models/tree";
 import TreePhoto from "db/models/tree-photo";
@@ -86,6 +87,16 @@ class TreeCensus
 
   @Column(DataTypes.STRING)
   notes: string;
+
+  // @BeforeUpdate
+  // static async flagIfNoSpecies(instance: ITreeCensus) {
+  //   if (
+  //     !instance?.treeId ||
+  //     !(await Tree.findByPk(instance.treeId))?.speciesCode
+  //   ) {
+  //     instance.flagged = true;
+  //   }
+  // }
 }
 
 export default TreeCensus;

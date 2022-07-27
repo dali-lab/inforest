@@ -57,28 +57,28 @@ export const bulkDeleteTrees = async (ids: string[]) => {
 export const createTree = async (tree: Tree) => {
   // ensure tag unique in this forest
   // find plot tree is in
-  const plots = await getPlots({
-    id: tree.plotId,
-  });
-  if (plots.length == 0) {
-    throw new Error("Plot does not exist");
-  }
+  // const plots = await getPlots({
+  //   id: tree.plotId,
+  // });
+  // if (plots.length == 0) {
+  //   throw new Error("Plot does not exist");
+  // }
 
   // find other plots in the same forest
-  const allPlots = await getPlots({
-    forestId: plots[0].forestId,
-  });
-  // get ids of plots
-  const plotIds = allPlots.map((plot) => plot.id);
+  // const allPlots = await getPlots({
+  //   forestId: plots[0].forestId,
+  // });
+  // // get ids of plots
+  // const plotIds = allPlots.map((plot) => plot.id);
 
   // get trees with this tag in the plots in the same forest as this tree
-  const treesWithTag = await getTrees({
-    tags: [tree.tag],
-    plotIds: plotIds,
-  });
-  if (treesWithTag.length > 0) {
-    throw new Error("There is already a tree with this tag in this forest.");
-  }
+  // const treesWithTag = await getTrees({
+  //   tags: [tree.tag],
+  //   plotIds: plotIds,
+  // });
+  // if (treesWithTag.length > 0) {
+  //   throw new Error("There is already a tree with this tag in this forest.");
+  // }
   return await TreeModel.create(tree);
 };
 

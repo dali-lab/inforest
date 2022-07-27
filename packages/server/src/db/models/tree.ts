@@ -9,6 +9,7 @@ import {
   AllowNull,
   Default,
   HasMany,
+  BeforeCreate,
 } from "sequelize-typescript";
 import Plot from "db/models/plot";
 import TreeSpecies from "db/models/tree-species";
@@ -82,6 +83,11 @@ class Tree
 
   @BelongsTo(() => TreeCensus)
   initCensus: ITreeCensus | null;
+
+  @BeforeCreate
+  static async deleteEmptyTag(instance: ITree) {
+    if (instance?.tag === "") await Tree.destroy({ where: { tag: "" } });
+  }
 }
 
 export default Tree;
