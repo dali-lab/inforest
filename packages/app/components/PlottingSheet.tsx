@@ -258,14 +258,14 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
         <View
           style={{
             ...styles.stakeLabel,
-            ...(direction === 1 && styles.rootStakeLabel),
+            ...(direction === 0 && styles.rootStakeLabel),
             top: -(STAKE_LABEL_HEIGHT + SMALL_OFFSET),
             left: -(STAKE_LABEL_WIDTH + SMALL_OFFSET),
           }}
         >
           <Text
             variant={TextVariants.Numerical}
-            color={direction === 1 ? Colors.neutral[1] : undefined}
+            color={direction === 0 ? Colors.neutral[1] : undefined}
           >
             {stakeNames[(((0 - direction) % 4) + 4) % 4]}
           </Text>
@@ -273,14 +273,14 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
         <View
           style={{
             ...styles.stakeLabel,
-            ...(direction === 2 && styles.rootStakeLabel),
+            ...(direction === 1 && styles.rootStakeLabel),
             top: -(STAKE_LABEL_HEIGHT + SMALL_OFFSET),
             right: -(STAKE_LABEL_WIDTH + SMALL_OFFSET),
           }}
         >
           <Text
             variant={TextVariants.Numerical}
-            color={direction === 2 ? Colors.neutral[1] : undefined}
+            color={direction === 1 ? Colors.neutral[1] : undefined}
           >
             {stakeNames[(((1 - direction) % 4) + 4) % 4]}
           </Text>
@@ -288,14 +288,14 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
         <View
           style={{
             ...styles.stakeLabel,
-            ...(direction === 3 && styles.rootStakeLabel),
+            ...(direction === 2 && styles.rootStakeLabel),
             bottom: -(STAKE_LABEL_HEIGHT + SMALL_OFFSET),
             right: -(STAKE_LABEL_WIDTH + SMALL_OFFSET),
           }}
         >
           <Text
             variant={TextVariants.Numerical}
-            color={direction === 3 ? Colors.neutral[1] : undefined}
+            color={direction === 2 ? Colors.neutral[1] : undefined}
           >
             {stakeNames[(((2 - direction) % 4) + 4) % 4]}
           </Text>
@@ -303,14 +303,14 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
         <View
           style={{
             ...styles.stakeLabel,
-            ...(direction === 0 && styles.rootStakeLabel),
+            ...(direction === 3 && styles.rootStakeLabel),
             bottom: -(STAKE_LABEL_HEIGHT + SMALL_OFFSET),
             left: -(STAKE_LABEL_WIDTH + SMALL_OFFSET),
           }}
         >
           <Text
             variant={TextVariants.Numerical}
-            color={direction === 0 ? Colors.neutral[1] : undefined}
+            color={direction === 3 ? Colors.neutral[1] : undefined}
           >
             {stakeNames[(((3 - direction) % 4) + 4) % 4]}
           </Text>
