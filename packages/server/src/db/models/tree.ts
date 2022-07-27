@@ -84,10 +84,10 @@ class Tree
   @BelongsTo(() => TreeCensus)
   initCensus: ITreeCensus | null;
 
-  @BeforeCreate
-  static async deleteEmptyTag(instance: ITree) {
-    if (instance?.tag === "") await Tree.destroy({ where: { tag: "" } });
-  }
+  // @BeforeCreate
+  // static async deleteEmptyTag(instance: ITree) {
+  //   if (instance?.tag === "") await Tree.destroy({ where: { tag: "" } });
+  // }
 }
 
 export default Tree;

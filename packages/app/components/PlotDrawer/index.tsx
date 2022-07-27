@@ -183,12 +183,12 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
   // );
 
   const editTree = useCallback(
-    (updatedFields: Partial<Tree>) => {
+    async (updatedFields: Partial<Tree>) => {
       if (selectedTree) {
         try {
           const updated: Tree = { ...selectedTree, ...updatedFields };
           isConnected
-            ? dispatch(updateTree(updated))
+            ? await dispatch(updateTree(updated))
             : dispatch(locallyUpdateTree(updated));
         } catch (err: any) {
           alert(err?.message || "An unknown error occurred.");
@@ -201,6 +201,7 @@ export const PlotDrawer: React.FC<PlotDrawerProps> = ({
   const editTreeCensus = useCallback(
     async (updatedFields: Partial<TreeCensus>) => {
       if (selectedTreeCensus?.id) {
+        console.log(isConnected);
         try {
           const updated: TreeCensus = {
             ...selectedTreeCensus,

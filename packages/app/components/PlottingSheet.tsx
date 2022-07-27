@@ -178,7 +178,7 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
       zoneNum,
       zoneLetter
     );
-    const tag = '';
+    const tag = "";
     const newTree = {
       tag,
       plotId: plot.id,
@@ -404,7 +404,9 @@ export const PlottingSheet: React.FC<PlottingSheetProps> = ({
             expandDrawer();
           }}
         >
-          <Text variant={TextVariants.Label}>Tree #{selectedTree.tag}</Text>
+          <Text variant={TextVariants.Label}>
+            {selectedTree.tag ? `Tree #${selectedTree.tag}` : "New Tree"}
+          </Text>
           <Queue size={8}></Queue>
           <Ionicons name="ios-pencil" size={16}></Ionicons>
         </Pressable>

@@ -17,6 +17,7 @@ type TableEntry = {
   y?: number | string;
   codes?: string;
   flagged?: boolean | string;
+  draft?: boolean | string;
 };
 
 const PlotTableScreen: FC = () => {
@@ -27,6 +28,7 @@ const PlotTableScreen: FC = () => {
   const { all: allTrees } = useAppSelector((state) => state.trees);
   const {
     all: allTreeCensuses,
+    drafts: treeCensusDrafts,
     indices: { byPlotCensus },
   } = useAppSelector((state) => state.treeCensuses);
   const {
@@ -38,7 +40,6 @@ const PlotTableScreen: FC = () => {
     () => allPlotCensuses[selectedPlotCensusId],
     [allPlotCensuses, selectedPlotCensusId]
   );
-  console.log(selectedPlotCensus, selectedPlotCensusId);
   const selectedPlot = useMemo(
     () => allPlots[selectedPlotCensus.plotId],
     [allPlots, selectedPlotCensus]
@@ -63,6 +64,7 @@ const PlotTableScreen: FC = () => {
               .join(", ")
           : "No Codes",
         flagged: census?.flagged,
+        draft: treeCensusDrafts?.has(census.id),
       };
       entries.push(newEntry);
     });
@@ -77,8 +79,8 @@ const PlotTableScreen: FC = () => {
   ]);
 
   return (
-    <View style={{ width: "100%", paddingVertical: 12 }}>
-      <View style={styles.headerRow}>
+    <View style={styles.container}>
+      <View style={styles.navHeader}>
         <Ionicons
           name="ios-arrow-back"
           size={32}
@@ -89,11 +91,7 @@ const PlotTableScreen: FC = () => {
         </View>
       </View>
       <FlatList
-        style={{
-          paddingLeft: 20,
-          paddingRight: 54,
-          width: "100%",
-        }}
+        style={styles.table}
         ListHeaderComponent={
           <PlotTableRow
             isHeader
@@ -118,6 +116,7 @@ const PlotTableScreen: FC = () => {
         stickyHeaderIndices={[0]}
         data={dataList}
         renderItem={PlotTableRow}
+        bounces={false}
       />
     </View>
   );
@@ -131,7 +130,7 @@ interface PlotTableRowProps {
 const EMPTY_MESSAGE = "Not Set";
 
 const PlotTableRow: FC<PlotTableRowProps> = ({ item, isHeader }) => {
-  const { date, tag, species, dbh, x, y, codes, flagged } = item;
+  const { date, tag, species, dbh, x, y, codes, flagged, draft } = item;
   return (
     <View
       style={[
@@ -139,10 +138,19 @@ const PlotTableRow: FC<PlotTableRowProps> = ({ item, isHeader }) => {
           flexDirection: "row",
           width: "100%",
         },
+        isHeader && styles.headerRow,
       ]}
     >
       <View
-        style={[styles.tableCell, { justifyContent: "center", maxWidth: 36 }]}
+        style={[
+          styles.tableCell,
+          {
+            justifyContent: "center",
+            alignItems: "center",
+            flexDirection: "row",
+            maxWidth: 36,
+          },
+        ]}
       >
         {flagged === true && (
           <Ionicons
@@ -150,6 +158,13 @@ const PlotTableRow: FC<PlotTableRowProps> = ({ item, isHeader }) => {
             color={Colors.error}
             size={16}
             style={{ marginTop: 2 }}
+          />
+        )}
+        {draft === true && (
+          <Ionicons
+            name="document-outline"
+            color={Colors.highlight}
+            size={16}
           />
         )}
       </View>
@@ -202,11 +217,25 @@ const PlotTableRow: FC<PlotTableRowProps> = ({ item, isHeader }) => {
 };
 
 const styles = StyleSheet.create({
-  headerRow: {
+  container: {
+    width: "100%",
+    height: "100%",
+    paddingVertical: 12,
+    backgroundColor: Colors.secondary.lightest,
+  },
+  navHeader: {
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 12,
     paddingVertical: 16,
+  },
+  headerRow: {
+    backgroundColor: Colors.secondary.lightest,
+  },
+  table: {
+    paddingLeft: 18,
+    paddingRight: 54,
+    width: "100%",
   },
   tableCell: {
     flex: 1,

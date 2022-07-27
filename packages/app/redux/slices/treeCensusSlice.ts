@@ -161,6 +161,7 @@ export const upsertTreeCensuses = (
         newState.all[newCensus.id] = newCensus;
         // add to drafts
         if (action?.draft) newState.drafts.add(newCensus.id);
+        else newState.drafts.delete(newCensus.id);
         if (!(newCensus.plotCensusId in newState.indices.byPlotCensus))
           newState.indices.byPlotCensus[newCensus.plotCensusId] = new Set([]);
         newState.indices.byPlotCensus[newCensus.plotCensusId].add(newCensus.id);
