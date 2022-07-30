@@ -18,6 +18,7 @@ import {
   forestRouter,
   membershipRouter,
   syncRouter,
+  importDataRouter,
 } from "routes";
 
 declare global {
@@ -74,3 +75,4 @@ app.use("/teams", teamRouter);
 app.use("/forests", forestRouter);
 app.use("/memberships", membershipRouter);
 app.use("/sync", syncRouter);
+app.use("/import_data", importDataRouter);

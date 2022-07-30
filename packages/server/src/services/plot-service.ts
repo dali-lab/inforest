@@ -9,7 +9,7 @@ export const createPlot = async (plot: Plot) => {
 export interface PlotParams {
   id?: string;
 
-  number?: number;
+  number?: number | string;
   name?: string;
 
   forestId?: string;
@@ -46,7 +46,7 @@ const constructQuery = (params: PlotParams) => {
   }
   if (number) {
     query.where.number = {
-      [Op.eq]: number,
+      [Op.eq]: number.toString(),
     };
   }
   if (name) {
