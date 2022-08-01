@@ -11,7 +11,6 @@ import {
   getTreeCensuses,
 } from "services";
 import { PlotCensusStatuses } from "../enums";
-
 import { PlotCensusAssignment } from "db/models";
 
 const uuid = require("uuid4");
@@ -154,6 +153,15 @@ export const getPlotCensuses = async (params: PlotCensusParams) => {
   }
 
   return plotCensuses;
+};
+
+export const editPlotCensusStatus = async (status: PlotCensusStatuses, plotCensusId: string) => {
+  const result = await PlotCensusModel.update(
+    { status: status },
+    { where: { id: plotCensusId }, returning: true }
+  );
+
+  return result[1][0];
 };
 
 export const submitForReview = async (params: Pick<PlotCensus, "plotId">) => {

@@ -1,9 +1,11 @@
 import * as utm from "utm";
 import { Tree, TreeCensus, Plot, PlotCensus } from "@ong-forestry/schema";
 import { createTree, editTree, getTrees, TreeParams } from "./tree-service";
-import { createTreeCensus } from "./tree-census-service";
+import { createTreeCensus, editTreeCensus, getTreeCensuses, TreeCensusParams } from "./tree-census-service";
+import { createPlotCensus, editPlotCensusStatus } from "./plot-census-service";
 import { getPlots } from "./plot-service";
 import { getPlotCensuses } from "./plot-census-service";
+import { PlotCensusStatuses } from "../enums";
 
 export interface SheetRowParams {
   plotNumber: string,
@@ -20,14 +22,16 @@ export interface SheetRowParams {
 
 export interface SheetRowOutput {
   tree: Tree,
-  treeCensus: TreeCensus
+  treeCensus: TreeCensus,
+  plotCensus: PlotCensus
 }
 
 export const addSheetRow = async (
   rowData: SheetRowParams, 
   forestId: string, 
   forestCensusId: string,
-  authorId: string
+  authorId: string,
+  rowIdx: number
 ) => {
   try {
     const queryPlots: Plot[] = await getPlots({
@@ -65,45 +69,63 @@ export const addSheetRow = async (
       speciesCode: rowData.treeSpeciesCode,
     });
     let tree : Tree;
-    console.log('here0');
     if(queryTrees.length === 0) {
       tree = await createTree(newTree as Tree);
     } else {
       const treeParams: TreeParams = ({
         id: queryTrees[0].id,
-      })
-      tree = await editTree(newTree, treeParams)
+      });
+      tree = await editTree(newTree, treeParams);
     }
 
-    console.log('here1');
     const queryPlotCensuses: PlotCensus[] = await getPlotCensuses({
       forestCensusId: forestCensusId,
       plotId: plotData.id,
     });
+    let plotCensus : PlotCensus;
     if(queryPlotCensuses.length === 0) {
-      throw new Error(
-        "No plot census found."
-      );
+      plotCensus = await createPlotCensus(plotData.id);
     }
-    const plotCensusData: PlotCensus = queryPlotCensuses[0];
+    else if(queryPlotCensuses[0].status !== PlotCensusStatuses.InProgress) {
+      plotCensus = await editPlotCensusStatus(PlotCensusStatuses.InProgress, queryPlotCensuses[0].id);
+    }
+    else {
+      plotCensus = queryPlotCensuses[0];
+    }
+
+    const queryTreeCensuses: TreeCensus[] = await getTreeCensuses({
+      treeId: tree.id,
+      plotCensusId: plotCensus.id,
+    });
     const newTreeCensus: Partial<TreeCensus> =({
       treeId: tree.id,
       tree,
       dbh: rowData.treeCensusDbh,
       flagged: false,
-      plotCensus: plotCensusData,
-      plotCensusId: plotCensusData.id,
+      plotCensus: plotCensus,
+      plotCensusId: plotCensus.id,
       authorId: authorId,
     });
-    const treeCensus = await createTreeCensus(newTreeCensus as TreeCensus);
+    let treeCensus : TreeCensus;
+    if(queryTreeCensuses.length === 0) {
+      treeCensus = await createTreeCensus(newTreeCensus as TreeCensus);
+    } else {
+      const treeCensusParams: TreeCensusParams = ({
+        id: queryTreeCensuses[0].id,
+      })
+      treeCensus = await editTreeCensus(newTreeCensus as TreeCensus, treeCensusParams);
+    }
+
+    plotCensus = await editPlotCensusStatus(PlotCensusStatuses.Approved, plotCensus.id);
 
     return {
       tree,
-      treeCensus
+      treeCensus,
+      plotCensus,
     } as SheetRowOutput;
   } catch(e : any) {
     console.error(e);
-    throw e;
+    throw new Error(`On row ${rowIdx}: ` + e.message);
   }
 }
 
@@ -112,9 +134,9 @@ export interface SheetInput {
   Date: string,
   Tag: string,
   Species: string,
-  DBH: string,
-  local_x: string,
-  local_y: string,
+  DBH: number,
+  local_x: number,
+  local_y: number,
   Code: string,
   Family: string,
   Type: string,
@@ -133,9 +155,9 @@ export const bulkUpsertSheetRows = async (
       treeCensusUpdatedAt: new Date(sheet[i].Date),
       treeTag: sheet[i].Tag,
       treeSpeciesCode: sheet[i].Species,
-      treeCensusDbh: parseInt(sheet[i].DBH),
-      treePlotX: parseInt(sheet[i].local_x),
-      treePlotY: parseInt(sheet[i].local_y),
+      treeCensusDbh: sheet[i].DBH,
+      treePlotX: sheet[i].local_x,
+      treePlotY: sheet[i].local_y,
       treeCensusLabelCode: sheet[i].Code,
       treeSpeciesFamily: sheet[i].Family,
       treeSpeciesType: sheet[i].Type,
@@ -143,11 +165,11 @@ export const bulkUpsertSheetRows = async (
     
     added.push(
       new Promise<SheetRowOutput>((resolve, reject) =>
-        addSheetRow(rowData, forestId, forestCensusId, authorId)
+        addSheetRow(rowData, forestId, forestCensusId, authorId, i)
           .then((val) => resolve(val))
           .catch((err) => {
             console.log(`Error while uploading data`, err);
-              reject(err);
+              reject(err.message);
           })
       )
     );
