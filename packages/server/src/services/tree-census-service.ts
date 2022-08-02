@@ -71,7 +71,7 @@ export const bulkDeleteTreeCensuses = async (ids: string[]) => {
 };
 
 //TODO: revisit this
-const validateTreeCensus = async (treeCensusData: Partial<TreeCensus>) => {
+const validateTreeCensus = async (treeCensusData: Partial<TreeCensus>, forestCensusId?: string) => {
   // get all data about whatever was passed about the tree census
   const treeCensus = (await getTreeCensuses({ id: treeCensusData.id }))[0];
   // find tree being censused -> plot it's on -> active plot census
@@ -88,11 +88,20 @@ const validateTreeCensus = async (treeCensusData: Partial<TreeCensus>) => {
   // if (plots.length == 0) {
   //   throw new Error("Plot does not exist");
   // }
+  let plotCensuses : PlotCensus[];
+  if(forestCensusId === undefined || forestCensusId === null) {
+    plotCensuses = await getPlotCensuses({
+      plotId: plots[0].id,
+      statuses: [PlotCensusStatuses.InProgress],
+    });
+  } else {
+    plotCensuses = await getPlotCensuses({
+      plotId: plots[0].id,
+      statuses: [PlotCensusStatuses.InProgress],
+      forestCensusId,
+    });
+  }
 
-  const plotCensuses = await getPlotCensuses({
-    plotId: plots[0].id,
-    statuses: [PlotCensusStatuses.InProgress],
-  });
   if (plotCensuses.length > 1) {
     throw new Error("Error: more than one active census on this plot");
   }
@@ -141,6 +150,7 @@ export interface TreeCensusParams {
   treeIds?: string[];
   plotCensusId?: string;
   forestId?: string;
+  forestCensusId?: string;
   authorId?: string;
   flagged?: boolean;
 
@@ -213,7 +223,12 @@ export const editTreeCensus = async (
   treeCensus: Omit<TreeCensus, "plotCensusId">,
   params: TreeCensusParams
 ) => {
-  await validateTreeCensus({ ...params, ...treeCensus });
+  if(params.forestCensusId === undefined || params.forestCensusId === null) {
+    await validateTreeCensus({ ...params, ...treeCensus });
+  } else {
+    await validateTreeCensus({ ...params, ...treeCensus }, params.forestCensusId);
+  }
+  
   const result = (
     await TreeCensusModel.update(treeCensus, constructQuery(params))
   )[1][0].get();

@@ -15,7 +15,7 @@ import { PlotCensusAssignment } from "db/models";
 
 const uuid = require("uuid4");
 
-export const createPlotCensus = async (plotId: string) => {
+export const createPlotCensus = async (plotId: string, forestCensusId?: string) => {
   if (plotId == null) {
     throw new Error("You must specify a plot.");
   }
@@ -26,24 +26,27 @@ export const createPlotCensus = async (plotId: string) => {
     throw new Error("This plot does not exist.");
   }
 
-  // find in-progress forest census on forest containing this plot
-  const forestCensus = await getForestCensuses({
-    forestId: plots[0].forestId,
-    active: true,
-  });
-  if (forestCensus.length > 1) {
-    throw new Error("Error: more than one open census on this forest");
-  }
+  if(forestCensusId === undefined || forestCensusId === null) {
+    // find in-progress forest census on forest containing this plot
+    const forestCensus = await getForestCensuses({
+      forestId: plots[0].forestId,
+      active: true,
+    });
+    if (forestCensus.length > 1) {
+      throw new Error("Error: more than one open census on this forest");
+    }
 
-  // if it doesn't exist, cannot create plot census
-  if (forestCensus.length == 0) {
-    throw new Error("This forest is not currently being censused");
+    // if it doesn't exist, cannot create plot census
+    if (forestCensus.length == 0) {
+      throw new Error("This forest is not currently being censused");
+    }
+    forestCensusId = forestCensus[0].id;
   }
 
   // check for existing ongoing censuses
   const existingCensuses = await getPlotCensuses({
     plotId,
-    forestCensusId: forestCensus[0].id,
+    forestCensusId,
     statuses: [PlotCensusStatuses.InProgress, PlotCensusStatuses.Pending],
   });
   if (existingCensuses.length > 1) {
@@ -57,7 +60,7 @@ export const createPlotCensus = async (plotId: string) => {
   // check for existing approved censuses from this generation
   const approvedCensus = await getPlotCensuses({
     plotId,
-    forestCensusId: forestCensus[0].id,
+    forestCensusId: forestCensusId,
     statuses: [PlotCensusStatuses.Approved],
   });
   if (approvedCensus.length > 0) {
@@ -69,7 +72,7 @@ export const createPlotCensus = async (plotId: string) => {
     id: uuid(),
     plotId,
     status: PlotCensusStatuses.InProgress,
-    forestCensusId: forestCensus[0].id,
+    forestCensusId: forestCensusId,
   });
 };
 
