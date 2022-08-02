@@ -10,3 +10,4 @@ export * from "routes/plot-routes";
 export * from "routes/plot-census-routes";
 export * from "routes/plot-census-assignment-routes";
 export * from "routes/sync-routes";
+export * from "routes/import-data-routes";
